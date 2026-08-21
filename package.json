@@ -28,6 +28,7 @@
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
     "@types/node": "^26.2.0",
+    "@types/pngjs": "^6.0.5",
     "pixelmatch": "^7.2.0",
     "playwright-core": "1.56.1",
     "pngjs": "^7.0.0",

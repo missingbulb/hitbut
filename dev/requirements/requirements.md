@@ -292,22 +292,37 @@ the design canvas.
 
 - `6.1` The home page leads with the search, then the most recent surfaced inconsistencies, then the tracked figures.
 <!-- gallery:6.1 -->
+
+![6.1 — The home page leads with the search, then the most recent surfaced inconsistencies, then the tracked figures.](screen/cases/home.6.1.png)
+
 <!-- /gallery:6.1 -->
 
 - `6.2` A figure page shows the profile, the counts, the topics, and the statement timeline with flagged statements marked.
 <!-- gallery:6.2 -->
+
+![6.2 — A figure page shows the profile, the counts, the topics, and the statement timeline with flagged statements marked.](screen/cases/figure.6.2.png)
+
 <!-- /gallery:6.2 -->
 
 - `6.3` A statement page shows the quote, its date, its context, and a link to the source it was taken from.
 <!-- gallery:6.3 -->
+
+![6.3 — A statement page shows the quote, its date, its context, and a link to the source it was taken from.](screen/cases/statement.6.3.png)
+
 <!-- /gallery:6.3 -->
 
 - `6.4` An inconsistency page shows the two statements side by side, separated by the «אבל» mark, with the rationale and both sources.
 <!-- gallery:6.4 -->
+
+![6.4 — An inconsistency page shows the two statements side by side, separated by the «אבל» mark, with the rationale and both sources.](screen/cases/inconsistency.6.4.png)
+
 <!-- /gallery:6.4 -->
 
 - `6.5` A search results page shows what matched, with the query's term highlighted in each result.
 <!-- gallery:6.5 -->
+
+![6.5 — A search results page shows what matched, with the query's term highlighted in each result.](screen/cases/search.6.5.png)
+
 <!-- /gallery:6.5 -->
 
 - `6.6` The methodology page states in plain Hebrew what detection confirms and what it does not, and how to report an error.
@@ -319,10 +334,16 @@ the design canvas.
   tell us it is wrong.
   </details>
 <!-- gallery:6.6 -->
+
+![6.6 — The methodology page states in plain Hebrew what detection confirms and what it does not, and how to report an error.](screen/cases/methodology.6.6.png)
+
 <!-- /gallery:6.6 -->
 
 - `6.7` At phone width the inconsistency page stacks the two statements vertically with the mark between them.
 <!-- gallery:6.7 -->
+
+![6.7 — At phone width the inconsistency page stacks the two statements vertically with the mark between them.](screen/cases/mobile-inconsistency.6.7.png)
+
 <!-- /gallery:6.7 -->
 
 - `6.8` An English statement renders the whole page LTR, with the mark reading "but".
@@ -333,6 +354,9 @@ the design canvas.
   inside v1 rather than deferred.
   </details>
 <!-- gallery:6.8 -->
+
+![6.8 — An English statement renders the whole page LTR, with the mark reading "but".](screen/cases/english-ltr.6.8.png)
+
 <!-- /gallery:6.8 -->
 
 ## 7. Shipping

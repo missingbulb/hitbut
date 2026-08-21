@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="32" fill="#9B2C20" />
+  <text
+    x="32"
+    y="43"
+    text-anchor="middle"
+    font-family="Frank Ruhl Libre, Georgia, serif"
+    font-size="24"
+    fill="#F6F3EC"
+  >אבל</text>
+</svg>
