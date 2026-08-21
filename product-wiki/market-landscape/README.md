@@ -1,0 +1,134 @@
+# Market landscape — civic accountability / fact-checking tech
+
+## Key insights
+
+- Fact-checking has peaked: ~443 orgs worldwide, output down ~6%, and 76% describe their finances as vulnerable or in crisis
+- Meta and USAID — the field's two biggest funders — both vanished for US-facing work within six months in 2025
+- Google killed the fact-check search snippet in June 2025, so distribution collapsed the same year as funding
+- Community Notes measurably works — reposts of noted posts drop 46% — so the crowd model is a real substitute, not just cover
+- The closest product already shipped: Factba.se indexes presidents' every word; sold to FiscalNote, now lives inside Roll Call
+- PR teams pay $10k–40k/yr for media monitoring, but policy-intelligence leader FiscalNote is shrinking 21%/yr
+- Courts protect verdict-style labels as opinion when sources are disclosed; scraping risk is contract/ToS, not criminal law
+
+## Public fact-checking: a field at its plateau, hit by a double funding shock
+
+The [Duke Reporters' Lab 2025 census](https://reporterslab.org/2025/06/19/fact-checkers-persevere-as-politicians-platforms-turn-up-heat/) counts 443 active fact-checking projects worldwide — down about 2% from 2024, after years hovering around 450 — active in 116 countries and 70+ languages. Fact-check article volume fell about 6% year over year (measured via ClaimReview tagging). The growth era is over; the field flatlined around 2020 and is now slightly contracting. (reporterslab.org is egress-blocked from this environment; figures read from search results attributing them to the Duke Reporters' Lab census.)
+
+The funding picture is worse than the headcount. Per the IFCN's [State of the Fact-Checkers 2025 report](https://www.poynter.org/ifcn/2026/state-fact-checkers-2025/) (surveying ~140 organizations — sources report 137 and 141; figures as reported in [Rappler's coverage](https://www.rappler.com/world/global-affairs/state-fact-checkers-report-2025-ifcn/), the Poynter origin pages being egress-blocked in this pass), Meta's third-party program fell from 45.5% of average fact-checker revenue in 2024 to 34.3% in 2025; grants became the largest source at 46.2%. 56.9% of orgs depend on a single funder for at least half their income; 76% call their finances vulnerable or in crisis; 38.3% cut staff in 2025, up from 14.9% the year before. Meta had been [the biggest single funder of fact-checking globally](https://dubawa.org/meta-remains-biggest-funder-of-fact-checking-organisations-globally-report/).
+
+The second shock: the January 2025 US foreign-aid freeze and [USAID's closure on July 1, 2025](https://rootsofdevelopment.org/usaid-freeze-february-2025/). Per [RSF](https://rsf.org/en/usa-trump-s-foreign-aid-freeze-throws-journalism-around-world-chaos), USAID's FY2025 budget had $268M for independent media, and in 2023 it supported 707 non-state outlets — much of the Global South fact-checking ecosystem sat downstream of it. So 2025 removed both of the field's largest funders at once.
+
+## The Meta shutdown and the distribution collapse
+
+Meta [announced in January 2025](https://about.fb.com/news/2025/01/meta-more-speech-fewer-mistakes/) it would end third-party fact-checking in the US; the program [ended in the US and Community Notes launched in March 2025](https://about.fb.com/news/2025/03/testing-begins-community-notes-facebook-instagram-threads/) ([NBC](https://www.nbcnews.com/tech/social-media/meta-ends-fact-checking-program-community-notes-x-rcna186468), [CNBC](https://www.cnbc.com/2025/01/07/meta-eliminates-third-party-fact-checking-moves-to-community-notes.html)). Notably, Meta kept paying fact-checkers in the EU — [Demagog and AFP still partner with Meta in Poland](https://xyz.pl/poland-unpacked/metas-fact-checking-u-turn-why-europe-remains-a-different-story-1861/) — under Digital Services Act pressure, after the [European Commission warned Meta it must assess risks before dropping fact-checkers in Europe](https://www.euronews.com/next/2025/01/08/meta-needs-to-analyse-risks-if-it-drops-fact-checkers-in-eu-too-commission). Regulation, not market demand, is what holds the paid model up where it survives.
+
+A quieter but comparable blow: [Google killed the ClaimReview fact-check snippet in June 2025](https://www.niemanlab.org/2025/06/google-kills-the-fact-checking-snippet/) as part of "simplifying" search results. Per [Poynter's report on the removal](https://www.poynter.org/ifcn/2025/google-claimreview-fact-checks-snippets-removed/), 250,000+ fact checks carried ClaimReview markup and Google itself estimated ~4 billion annual impressions in 2019; those now render as plain blue links ([Full Fact's reaction](https://fullfact.org/technology/the-web-just-got-a-little-harder-to-trust/)).
+
+The uncomfortable finding for the professional model: crowd checking works. A [PNAS study](https://www.pnas.org/doi/10.1073/pnas.2503413122) found a Community Note cuts a post's reposts by 46% and likes by 44% within 48 hours, and [University of Rochester research](https://www.rochester.edu/newscenter/crowdsourcing-fact-checking-community-notes-social-media-676142/) found noted posts were 32% more likely to be deleted by their authors. Known limits remain coverage and speed — only 6,757 of ~40,000 proposed notes in one tracked window were rated helpful and attached.
+
+## Civic-data and transparency platforms: no sustainable business model found
+
+The segment's history is a warning. The [Sunlight Foundation, the archetypal government-transparency tech org, closed after 15 years](https://thefulcrum.us/governance-legislation/sunlight-foundation), its board concluding its role was "no longer essential." A [Knight Foundation study of 177 civic-tech companies](https://knightfoundation.org/press/releases/new-report-civic-tech-companies-make-gains-struggle-with-sustainable-business-models/) found the sector makes civic gains but consistently struggles to find sustainable business models. [Vote Smart still operates](https://en.wikipedia.org/wiki/Vote_Smart) (its Political Courage Test of candidate positions continues), but ran expenses of $1.54M against $1.28M revenue in 2024 per [Charity Navigator](https://www.charitynavigator.org/ein/850364261), and [incumbents increasingly refuse to answer its position surveys](https://www.reviewjournal.com/news/incumbents-snub-political-courage-test/). Grant-funded civic tech outside the US faces the same USAID-shaped hole: [Nigeria's civic-tech sector calls it an existential crisis](https://insights.techcabal.com/nigeria-civic-tech-funding-crisis/), and [Carnegie documents shrinking funding for civic actors globally](https://carnegieendowment.org/research/2025/07/shrinking-civic-space-digital-funding-and-legitimacy-in-a-post-truth-era?lang=en).
+
+Politwoops is the cautionary tale for platform-dependent accountability corpora: after a decade archiving 500,000+ deleted politician tweets, [ProPublica froze it in February 2023](https://www.propublica.org/article/politwoops-deleted-tweets-twitter-politicians-musk) because post-Musk API changes broke deletion tracking ([Nieman Lab](https://www.niemanlab.org/2023/02/after-a-decade-of-tracking-politicians-deleted-tweets-politwoops-is-no-more/)).
+
+## Commercial media monitoring: where the money actually is
+
+Analyst estimates of the media-monitoring(-tools) market diverge widely for 2025 — [USD 5.40B (Mordor Intelligence)](https://www.mordorintelligence.com/industry-reports/media-monitoring-market), [USD 6.30B (Fortune Business Insights)](https://www.fortunebusinessinsights.com/media-monitoring-tools-market-104157), [USD 9.49B (Market Research Future)](https://www.marketresearchfuture.com/reports/media-monitoring-tools-market-22515) — so treat the size as "mid-single-digit billions, sources disagree on whose estimate." Key players: Cision, Meltwater, Brandwatch, Talkwalker, Mention ([IMARC](https://www.imarcgroup.com/media-monitoring-tools-market)). Pricing is opaque and enterprise-shaped: Meltwater runs [roughly $15,000–$40,000+/year](https://prowly.com/magazine/meltwater-pricing/), with a [median buyer at ~$25,000/year per Vendr procurement data](https://www.vendr.com/marketplace/meltwater); [Cision averages ~$9.5k SMB to ~$75k enterprise](https://authoritytech.io/blog/cision-vs-meltwater-2026).
+
+The closest commercial analogue to a statements corpus already exists: [Factba.se](https://en.wikipedia.org/wiki/Factba.se), a searchable database of presidential statements, speeches, tweets and interviews, cited 4,000+ times by major outlets, [acquired by FiscalNote in 2021](https://fiscalnote.com/newsroom/fiscalnote-acquires-factsquared) and [folded into Roll Call in 2024](https://fiscalnote.com/newsroom/fiscalnote-announces-us-presidential-election-coverage) — its [Trump transcript search is live at Roll Call](https://rollcall.com/factbase/trump/search/). But the buyer's trajectory tempers the opportunity story: FiscalNote's [ARR fell 21% year-over-year to $84.1M at end-2025](https://fiscalnote.com/newsroom/fiscalnote-reports-fourth-quarter-and-full-year-2025-financial-results), suggesting policy-intelligence subscriptions are a harder sell than the TAM decks claim.
+
+## AI and automation in fact-checking
+
+The automation stack is mature at the "find and match" stages, not the "verify" stage. [ClaimBuster](https://www.rand.org/research/projects/truth-decay/fighting-disinformation/search/items/claimbuster.html) (UT Arlington) has scored sentences for "check-worthiness" since 2017 and [published the first end-to-end fact-checking pipeline](https://vldb.org/pvldb/vol10/p1945-li.pdf): monitor broadcast captions and feeds, score claims, match against existing fact-check repositories. [Full Fact AI](https://fullfact.org/ai/) productized the same triad — claim detection, claim matching (embeddings plus entity recognition and a trained match model), and monitoring — and is [used by 45+ organizations in 30 countries](https://fullfact.ai/); Full Fact [added a two-stage generative-AI system in May 2025](https://newsmachines.beehiiv.com/p/how-full-fact-scales-human-fact-checking-with-ai-1) and [exported its tools to US newsrooms for election coverage](https://www.poynter.org/fact-checking/2025/the-uks-fact-checkers-are-sending-their-ai-to-help-americans-cover-elections/). The consistent framing in [Full Fact's own writing](https://fullfact.org/blog/2025/feb/how-ai-can-help-fact-checkers/) is AI as scaling assistant for human checkers — nobody credible ships automated verdicts. That leaves detection of contradictions *within one speaker's record over time* — as opposed to claim-vs-evidence checking — comparatively unclaimed territory.
+
+## The manual status quo
+
+What "checking what a figure said" looks like today: keyword search over the [C-SPAN Video Library's 230,000+ hours of indexed public-affairs video](https://www.c-span.org/30-years/), which [reshaped opposition research as early as the 2012 campaign](https://swampland.time.com/2011/12/14/the-c-span-campaign-how-online-video-archives-are-changing-the-game-in-2012/); the [GDELT Television Explorer over the Internet Archive's TV News Archive](https://blog.gdeltproject.org/gdelt-2-0-television-api-debuts/) (~2M hours, 5.7B words of closed captions from 150+ stations since 2009, keyword-searchable with CSV export); and paid news archives — [Nexis at ~$26/month for freelancers, Factiva pay-per-article at ~$3](https://businessjournalism.org/2010/09/lexisnexis-news-article-searches/) ([LexisNexis pitches 45+ years of archives to newsrooms](https://www.lexisnexis.com/en-us/professional/research/media.page)). For position *changes* specifically, the manual benchmark is PolitiFact's [Flip-O-Meter](https://www.politifact.com/article/2008/aug/05/introducing-flip-o-meter/), a hand-researched No Flip / Half Flip / Full Flop rating that explicitly [frames consistency analysis as informative rather than a value judgment](https://politifact.com/article/2018/feb/12/principles-truth-o-meter-politifacts-methodology-i/). All of these are per-query, labor-intensive, and none maintains a per-figure longitudinal statement corpus with contradiction detection.
+
+The raw-material pipe has narrowed: X [ended free API access and the Academic Research tier in 2023](https://www.cjr.org/tow_center/qa-what-happened-to-academic-research-on-twitter.php), moving to [$100/month for 10,000 tweets and ~$42,000/month enterprise](https://theconversation.com/twitters-new-data-fees-leave-scientists-scrambling-for-funding-or-cutting-research-199238); researchers [documented 250+ public-interest projects jeopardized](https://independenttechresearch.org/letter-twitters-new-api-plans-will-devastate-public-interest-research/), and by 2026 there is [still no academic tier, with pricing now pay-per-usage credits](https://www.socialcrawl.dev/blog/x-twitter-api-2026).
+
+## Legal and ethical terrain
+
+US courts have been favorable to verdict-style speech. In [Stossel v. Meta](https://blog.ericgoldman.org/archives/2022/10/facebook-defeats-lawsuit-over-its-fact-checking-explanations-stossel-v-meta.htm), a "Partly False" fact-check label was held a protected subjective assessment, not actionable defamation ([Loeb & Loeb summary](https://www.loeb.com/en/insights/publications/2022/10/stossel-v-meta-platforms)); [Candace Owens' suit against fact-checker Lead Stories was likewise dismissed](https://firstamendment.mtsu.edu/post/judge-tosses-suit-by-candace-owens-over-facebook-fact-checks/). Most relevant to an "inconsistency detected" product: courts [protect opinions based on disclosed facts](https://www.rcfp.org/two-courts-reaffirm-protections-opinions-based-disclosed-facts/) — a characterization ("this contradicts that") sitting atop quoted, cited statements is the strongest defamation posture available. The design implication: always show the underlying quotes and sources beside any computed verdict.
+
+On scraping: [hiQ v. LinkedIn](https://en.wikipedia.org/wiki/HiQ_Labs_v._LinkedIn) established that scraping publicly accessible data does not violate the CFAA (no criminal exposure), but hiQ ultimately [lost on breach-of-contract grounds and settled with a permanent injunction plus $500,000](https://www.zwillgen.com/alternative-data/hiq-v-linkedin-wrapped-up-web-scraping-lessons-learned/) — the live risk for a statements scraper is terms-of-service and contract claims from platforms, not prosecution ([Farella Braun analysis](https://www.fbm.com/publications/what-recent-rulings-in-hiq-v-linkedin-and-other-cases-say-about-the-legality-of-data-scraping/)). Government sources (C-SPAN-style proceedings, congressional records, official transcripts) carry none of that contractual exposure, which quietly makes them the safest corpus backbone.
+
+## Sources
+
+- [2025 census: Fact-checkers persevere as politicians, platforms turn up heat — Duke Reporters' Lab](https://reporterslab.org/2025/06/19/fact-checkers-persevere-as-politicians-platforms-turn-up-heat/) (domain egress-blocked; figures read from search results)
+- [State of the Fact-Checkers 2025 — Poynter/IFCN](https://www.poynter.org/ifcn/2026/state-fact-checkers-2025/) (domain egress-blocked; figures read from search results)
+- [Fact-checkers had tighter budgets, but reached more people in 2025 — Rappler](https://www.rappler.com/world/global-affairs/state-fact-checkers-report-2025-ifcn/)
+- [Meta remains biggest funder of fact-checking organisations globally — Dubawa](https://dubawa.org/meta-remains-biggest-funder-of-fact-checking-organisations-globally-report/)
+- [More Speech and Fewer Mistakes — Meta Newsroom](https://about.fb.com/news/2025/01/meta-more-speech-fewer-mistakes/)
+- [Testing Begins for Community Notes on Facebook, Instagram and Threads — Meta Newsroom](https://about.fb.com/news/2025/03/testing-begins-community-notes-facebook-instagram-threads/)
+- [Meta is ending its fact-checking program — NBC News](https://www.nbcnews.com/tech/social-media/meta-ends-fact-checking-program-community-notes-x-rcna186468)
+- [Meta eliminates third-party fact-checking — CNBC](https://www.cnbc.com/2025/01/07/meta-eliminates-third-party-fact-checking-moves-to-community-notes.html)
+- [Meta needs to analyse risks if it drops fact checkers in EU too — Euronews](https://www.euronews.com/next/2025/01/08/meta-needs-to-analyse-risks-if-it-drops-fact-checkers-in-eu-too-commission)
+- [Meta's fact-checking U-turn: Why Europe remains a different story — XYZ](https://xyz.pl/poland-unpacked/metas-fact-checking-u-turn-why-europe-remains-a-different-story-1861/)
+- [Google kills the fact-checking snippet — Nieman Lab](https://www.niemanlab.org/2025/06/google-kills-the-fact-checking-snippet/)
+- [Google backs away from search result snippets — Poynter](https://www.poynter.org/ifcn/2025/google-claimreview-fact-checks-snippets-removed/) (domain egress-blocked; read from search results)
+- [The web just got a little harder to trust — Full Fact](https://fullfact.org/technology/the-web-just-got-a-little-harder-to-trust/)
+- [Community notes reduce engagement with and diffusion of false information online — PNAS](https://www.pnas.org/doi/10.1073/pnas.2503413122)
+- [The most effective online fact-checkers? Your peers — University of Rochester](https://www.rochester.edu/newscenter/crowdsourcing-fact-checking-community-notes-social-media-676142/)
+- [USA: Trump's foreign aid freeze throws journalism into chaos — RSF](https://rsf.org/en/usa-trump-s-foreign-aid-freeze-throws-journalism-around-world-chaos)
+- [USAID Freeze — Roots of Development](https://rootsofdevelopment.org/usaid-freeze-february-2025/)
+- [Sunlight Foundation closes after 15 years — The Fulcrum](https://thefulcrum.us/governance-legislation/sunlight-foundation)
+- [Civic tech companies struggle with sustainable business models — Knight Foundation](https://knightfoundation.org/press/releases/new-report-civic-tech-companies-make-gains-struggle-with-sustainable-business-models/)
+- [Nigeria's Civic Tech Funding Crisis — TC Insights](https://insights.techcabal.com/nigeria-civic-tech-funding-crisis/)
+- [Shrinking Civic Space, Digital Funding — Carnegie Endowment](https://carnegieendowment.org/research/2025/07/shrinking-civic-space-digital-funding-and-legitimacy-in-a-post-truth-era?lang=en)
+- [Vote Smart — Wikipedia](https://en.wikipedia.org/wiki/Vote_Smart)
+- [Charity Navigator rating for Vote Smart](https://www.charitynavigator.org/ein/850364261)
+- [Incumbents snub 'political courage' test — Las Vegas Review-Journal](https://www.reviewjournal.com/news/incumbents-snub-political-courage-test/)
+- [Politwoops is no more — ProPublica](https://www.propublica.org/article/politwoops-deleted-tweets-twitter-politicians-musk)
+- [Politwoops is no more — Nieman Lab](https://www.niemanlab.org/2023/02/after-a-decade-of-tracking-politicians-deleted-tweets-politwoops-is-no-more/)
+- [Media Monitoring Market — Mordor Intelligence](https://www.mordorintelligence.com/industry-reports/media-monitoring-market)
+- [Media Monitoring Tools Market — Fortune Business Insights](https://www.fortunebusinessinsights.com/media-monitoring-tools-market-104157)
+- [Media Monitoring Tools Market — Market Research Future](https://www.marketresearchfuture.com/reports/media-monitoring-tools-market-22515)
+- [Media Monitoring Tools Market — IMARC Group](https://www.imarcgroup.com/media-monitoring-tools-market)
+- [Meltwater Pricing — Prowly](https://prowly.com/magazine/meltwater-pricing/)
+- [Meltwater Software Pricing — Vendr](https://www.vendr.com/marketplace/meltwater)
+- [Cision vs Meltwater 2026 — AuthorityTech](https://authoritytech.io/blog/cision-vs-meltwater-2026)
+- [Factba.se — Wikipedia](https://en.wikipedia.org/wiki/Factba.se)
+- [FiscalNote Announces Acquisition of FactSquared — FiscalNote](https://fiscalnote.com/newsroom/fiscalnote-acquires-factsquared)
+- [FiscalNote expands Roll Call with Factba.se — FiscalNote](https://fiscalnote.com/newsroom/fiscalnote-announces-us-presidential-election-coverage)
+- [Roll Call Factba.se Trump Transcript Search](https://rollcall.com/factbase/trump/search/)
+- [FiscalNote Q4/FY2025 Financial Results — FiscalNote](https://fiscalnote.com/newsroom/fiscalnote-reports-fourth-quarter-and-full-year-2025-financial-results)
+- [ClaimBuster — RAND](https://www.rand.org/research/projects/truth-decay/fighting-disinformation/search/items/claimbuster.html)
+- [ClaimBuster: The First-ever End-to-end Fact-checking System — VLDB](https://vldb.org/pvldb/vol10/p1945-li.pdf)
+- [Full Fact AI](https://fullfact.org/ai/) and [fullfact.ai](https://fullfact.ai/)
+- [How AI can help fact checkers — Full Fact](https://fullfact.org/blog/2025/feb/how-ai-can-help-fact-checkers/)
+- [How Full Fact Scales Human Fact-Checking with AI — News Machines](https://newsmachines.beehiiv.com/p/how-full-fact-scales-human-fact-checking-with-ai-1)
+- [UK fact-checkers send their AI to help Americans — Poynter](https://www.poynter.org/fact-checking/2025/the-uks-fact-checkers-are-sending-their-ai-to-help-americans-cover-elections/) (domain egress-blocked; read from search results)
+- [30 Years of our Video Library — C-SPAN](https://www.c-span.org/30-years/)
+- [The C-SPAN Campaign: online video archives changing 2012 — TIME](https://swampland.time.com/2011/12/14/the-c-span-campaign-how-online-video-archives-are-changing-the-game-in-2012/)
+- [GDELT 2.0 Television API — GDELT Project](https://blog.gdeltproject.org/gdelt-2-0-television-api-debuts/)
+- [What do you use for news-article searches? — Reynolds Center](https://businessjournalism.org/2010/09/lexisnexis-news-article-searches/)
+- [Research Tools for Media & Journalists — LexisNexis](https://www.lexisnexis.com/en-us/professional/research/media.page)
+- [Introducing the Flip-O-Meter — PolitiFact](https://www.politifact.com/article/2008/aug/05/introducing-flip-o-meter/)
+- [Principles of the Truth-O-Meter — PolitiFact](https://politifact.com/article/2018/feb/12/principles-truth-o-meter-politifacts-methodology-i/)
+- [Q&A: What happened to academic research on Twitter? — CJR](https://www.cjr.org/tow_center/qa-what-happened-to-academic-research-on-twitter.php)
+- [Twitter's new data fees leave scientists scrambling — The Conversation](https://theconversation.com/twitters-new-data-fees-leave-scientists-scrambling-for-funding-or-cutting-research-199238)
+- [Letter: Twitter's New API Plans Will Devastate Public Interest Research — Coalition for Independent Technology Research](https://independenttechresearch.org/letter-twitters-new-api-plans-will-devastate-public-interest-research/)
+- [X (Twitter) API in 2026 — SocialCrawl](https://www.socialcrawl.dev/blog/x-twitter-api-2026)
+- [Stossel v. Meta — Eric Goldman blog](https://blog.ericgoldman.org/archives/2022/10/facebook-defeats-lawsuit-over-its-fact-checking-explanations-stossel-v-meta.htm)
+- [Stossel v. Meta Platforms — Loeb & Loeb](https://www.loeb.com/en/insights/publications/2022/10/stossel-v-meta-platforms)
+- [Judge tosses Candace Owens suit over Facebook fact checks — Free Speech Center](https://firstamendment.mtsu.edu/post/judge-tosses-suit-by-candace-owens-over-facebook-fact-checks/)
+- [Two courts reaffirm protections for opinions based on disclosed facts — RCFP](https://www.rcfp.org/two-courts-reaffirm-protections-opinions-based-disclosed-facts/)
+- [hiQ Labs v. LinkedIn — Wikipedia](https://en.wikipedia.org/wiki/HiQ_Labs_v._LinkedIn)
+- [hiQ v. LinkedIn Wrapped Up — ZwillGen](https://www.zwillgen.com/alternative-data/hiq-v-linkedin-wrapped-up-web-scraping-lessons-learned/)
+- [What Recent Rulings in hiQ v. LinkedIn Say About Data Scraping — Farella Braun + Martel](https://www.fbm.com/publications/what-recent-rulings-in-hiq-v-linkedin-and-other-cases-say-about-the-legality-of-data-scraping/)
+
+## Open questions
+
+- Poynter and reporterslab.org are egress-blocked here; the census and State of the Fact-Checkers figures came via search snippets and Rappler's secondhand report — needs a human or unblocked environment to verify against the original PDFs (a later agent pass cannot close this).
+- Current IFCN verified-signatory count (the signatories page wasn't opened); how many signatories lapsed after the Meta shutdown.
+- Factba.se/Roll Call pricing and whether the statement corpus extends beyond presidents (Congress, governors, foreign figures) — the actual scope of the closest incumbent is unclear.
+- Defamation exposure outside the US (UK libel law, EU right-of-reply) for algorithmically-surfaced "inconsistency" claims — this pass only covered US case law.
+- Willingness-to-pay evidence for journalist-facing (vs PR-facing) tools: FiscalNote is shrinking, but is that segment-wide? Muck Rack, LegiStorm, Quorum revenue trajectories unexamined.
+- C-SPAN's reuse/licensing terms for building a derived statements corpus from its archive (its content is not public domain).
+- Meta's EU fact-checking commitments post-2025: contract durations and whether the DSA enforcement action over Community Notes has concluded.
+
+## Growth log
+
+- **2026-08-21** — Page seeded (initial research scan, deferred at adoption): surveyed the fact-checking field's 2025 funding/distribution double shock, civic-tech sustainability record, commercial media-monitoring market, AI fact-checking automation, the manual status quo, and US legal terrain for scraping and verdict-style claims.
