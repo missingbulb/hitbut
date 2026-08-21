@@ -1,0 +1,50 @@
+# The back end: one Worker with three entry points — the cron trigger runs
+# acquisition, the queue consumer runs analysis, the fetch handler serves /api/v1.
+# The front end is a separate Pages project and is not configured here.
+#
+# The ids below are placeholders until the Cloudflare account exists; creating the
+# resources and pasting the real ids back is the human-only checklist in issue #27.
+# Local development and the whole requirements harness run against wrangler's own
+# local D1/R2/Queues and need none of them.
+name = "hitbut-api"
+main = "src/backend/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "CORPUS"
+database_name = "hitbut-corpus"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "src/backend/corpus/migrations"
+
+[[r2_buckets]]
+binding = "RAW"
+bucket_name = "hitbut-raw"
+
+[[queues.producers]]
+binding = "ANALYSIS"
+queue = "hitbut-analysis"
+
+[[queues.consumers]]
+queue = "hitbut-analysis"
+max_batch_size = 10
+max_retries = 3
+
+[ai]
+binding = "AI"
+
+[triggers]
+# Acquisition is not on the fastest clock any source moves on — each source module
+# declares its own refresh interval and the run skips the ones that are not due.
+crons = ["23 */3 * * *"]
+
+[vars]
+# A judgment at or above this score is surfaced in the product; everything below is
+# stored and excluded. Tuning this never deletes a judgment.
+SURFACING_THRESHOLD = "0.7"
+# The model the analysis judge asks. Isolated behind one interface, so this is the
+# whole cost of moving to a different model or an external provider.
+JUDGE_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"

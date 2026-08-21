@@ -1,0 +1,59 @@
+// The platform surface this Worker actually uses, declared here rather than pulled in as
+// a dependency: the published Workers types collide with the DOM lib the site needs, and
+// what we touch is a handful of methods. Anything added here should be added because a
+// call site needs it.
+
+export type D1Result<Row> = { results: Row[]; success: boolean };
+
+export interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<Row = Record<string, unknown>>(): Promise<Row | null>;
+  all<Row = Record<string, unknown>>(): Promise<D1Result<Row>>;
+  run(): Promise<{ success: boolean }>;
+}
+
+export interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+  batch<Row = Record<string, unknown>>(statements: D1PreparedStatement[]): Promise<D1Result<Row>[]>;
+  exec(query: string): Promise<unknown>;
+}
+
+export interface R2Object {
+  text(): Promise<string>;
+}
+
+export interface R2Bucket {
+  put(key: string, value: string | ArrayBuffer): Promise<unknown>;
+  get(key: string): Promise<R2Object | null>;
+  head(key: string): Promise<unknown | null>;
+}
+
+export interface Queue<Message> {
+  send(message: Message): Promise<void>;
+}
+
+export interface QueueMessage<Body> {
+  body: Body;
+  ack(): void;
+  retry(): void;
+}
+
+export interface MessageBatch<Body> {
+  messages: QueueMessage<Body>[];
+}
+
+export interface Ai {
+  run(model: string, input: unknown): Promise<{ response?: string }>;
+}
+
+/** What acquisition hands to analysis: one statement to judge against its figure's others. */
+export type AnalysisMessage = { statementId: string };
+
+export type Env = {
+  CORPUS: D1Database;
+  RAW: R2Bucket;
+  ANALYSIS: Queue<AnalysisMessage>;
+  AI: Ai;
+  SURFACING_THRESHOLD: string;
+  JUDGE_MODEL: string;
+};

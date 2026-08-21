@@ -1,0 +1,9 @@
+{
+  "provisional": [
+    {
+      "id": "7.1",
+      "why": "a claim about a live Cloudflare account, which no test in this repository can observe",
+      "closes": "phase 0 provisioning (#27) lands and one merge is watched reaching the deployed site"
+    }
+  ]
+}

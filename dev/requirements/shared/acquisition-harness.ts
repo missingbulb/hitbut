@@ -1,0 +1,43 @@
+// One acquisition world, wired the way the Worker wires it: the shipped run over the
+// shipped fetcher and the shipped registry, with the platform faked underneath and every
+// interesting moment written to one shared log so a case can assert on the *order*.
+import { SourceRegistry, type SourceModule } from '../../../src/backend/acquisition/registry.ts';
+import type { AcquisitionOptions } from '../../../src/backend/acquisition/run.ts';
+import { FakeQueue, FakeR2, servingFetch, type ScriptedResponse } from './fakes.ts';
+import { emptyCorpus, fixtureSource, REFERENCE_NOW } from './fixtures.ts';
+
+export type HarnessDocument = { key: string; url: string; payload: string; response?: ScriptedResponse };
+
+export function acquisitionWorld(documents: HarnessDocument[], moduleOverrides: Partial<SourceModule> = {}) {
+  const log: string[] = [];
+  const raw = new FakeR2(log);
+  const queue = new FakeQueue();
+  const corpus = emptyCorpus();
+  const registry = new SourceRegistry();
+
+  const module = fixtureSource({
+    documents,
+    onExtract: (key) => log.push(`extract ${key}`),
+  });
+  registry.register({ ...module, ...moduleOverrides });
+
+  const routes: Record<string, ScriptedResponse> = {};
+  for (const document of documents) routes[document.url] = document.response ?? { status: 200, body: document.payload };
+  const http = servingFetch(routes);
+
+  let tick = 0;
+  const options: AcquisitionOptions = {
+    corpus,
+    raw,
+    queue,
+    registry,
+    deps: http.deps,
+    now: () => new Date(Date.parse(REFERENCE_NOW) + tick++ * 1000).toISOString(),
+  };
+
+  return { options, corpus, raw, queue, registry, log, http };
+}
+
+/** A payload in the fixture format: one line per quote, `speaker|date|topics|quote`. */
+export const payloadOf = (lines: [speaker: string, date: string, topics: string, quote: string][]): string =>
+  lines.map((line) => line.join('|')).join('\n');
