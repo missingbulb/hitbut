@@ -38,12 +38,26 @@ const MIME: Record<string, string> = {
   '.json': 'application/json',
 };
 
+/**
+ * The pinned version is spelled in three places that must agree: here, the dependency in
+ * package.json, and the container image CI runs this lane in. Two of them are checkable
+ * from here, so they are checked from here — a silent disagreement between them is a
+ * goldens diff that only appears on someone else's machine.
+ */
 function assertPinnedBrowser(): void {
-  const version = createRequire(import.meta.url)('playwright-core/package.json').version as string;
-  if (version !== PINNED_PLAYWRIGHT) {
+  const installed = createRequire(import.meta.url)('playwright-core/package.json').version as string;
+  if (installed !== PINNED_PLAYWRIGHT) {
     throw new Error(
-      `the goldens were rendered with playwright ${PINNED_PLAYWRIGHT} and this is ${version}; ` +
+      `the goldens were rendered with playwright ${PINNED_PLAYWRIGHT} and this is ${installed}; ` +
         'a comparison across browser builds measures the renderer, not the product',
+    );
+  }
+  const workflow = readFileSync(path.join(REPO_ROOT, '.github/workflows/product.yml'), 'utf8');
+  const image = /mcr\.microsoft\.com\/playwright:v([\d.]+)-/.exec(workflow)?.[1];
+  if (image !== PINNED_PLAYWRIGHT) {
+    throw new Error(
+      `the screen lane pins playwright ${PINNED_PLAYWRIGHT} but .github/workflows/product.yml runs it ` +
+        `in the ${image ?? 'unrecognised'} image; CI would compare against a renderer nobody approved`,
     );
   }
 }
