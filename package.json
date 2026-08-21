@@ -1,0 +1,38 @@
+{
+  "name": "hitbut",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tracks public statements by public figures and highlights inconsistencies",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "node --test dev/requirements/coverage.test.ts dev/requirements/gallery.test.ts dev/requirements/logic/run.test.ts dev/requirements/behavior/run.test.ts",
+    "test:server": "node --test dev/requirements/server/run.test.ts",
+    "test:screen": "node --test --test-timeout=180000 dev/requirements/screen/run.test.ts",
+    "test:all": "npm test && npm run test:server && npm run test:screen",
+    "typecheck": "tsc --noEmit",
+    "requirements:refresh": "node dev/requirements/refresh.ts",
+    "corpus:migrate": "wrangler d1 migrations apply hitbut-corpus --local",
+    "corpus:migrate:remote": "wrangler d1 migrations apply hitbut-corpus --remote",
+    "dev:api": "wrangler dev",
+    "dev:site": "vite --config src/frontend/vite.config.ts",
+    "build:site": "vite build --config src/frontend/vite.config.ts",
+    "deploy:api": "wrangler deploy",
+    "deploy:site": "wrangler pages deploy src/frontend/dist --project-name hitbut"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.2.0",
+    "pixelmatch": "^7.2.0",
+    "playwright-core": "1.56.1",
+    "pngjs": "^7.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "wrangler": "^4.125.0"
+  }
+}

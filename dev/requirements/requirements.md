@@ -33,10 +33,11 @@ renumbered, or deleted, and retirement is a status rather than a removal.
 - `1.1` A figure's id is a slug minted once at creation, and does not change when the figure's display name changes.
   <details><summary>Detail</summary>
 
-  The slug is derived from the name at creation (Hebrew names transliterate; collisions get
-  a numeric suffix), and from then on it is opaque. Renaming ח״כ מורג to ח״כ מורג־עציון
-  updates `display_name` and leaves `id` alone, because a citation of the old URL must keep
-  resolving.
+  The slug is derived from the name at creation — Hebrew stays Hebrew, since transliterating
+  without vowels is a guess and a guess baked into a permanent id is a guess forever;
+  collisions take a numeric suffix. From then on the id is opaque: renaming מורג to
+  מורג־עציון updates `display_name` and leaves `id` alone, because a citation of the old URL
+  must keep resolving.
   </details>
 
 - `1.2` A statement keeps the ULID it was given at first extraction when the same source payload is extracted again.
@@ -97,9 +98,10 @@ person actually types. hitbut folds the text itself, on both sides of the query.
 - `2.2` A word written with a final-form letter matches the same word written without it, and the reverse.
   <details><summary>Detail</summary>
 
-  ם/מ, ן/נ, ך/כ, ף/פ, ץ/צ. Stripping a prefix exposes this constantly: `מהם` stripped to
-  `הם` must still meet `הם` indexed elsewhere, and quoted transcripts are inconsistent about
-  final forms mid-word.
+  ם/מ, ן/נ, ך/כ, ף/פ, ץ/צ are positional variants of one letter. Sources disagree about
+  them — an acronym or a transliteration puts one mid-word, a hurried query types the other
+  — and treating them as different letters answers "no results" for a word the corpus
+  certainly contains. The fold runs on both sides, so `ירושלים` and `ירושלימ` are one term.
   </details>
 
 - `2.3` Niqqud, geresh and gershayim are folded away before indexing and before matching.
@@ -119,9 +121,9 @@ person actually types. hitbut folds the text itself, on both sides of the query.
 - `2.5` A prefix is never stripped down to a stem too short to be a word.
   <details><summary>Detail</summary>
 
-  `בית` must not be indexed as `ית`, and `של` must not become `ל`. The floor is a
-  three-letter surface form; below it the surface token is the only thing indexed. Without
-  the floor, common short words match nearly everything.
+  `בית` must not be indexed as `ית`, and `של` must not become `ל`. A strip that would leave
+  fewer than three letters is not made, so the surface token is the only thing indexed.
+  Without the floor, the commonest short words match nearly everything.
   </details>
 
 ## 3. Acquisition
@@ -269,6 +271,16 @@ consumer; everything a reader sees comes through here, including the site's own 
 
   An empty 200 for a missing entity turns a typo into "this person has said nothing",
   which is the single most defamatory thing an empty page could imply here.
+  </details>
+
+- `5.11` `GET /api/v1/export/statements.ndjson` serves the whole corpus as one JSON object per line.
+  <details><summary>Detail</summary>
+
+  What a researcher reads instead of paginating the corpus: statement, speaker and source
+  per line, with the stable ids intact so a later pull can be diffed against this one. It
+  is a snapshot the scheduled run regenerates, not a query assembled per request — and
+  before the first run has written one, the route says exactly that rather than serving an
+  empty file that reads like an empty corpus.
   </details>
 
 ## 6. The site
