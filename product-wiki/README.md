@@ -40,17 +40,16 @@ their own open questions flag, writes back cited, and opens an unmerged PR. Most
 passes correctly change nothing. In-session, the owner phrase "grow the product
 wiki" runs the same worker.
 
-## Planned wikis
+## The wikis
 
-No wiki pages are seeded yet — the initial research scan was deliberately
-deferred at adoption. The research scope recorded in the adoption interview
-(`.claudinite-checks.json`, the `product-wiki` entry's `answers`) names what the
-first pass covers:
+The three wikis scoped in the adoption interview (`.claudinite-checks.json`,
+the `product-wiki` entry's `answers`):
 
-- **market landscape** — civic accountability / fact-checking tech, surveying
-  public fact-checkers, civic-data and transparency platforms, commercial media
-  monitoring, and the manual-search status quo.
-- **user research** — the four segments: general public, journalists and
-  fact-checkers, researchers and academics, campaign and advocacy staff.
-- **competitor landscape** — the named alternatives, before a positioning read
-  is taken.
+- [`market-landscape/`](market-landscape/README.md) — civic accountability /
+  fact-checking tech: public fact-checkers, civic-data and transparency
+  platforms, commercial media monitoring, and the manual-search status quo.
+- [`user-research/`](user-research/README.md) — the four segments: general
+  public, journalists and fact-checkers, researchers and academics, campaign
+  and advocacy staff.
+- [`competitor-landscape/`](competitor-landscape/README.md) — the named
+  alternatives and their current status, before a positioning read is taken.
