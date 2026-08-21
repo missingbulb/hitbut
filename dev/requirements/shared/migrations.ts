@@ -24,3 +24,19 @@ export function migrationStatements(): string[] {
 export async function applyMigrations(db: D1Database): Promise<void> {
   for (const statement of migrationStatements()) await db.prepare(statement).run();
 }
+
+/**
+ * Every table the migrations create, in the order they were created — so a harness whose
+ * storage survived the last run can put the schema back to empty before applying them.
+ */
+export function tableNames(): string[] {
+  return migrationStatements()
+    .map((statement) => /^CREATE\s+(?:VIRTUAL\s+)?TABLE\s+(\w+)/i.exec(statement)?.[1])
+    .filter((name): name is string => Boolean(name));
+}
+
+/** A migrated, empty corpus in a database that may already hold one. */
+export async function resetAndMigrate(db: D1Database): Promise<void> {
+  for (const table of tableNames().reverse()) await db.prepare(`DROP TABLE IF EXISTS ${table}`).run();
+  await applyMigrations(db);
+}

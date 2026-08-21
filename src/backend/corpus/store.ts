@@ -91,8 +91,19 @@ export type NewJudgment = {
 
 export type Cursor = string | null;
 
-const encodeCursor = (value: string): string => btoa(value);
-const decodeCursor = (cursor: Cursor): string => (cursor ? atob(cursor) : '');
+// base64url over UTF-8 bytes, not `btoa` over the string: a figure's id is Hebrew, which
+// `btoa` refuses outright, and the result travels in a query parameter.
+const encodeCursor = (value: string): string => {
+  let binary = '';
+  for (const byte of new TextEncoder().encode(value)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+const decodeCursor = (cursor: Cursor): string => {
+  if (!cursor) return '';
+  const binary = atob(cursor.replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(binary, (character) => character.charCodeAt(0)));
+};
 
 export class Corpus {
   #db: D1Database;

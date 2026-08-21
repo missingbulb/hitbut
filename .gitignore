@@ -4,6 +4,7 @@ node_modules/
 # Wrangler's local state: the local D1/R2/Queues that `wrangler dev` and the
 # requirements harness run against, rebuilt from the migrations on demand.
 .wrangler/
+/.wrangler-harness.toml
 src/frontend/dist/
 # What a failing visual case writes: expected | actual | diff, never beside the goldens.
 dev/requirements/failures/
