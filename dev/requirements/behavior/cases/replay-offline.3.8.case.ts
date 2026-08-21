@@ -20,7 +20,8 @@ export default {
     const callsAfterFetch = world.http.calls.length;
 
     // Any fetch from here on throws, so a network read is a failure rather than a slow test.
-    await reextract({ ...world.options, deps: forbiddenFetch }, source!.id);
+    const offline: typeof world.options = { ...world.options, deps: forbiddenFetch };
+    await reextract(offline, source!.id);
 
     assert.equal(world.http.calls.length, callsAfterFetch, 'the replay issued no request');
     const after = await world.corpus.timeline((await world.corpus.listFigures()).figures[0].id);

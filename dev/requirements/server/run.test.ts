@@ -6,18 +6,23 @@
 // cannot tell you is whether Cloudflare's D1, Queues and R2 behave like the local ones
 // (#28).
 import test, { after } from 'node:test';
-import { createTestHarness } from 'wrangler';
+import { createTestHarness, type TestHarness } from 'wrangler';
 import { loadCase, readCases } from '../registry.ts';
 import { resetAndMigrate } from '../shared/migrations.ts';
 import { harnessConfigPath } from '../shared/worker-config.ts';
 import { corpusOn, REFERENCE_NOW, seedCorpus, type SeededCorpus } from '../shared/fixtures.ts';
 import type { D1Database } from '../../../src/backend/env.ts';
 
+// Taken from the harness rather than from the DOM lib: workerd's Response and Request are
+// its own types, and spelling them a second time here would be a copy to keep in step.
+type WorkerResponse = Awaited<ReturnType<TestHarness['fetch']>>;
+type WorkerRequestInit = NonNullable<Parameters<TestHarness['fetch']>[1]>;
+
 export type ApiContext = {
   /** A GET against the running Worker. Paths are relative to the server's URL. */
-  get(path: string): Promise<Response>;
+  get(path: string): Promise<WorkerResponse>;
   /** Any other method, for the cases that assert on what the boundary refuses. */
-  request(path: string, init: RequestInit): Promise<Response>;
+  request(path: string, init: WorkerRequestInit): Promise<WorkerResponse>;
   /** The same, parsed, for the majority of cases that only look at the body. */
   json<Body>(path: string): Promise<Body>;
   /** Fires the Worker's cron entry point — the same one Cloudflare's scheduler calls. */
@@ -30,7 +35,7 @@ const server = createTestHarness({ workers: [{ configPath: harnessConfigPath() }
 await server.listen();
 after(() => server.close());
 
-const env = await server.getWorker().getEnv<{ CORPUS: D1Database }>();
+const env = await server.getWorker<{ CORPUS: D1Database }>().getEnv();
 await resetAndMigrate(env.CORPUS);
 const seeded = await seedCorpus(corpusOn(env.CORPUS));
 
