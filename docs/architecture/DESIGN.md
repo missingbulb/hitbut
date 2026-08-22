@@ -90,12 +90,17 @@ is a status, not a deletion.
 - **utterance** — ULID. One thing said once: the persona, the normalized text,
   when it was said, and the language. This is the unit analysis reasons over.
 - **attestation** — ULID. One document reporting an utterance: the source, its
-  URL, the text *as that document renders it*, the venue it was said in, the
-  audience it was addressed to, when the document was published, and the R2 key
-  of the raw payload. **Many attestations per utterance** — one speech carried
-  by five outlets is one utterance and five attestations, not five statements.
-  Without the split, a persona is compared against themselves and every echo
-  reads as agreement.
+  URL, the text *as that document renders it*, when the document was published,
+  and the R2 key of the raw payload. **Many attestations per utterance** — one
+  speech carried by five outlets is one utterance and five attestations, not five
+  statements. Without the split, a persona is compared against themselves and
+  every echo reads as agreement.
+- **venue and audience** belong to the **utterance**, not the attestation: where
+  it was said and to whom is a property of the speech act, and the same words to
+  a committee and to a rally are two utterances whose difference is the whole
+  point of an anomaly. Who *reported* it is the attestation's business. For an
+  op-ed the two coincide — the venue is that publication, with one attestation
+  from it — which is consistent rather than a special case.
 - **date precision** — `said_at` carries a precision (`day`, `month`, `year`)
   beside it. Thirty years back, a source often establishes "March 1998" and no
   more; recording that as the first of the month invents a fact, and recording

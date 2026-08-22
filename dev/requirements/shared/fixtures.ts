@@ -267,6 +267,17 @@ export async function withPair(corpus: Corpus, earlierQuote: string, laterQuote:
   return { figure: earlier.figure, earlier: earlier.statement, later: later.statement };
 }
 
+
+/** A source row to hang attestations off, for cases that care about who reported what. */
+export async function withSource(corpus: Corpus, publisher: string, key: string) {
+  return corpus.recordSource({
+    url: `https://example.org/${encodeURIComponent(key)}`,
+    publisher, kind: 'article', fetchedAt: REFERENCE_NOW,
+    rawKey: `sample/${key}.raw`, extraction: 'extracted',
+    sourceModule: 'sample-paper', externalKey: key,
+  });
+}
+
 /** A migrated, seeded corpus in memory. */
 export async function seededCorpus(): Promise<SeededCorpus> {
   return seedCorpus(emptyCorpus());

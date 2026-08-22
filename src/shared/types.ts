@@ -74,3 +74,58 @@ export type Judgment = {
 };
 
 export const SURFACED_KINDS: JudgmentKind[] = ['contradiction', 'position-shift'];
+
+/**
+ * How far a source pins a date down. Thirty years back it is often a month and no more,
+ * and the difference between "March 1998", "12 March 1998" and "we do not know" is three
+ * states, not two — a month recorded as its first day is a fact nobody established.
+ */
+export type DatePrecision = 'day' | 'month' | 'year';
+
+/** When something was said, and how precisely the source establishes it. */
+export type SaidAt = { value: string; precision: DatePrecision } | null;
+
+/** Where an utterance was made. A property of the speech act, not of who reported it. */
+export type Venue =
+  | 'plenary'
+  | 'committee'
+  | 'interview'
+  | 'press-conference'
+  | 'op-ed'
+  | 'broadcast'
+  | 'rally'
+  | 'party-forum'
+  | 'written-statement'
+  | 'other';
+
+/** Who it was addressed to. `null` where the source does not establish one. */
+export type Audience = 'general-public' | 'parliament' | 'party-members' | 'foreign-press' | 'professional' | null;
+
+/**
+ * One thing said once. Several documents reporting it are several attestations of this
+ * one utterance — stored as several records instead, a persona's timeline becomes copies
+ * of one sentence and analysis reads the echo as agreement.
+ */
+export type Utterance = {
+  id: string;
+  figureId: string;
+  /** The fullest wording any attestation carries. */
+  text: string;
+  language: Language;
+  saidAt: SaidAt;
+  venue: Venue;
+  audience: Audience;
+  createdAt: string;
+};
+
+/** One document reporting an utterance. */
+export type Attestation = {
+  id: string;
+  utteranceId: string;
+  sourceId: string;
+  /** The text as this document renders it, even where the utterance holds a fuller one. */
+  text: string;
+  /** When the document was published — never when the words were said. */
+  publishedAt: string | null;
+  createdAt: string;
+};
