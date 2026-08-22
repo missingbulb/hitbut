@@ -7,113 +7,216 @@ Pages front end, `src/shared` as the only shared surface — is
 [`src/README.md`](../../src/README.md)'s; this document describes what runs
 inside that boundary, and why this shape over the alternatives.
 
+Two words for one thing: the product says **persona**, the code and the API say
+**figure**. They are the same entity, and the code keeps its word because a
+rename across a shipped schema, spec and site buys vocabulary and costs
+citations.
+
 ## The system at a glance
 
 ```mermaid
 flowchart LR
-    S[Public sources<br/>transcripts, press releases,<br/>official feeds, archives]
-    subgraph W [backend — one Cloudflare Worker]
-        A[acquisition<br/>cron-triggered scrapers]
-        C[(corpus<br/>D1 + R2)]
-        N[analysis<br/>queue consumer]
+    S[Public sources<br/>transcripts, archives,<br/>official feeds, press]
+    subgraph W [backend — one Cloudflare Worker + one Workflow]
+        B[backfill<br/>Workflow, one run per slice]
+        A[acquisition<br/>cron, the moving edge]
+        I[ingestion<br/>resolve · merge · embed]
+        C[(corpus<br/>D1 + R2 + Vectorize)]
+        N[analysis<br/>stance series]
         P[HTTP API<br/>/api/v1]
     end
     F[frontend — Cloudflare Pages<br/>static site]
-    S --> A --> C
+    S --> B --> I
+    S --> A --> I
+    I --> C
     C --> N --> C
     C --> P --> F
 ```
 
-## One Worker, three responsibilities
+## One Worker, four responsibilities, plus a Workflow
 
-The back end deploys as a **single Worker** with three entry points: a cron
-trigger runs acquisition, a queue consumer runs analysis, and the fetch handler
-serves the API. The three responsibilities stay separable as modules
-(`src/backend/acquisition/`, `analysis/`, `api/`), with `src/backend/corpus/`
-the only module the other three import — no acquisition code in the API path,
-no API code in a scraper.
+The back end deploys as a **single Worker**: a cron trigger runs acquisition
+over the moving edge, queue consumers run ingestion and analysis, and the fetch
+handler serves the API. Each stays a separate module — `acquisition/`,
+`ingestion/`, `analysis/`, `api/` — over the one module they all import,
+`corpus/`.
 
-*Alternative — three Workers behind service bindings*: rejected for now. It
-buys process isolation the product doesn't need yet and costs three deploys,
-three configs, and RPC across what is currently one data model. The module
-boundaries keep that split cheap if scale ever demands it.
+The **historical backfill is a Workflow**, not a cron: it is a job with an end,
+measured in days, over decades of archives, and it needs durable execution with
+per-step retry rather than a schedule. It shares the Worker's bindings and its
+ingestion code; what differs is only how it is driven.
+
+*Alternative — a long-running job off-platform, writing to R2*: rejected in
+favour of keeping one runtime and one deployment target. The bet is that the
+backfill decomposes into slices that each fit inside a Workflow's limits. **That
+bet is unverified** — Cloudflare's published step, duration and payload limits
+could not be read while this was written, and no number here should be trusted
+until someone checks them against the docs. If a slice does not fit, the escape
+hatch is a smaller slice before it is a second runtime.
 
 ## Storage
 
-- **D1** holds the corpus: figures, sources, statements, inconsistencies, and
-  a full-text index for search. The corpus is structured text at modest scale —
-  relational queries (per-figure timelines, statement pairs) are the workload,
-  and SQLite's FTS covers search without another service.
-- **R2** holds the raw payload cache: every fetched page or API response is
-  stored verbatim, keyed by source URL and fetch time, **before** anything
-  interprets it. A parser fix then re-runs extraction offline against R2 —
-  no re-fetch, no dependence on sites that changed or died. R2 also serves
-  generated bulk-export snapshots (NDJSON) for researchers.
-- **Queues** carry the hand-off from acquisition to analysis, so a scrape
-  burst never waits on model latency and a failed analysis retries without
-  re-scraping.
+- **D1** holds the ledger everything reads: personas, utterances, attestations,
+  cluster assignments, stances, findings, and the full-text index for search.
+  Relational queries — a persona's timeline, a stance series, an attestation's
+  siblings — are the workload.
+- **R2** holds the raw payload cache: every fetched page, feed response or
+  document is stored verbatim, keyed by source and fetch time, **before**
+  anything interprets it. A parser fix then re-runs extraction offline against
+  R2 — no re-fetch, no dependence on sites that changed or died. R2 also holds
+  the backfill's intermediate ledger and the generated NDJSON export snapshots.
+- **Vectorize** holds one embedding per utterance. D1 has no vector type, and
+  the retrieval this product needs is nearest-neighbour, not `LIKE`.
+- **Queues** carry the hand-off between stages, so a fetch burst never waits on
+  model latency and a failed stage retries without re-fetching.
 
 *Alternatives*: KV rejected — no queries, and the corpus is nothing but
 queries. Durable Objects rejected — no per-entity coordination exists that D1
 row writes don't already serialize. Committing extracted raw records to git
-(the web-scraping pack's default) is adapted rather than adopted: the corpus
-outgrows a git tree quickly, so R2 is the durable raw store, and only the
+(the web-scraping pack's default) is adapted rather than adopted: decades of
+archives outgrow a git tree, so R2 is the durable raw store, and only the
 committed per-source *sample* payloads used as test fixtures live in the repo.
 
 ## Data model and stable identifiers
 
-Stable identifiers are a product requirement — researchers and journalists
-cite them — so **no identifier is ever reused, renumbered, or deleted**;
-retirement is a status, not a deletion.
+Stable identifiers are a product requirement — researchers and journalists cite
+them — so **no identifier is ever reused, renumbered, or deleted**; retirement
+is a status, not a deletion.
 
-- **figure** — slug id (`jane-doe`), display name, role, aliases.
-- **source** — URL, publisher, fetched-at, R2 key of the raw payload,
-  extraction status.
-- **statement** — ULID assigned at first extraction; quote text, speaker
-  (figure id), the date it was made, surrounding context, source id, topic
-  tags. A date the source doesn't establish stays null — never defaulted.
-- **inconsistency** — ULID; the two statement ids (earlier, later), kind
-  (`contradiction` or `position-shift`), score, the model and prompt version
-  that produced it, and a human-readable rationale. Re-analysis writes new
-  records and marks old ones superseded, so a cited inconsistency stays
-  resolvable forever.
+- **persona (`figure`)** — slug id, display name, role, aliases, status. The
+  roster is a **committed input**, not a byproduct of crawling: a speaker who is
+  not on it never becomes a tracked persona. Personas are people who put
+  themselves in the public eye, in the capacity in which they did so.
+- **utterance** — ULID. One thing said once: the persona, the normalized text,
+  when it was said, and the language. This is the unit analysis reasons over.
+- **attestation** — ULID. One document reporting an utterance: the source, its
+  URL, the text *as that document renders it*, the venue it was said in, the
+  audience it was addressed to, when the document was published, and the R2 key
+  of the raw payload. **Many attestations per utterance** — one speech carried
+  by five outlets is one utterance and five attestations, not five statements.
+  Without the split, a persona is compared against themselves and every echo
+  reads as agreement.
+- **date precision** — `said_at` carries a precision (`day`, `month`, `year`)
+  beside it. Thirty years back, a source often establishes "March 1998" and no
+  more; recording that as the first of the month invents a fact, and recording
+  it as unknown discards one. A date the source does not establish at all stays
+  null — never defaulted.
+- **cluster** — an emergent subject, discovered from the corpus rather than
+  chosen in advance (§ Analysis). Ids are stable; the human-readable label is
+  regenerated and is display only.
+- **stance** — one utterance's position within one cluster, with the model and
+  prompt version that produced it.
+- **finding** — ULID. A surfaced inconsistency: its kind (`anomaly` or
+  `trend-change`), the utterances it rests on, its rationale, its score, and the
+  model and prompt versions. Re-analysis writes a new finding and marks the old
+  one superseded, so a cited finding stays resolvable forever.
 
-## Acquisition
+## Acquisition and backfill
 
-Per-source scraper modules behind **one shared fetch module** — retries,
-backoff, bot-wall detection, and raw-before-parse discipline live there once,
-per the declared web-scraping pack rules. Each source module declares the data
-surface it reads (hydration blob, client API, or markup — in that order of
-preference), its own refresh clock (a transcript archive and a press-release
-feed do not move at the same speed), and an extractor from raw payload to
-statement records. Fields the extractor doesn't yet understand are preserved
-in the raw record, not dropped.
+Per-source modules behind **one shared fetch module** — retries, backoff,
+bot-wall detection, and raw-before-parse discipline live there once. Each source
+module declares the data surface it reads (hydration blob, client API, or
+markup — in that order of preference), its own refresh clock, and an extractor
+from raw payload to candidate utterances. Fields the extractor doesn't yet
+understand are preserved in the raw record, not dropped.
 
-Cloudflare egress comes from datacenter IPs, which some sources bot-block; if
-a source needs it, the fetch module routes through a commercial rendering
-proxy — a config-level credential, not a per-scraper decision.
+Two drivers over the same modules:
+
+- **The backfill** walks a source's archive in slices — a year of one archive is
+  the working unit — as one Workflow run per slice. A slice that fails retries
+  without touching its neighbours, and the window is finite, so the job has an
+  end.
+- **The cron** covers the moving edge, on each source's own clock. A transcript
+  archive and a press feed do not move at the same speed, and running everything
+  on the fastest one re-learns a static document thousands of times.
+
+Cloudflare egress comes from datacenter IPs, which some sources bot-block; if a
+source needs it, the fetch module routes through a commercial rendering proxy —
+a config-level credential, not a per-scraper decision.
+
+**Scanned archives are the open risk.** Material from the 1990s is often a
+scan behind a PDF, which means OCR, which is the one stage with no obvious home
+inside a Worker. It may force that stage — and only that stage — somewhere else.
+
+## Ingestion
+
+Everything between "bytes arrived" and "the corpus changed". It is one pipeline
+whichever driver fed it, and **every stage is idempotent**, because both drivers
+retry: Workflows retries a step, the queue redelivers a message.
+
+1. **Fetch** — raw payload to R2 before any parse, addressed by content hash. An
+   unchanged hash means extraction is skipped entirely on a re-run.
+2. **Extract** — the source module turns a payload into candidate utterances,
+   each carrying the document's own venue and audience metadata.
+3. **Resolve** — the speaker string becomes a roster persona, through aliases
+   and the document's own context. A speaker who is not on the roster is
+   **retained unattributed**, never promoted and never dropped: the raw record
+   stays complete and a person decides later.
+4. **Merge** — a candidate becomes either a new utterance or another attestation
+   of an existing one. Identity is the persona, the date, and near-identity of
+   the text; the same speech quoted at three lengths is one utterance whose
+   longest attestation is the fullest record of it.
+5. **Embed** — one vector per utterance into Vectorize.
+6. **Assign** — the utterance joins the nearest existing cluster, or opens a new
+   one when nothing is near enough.
+7. **Stance** — one model call places the utterance on its cluster's own axis.
+
+Steps 5–7 are what make the corpus queryable by *position* rather than only by
+word, and each is O(1) per utterance.
 
 ## Analysis
 
-For each statement arriving off the queue, candidate pairs are drawn from the
-same figure with overlapping topics, and each pair is judged by an LLM against
-a **committed, versioned prompt**. Every judgment stores both statement ids,
-the score, the rationale, and the model + prompt version — the defensible
-trail: a reader can always see exactly which two statements were compared and
-why the pair was flagged. Only high-confidence pairs surface in the product;
-the full score distribution is kept for tuning.
+The product's claim is that a persona's record is checkable, so detection has to
+be defensible before it is clever: for every finding, a reader can see which
+utterances it rests on, what was said about them, and by which model and prompt.
 
-v1 binds the model call to **Workers AI** — in-platform, no external
-credential, no egress. The analysis module isolates the model call behind one
-interface, so moving to an external API is a config change, not a rewrite.
+**Subjects are discovered, not declared.** There is no committed list of topics.
+Utterances are embedded, and clusters emerge from where they fall; a label is
+generated for a cluster afterwards and is shown to readers, but pairing and
+detection key on the cluster id, never the label. A vocabulary chosen in advance
+would decide in advance what the corpus is allowed to be about, and two sources
+describing one subject differently would never meet.
+
+**Embedding distance measures aboutness, not agreement.** "I will not cut a
+shekel from this line" and "this line was never a priority of mine" sit close
+together in embedding space — they are about the same thing, which is exactly
+why they are worth comparing and exactly why distance alone cannot tell you they
+conflict. So the embedding does retrieval, and a second, cheap step does
+judgment: for each utterance, one model call places it on the axis its cluster
+already implies, and that value is stored with its confidence and its model and
+prompt version.
+
+What that buys is a **stance series**: for each persona and each cluster, a
+sequence of positions through time. Two kinds of finding fall out of it:
+
+- **Anomaly** — an utterance that deviates from the persona's prevailing stance
+  in that cluster *at that date*. The interesting attribute is then **who they
+  were talking to**: the venue and the audience, which the attestation carries
+  precisely so this question is answerable.
+- **Trend change** — a change point in the series. The interesting attribute is
+  **when** it happened, and the finding reports the interval the change falls
+  in. *Why* it happened is out of scope; a bounded, sourced "between these two
+  dates, this position moved" is the claim the corpus can actually support.
+
+*Alternative — judge every pair of statements*: rejected. It is O(n²) model
+calls against a corpus meant to hold decades, it needs a topic vocabulary to
+keep the pair count survivable, and a trend is invisible to it — no two
+statements are where a trend lives. The pairwise page survives as a *view*: the
+two most representative utterances either side of a change point are what the
+inconsistency page shows.
+
+Only findings above a surfacing threshold reach the product; the full
+distribution is kept for tuning. The model call sits behind one interface, so
+moving to a different model or an external provider is a config change rather
+than a rewrite.
 
 ## HTTP API
 
-Read-only public JSON under a versioned path (`/api/v1/...`): figures, a
-figure's statement timeline, statement detail, inconsistencies, and search.
-Cursor pagination, open CORS, no accounts, no write surface — the only
-writers are the cron trigger and the queue consumer. Responses are
-edge-cacheable with short TTLs; bulk export is served as generated snapshots
+Read-only public JSON under a versioned path (`/api/v1/...`): personas, a
+persona's timeline, utterance detail with its attestations, findings, and
+search. Cursor pagination, open CORS, no accounts, no write surface — the only
+writers are the cron trigger, the Workflow and the queue consumers. Responses
+are edge-cacheable with short TTLs; bulk export is served as generated snapshots
 from R2 rather than paginated through D1.
 
 ## Frontend
@@ -121,16 +224,16 @@ from R2 rather than paginated through D1.
 A static site on Cloudflare Pages — no Pages Functions, no server rendering:
 everything the site shows is public and comes from `/api/v1`, so the API stays
 the one back end and the front end stays a pile of cacheable assets. Page
-inventory: home (search + recent inconsistencies), figure (profile, statement
-timeline, inconsistencies), statement detail (quote, context, source), 
-inconsistency detail (the two statements side by side with rationale and
-sources), search results, and a methodology page explaining how detection
-works and how to report an error.
+inventory: home (search + recent findings), persona (profile, timeline,
+findings), utterance detail (text, attestations, sources), finding detail (the
+utterances side by side with rationale and sources), search results, and a
+methodology page explaining how detection works and how to report an error.
 
 ## How requirements are proven against this
 
-Data-level requirements (extraction, corpus invariants, analysis) assert on
-values directly, with committed real sample payloads as fixtures. UI
+Data-level requirements (extraction, corpus invariants, ingestion, analysis)
+assert on values directly, with committed real sample payloads as fixtures, and
+with the model and the vector store behind interfaces a case can script. UI
 requirements drive this front end in headless Chromium against a local
 `wrangler` preview of the real deployment, asserting on committed screenshot
 goldens — the harness runs what ships, not a mock shell.
