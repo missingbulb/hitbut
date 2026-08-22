@@ -219,6 +219,68 @@ a:hover {
   margin: 32px 0 10px;
 }
 
+/* ---- what a record covers, and who is on the roster -------------------------- */
+
+/* Set below the timeline's weight on purpose: it is a caveat about the list above it,
+   not a competing section. */
+.coverage {
+  margin-block-start: 28px;
+  border-block-start: 1px solid var(--rule);
+  padding-block-start: 16px;
+}
+
+.coverage__title {
+  font-family: var(--serif);
+  font-size: 15px;
+  margin: 0 0 6px;
+}
+
+.coverage__lede {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 46em;
+  margin: 0 0 10px;
+}
+
+.coverage__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.coverage__item {
+  font-size: 13px;
+  display: flex;
+  gap: 8px;
+}
+
+.coverage__from {
+  color: var(--muted);
+}
+
+.roster {
+  margin: 0 0 16px;
+}
+
+.roster__entry {
+  border-block-start: 1px solid var(--rule);
+  padding-block: 10px;
+}
+
+.roster__who {
+  font-family: var(--serif);
+  font-size: 16px;
+}
+
+.roster__why {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 /* ---- search ----------------------------------------------------------------- */
 
 .search {

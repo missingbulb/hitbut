@@ -4,13 +4,26 @@
 
 export type FigureStatus = 'active' | 'retired';
 
+/** Which source reaches a figure, and the earliest date it goes back to. */
+export type Coverage = { sourceModule: string; from: string };
+
 export type Figure = {
-  /** Slug, minted once at creation from the name of the day; opaque from then on. */
+  /** Slug, minted once when the roster entry is authored; opaque from then on. */
   id: string;
   displayName: string;
   role: string;
   aliases: string[];
   status: FigureStatus;
+  /**
+   * The written test this person meets, from their roster entry. `null` only for a row
+   * that predates the roster — never for somebody we chose to track.
+   */
+  qualifies: string | null;
+  /**
+   * What this figure's record actually covers. `null` is not the same as an empty list:
+   * unrecorded, versus a person no source reaches. The page says different things.
+   */
+  coverage: Coverage[] | null;
 };
 
 export type SourceKind = 'transcript' | 'press-release' | 'article' | 'broadcast';

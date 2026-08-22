@@ -384,6 +384,14 @@ consumer; everything a reader sees comes through here, including the site's own 
   empty file that reads like an empty corpus.
   </details>
 
+- `5.12` `GET /api/v1/figures/{id}` carries what the record covers and the test the person meets.
+  <details><summary>Detail</summary>
+
+  The boundary's half of `6.9` and `6.10`. Both facts are decisions we made — which sources
+  reach this person and from when, and what put them on the roster — so they travel with
+  the record rather than being assembled by whichever page happens to want them.
+  </details>
+
 ## 6. The site
 
 RTL-first, Hebrew-primary, with the same layout mirrored for LTR content. Each leaf's
@@ -459,6 +467,37 @@ the design canvas.
 ![6.8 — An English statement renders the whole page LTR, with the mark reading "but".](screen/cases/english-ltr.6.8.png)
 
 <!-- /gallery:6.8 -->
+
+- `6.9` A figure page states which sources its record covers and from when.
+  <details><summary>Detail</summary>
+
+  An unknown figure answers 404 rather than an empty 200 (`5.10`), because an empty page is
+  the most defamatory thing a typo could produce here. A tracked figure with a thin timeline
+  is that same problem one step in: nothing on the page distinguishes "this is their record"
+  from "this is the part of it we have crawled". So the page says which sources reach them
+  and from when — which is a sentence we can only write because the roster was chosen rather
+  than stumbled into.
+  </details>
+<!-- gallery:6.9 -->
+
+![6.9 — A figure page states which sources its record covers and from when.](screen/cases/figure-coverage.6.9.png)
+
+<!-- /gallery:6.9 -->
+
+- `6.10` The methodology page publishes the test each tracked person meets.
+  <details><summary>Detail</summary>
+
+  For an elected official the test is a formality. For a commentator it is the whole of the
+  defensibility: what separates a roster from a list of people somebody decided to
+  scrutinise is that the first can say, per person, what put them on it. Held privately that
+  is not a rule, it is a preference — so it is published beside the detection caveat `6.6`
+  already carries, on the page every flag links to.
+  </details>
+<!-- gallery:6.10 -->
+
+![6.10 — The methodology page publishes the test each tracked person meets.](screen/cases/roster-rule.6.10.png)
+
+<!-- /gallery:6.10 -->
 
 ## 7. Shipping
 

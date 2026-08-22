@@ -8,6 +8,7 @@ import type {
   ChangeWindow,
   Cluster,
   ClusterMember,
+  Coverage,
   Figure,
   Finding,
   FindingKind,
@@ -38,6 +39,9 @@ const toFigure = (row: Row): Figure => ({
   role: row.role as string,
   aliases: parseList(row.aliases),
   status: row.status as Figure['status'],
+  qualifies: (row.qualifies as string | null) ?? null,
+  // Unrecorded stays null; only a stored list becomes a list.
+  coverage: typeof row.coverage === 'string' ? (JSON.parse(row.coverage) as Coverage[]) : null,
 });
 
 const toSource = (row: Row): Source => ({
@@ -269,13 +273,17 @@ export class Corpus {
     for (const entry of entries) {
       await this.#db
         .prepare(
-          `INSERT INTO figures (id, display_name, role, aliases, status, created_at) VALUES (?, ?, ?, ?, ?, ?)
+          `INSERT INTO figures (id, display_name, role, aliases, status, qualifies, coverage, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT (id) DO UPDATE SET display_name = excluded.display_name,
                                           role = excluded.role,
                                           aliases = excluded.aliases,
-                                          status = excluded.status`,
+                                          status = excluded.status,
+                                          qualifies = excluded.qualifies,
+                                          coverage = excluded.coverage`,
         )
-        .bind(entry.id, entry.displayName, entry.role, JSON.stringify(entry.aliases), entry.status, this.#now())
+        .bind(entry.id, entry.displayName, entry.role, JSON.stringify(entry.aliases), entry.status,
+              entry.qualifies, JSON.stringify(entry.coverage), this.#now())
         .run();
       figures.push((await this.getFigure(entry.id))!);
     }
