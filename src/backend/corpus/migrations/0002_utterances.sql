@@ -1,6 +1,7 @@
 -- Utterances and attestations, alongside the statements table rather than replacing it.
 -- This is the expand step: nothing is dropped or renamed, so the running Worker keeps
 -- working against the schema it knows while readers move over one at a time.
+-- expand: utterances
 
 CREATE TABLE utterances (
   id                TEXT PRIMARY KEY,          -- ULID, minted once
