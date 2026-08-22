@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withUtterance } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withUtterance } from '../../shared/fixtures.ts';
 
 // The pair the design uses to make the point: both sentences are *about* the same thing,
 // which is exactly why an embedding puts them together and exactly why distance alone
@@ -14,7 +14,7 @@ export default {
   title: 'a stance carries the model and prompt that produced it, and a re-run never overwrites one',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const refuses = await withUtterance(corpus, figure.id, REFUSES, { key: 'refuses' });
     const disowns = await withUtterance(corpus, figure.id, DISOWNS, { key: 'disowns' });
     const { clusterId } = await corpus.assignToCluster(refuses.id, null, 0);

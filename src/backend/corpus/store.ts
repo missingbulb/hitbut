@@ -19,11 +19,13 @@ import type {
   Source,
   Stance,
   Statement,
+  Unattributed,
   Utterance,
   Venue,
 } from '../../shared/types.ts';
-import { indexText, matchExpression } from '../../shared/text.ts';
-import { createUlidFactory, mintFigureId, type Ulid } from './ids.ts';
+import { fold, indexText, matchExpression } from '../../shared/text.ts';
+import { createUlidFactory, type Ulid } from './ids.ts';
+import { namesOf, type RosterEntry } from './roster.ts';
 import { mergeKey } from './utterances.ts';
 
 type Row = Record<string, unknown>;
@@ -75,6 +77,19 @@ const toJudgment = (row: Row): Judgment => ({
   surfaced: row.surfaced === 1,
 });
 
+
+const toUnattributed = (row: Row): Unattributed => ({
+  id: row.id as string,
+  sourceId: row.source_id as string,
+  speakerName: row.speaker_name as string,
+  speakerRole: (row.speaker_role as string | null) ?? null,
+  ordinal: row.ordinal as number,
+  quote: row.quote as string,
+  language: row.language as Language,
+  saidAt: (row.said_at as string | null) ?? null,
+  context: (row.context as string | null) ?? null,
+  createdAt: row.created_at as string,
+});
 
 const toCluster = (row: Row): Cluster => ({
   id: row.id as string,
@@ -175,6 +190,17 @@ export type ExtractedStatement = {
   topics: string[];
 };
 
+/** A passage as it arrives from an extractor, before we know whether we track its speaker. */
+export type UnattributedPassage = {
+  speakerName: string;
+  speakerRole?: string | null;
+  ordinal: number;
+  quote: string;
+  language: Language;
+  saidAt?: string | null;
+  context?: string | null;
+};
+
 export type NewSource = {
   url: string;
   publisher: string;
@@ -230,20 +256,41 @@ export class Corpus {
    * Creates the figure if the name is new, and otherwise returns the one that already
    * has the slug. Renaming goes through `rename`, which deliberately leaves the id alone.
    */
-  async ensureFigure(input: { displayName: string; role: string; aliases?: string[] }): Promise<Figure> {
-    const existing = await this.#db
-      .prepare('SELECT * FROM figures WHERE display_name = ?')
-      .bind(input.displayName)
-      .first<Row>();
-    if (existing) return toFigure(existing);
+  /**
+   * Brings the corpus in line with the committed roster — the ONLY path that creates a
+   * figure. Acquisition cannot reach it, which is the whole of the fix in #31: who we
+   * track is a reviewed change to a committed file, never a byproduct of what got crawled.
+   *
+   * Ids come from the entry rather than from the name, so renaming somebody in the roster
+   * updates their display name and moves no citation.
+   */
+  async syncRoster(entries: RosterEntry[]): Promise<Figure[]> {
+    const figures: Figure[] = [];
+    for (const entry of entries) {
+      await this.#db
+        .prepare(
+          `INSERT INTO figures (id, display_name, role, aliases, status, created_at) VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT (id) DO UPDATE SET display_name = excluded.display_name,
+                                          role = excluded.role,
+                                          aliases = excluded.aliases,
+                                          status = excluded.status`,
+        )
+        .bind(entry.id, entry.displayName, entry.role, JSON.stringify(entry.aliases), entry.status, this.#now())
+        .run();
+      figures.push((await this.getFigure(entry.id))!);
+    }
+    return figures;
+  }
 
-    const taken = await this.#db.prepare('SELECT id FROM figures').all<Row>();
-    const id = mintFigureId(input.displayName, taken.results.map((row) => row.id as string));
-    await this.#db
-      .prepare('INSERT INTO figures (id, display_name, role, aliases, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(id, input.displayName, input.role, JSON.stringify(input.aliases ?? []), 'active', this.#now())
-      .run();
-    return { id, displayName: input.displayName, role: input.role, aliases: input.aliases ?? [], status: 'active' };
+  /**
+   * The figure a document's speaker name refers to, or null when we do not track them.
+   * Matches the display name and every alias, folded — a source writes a name the way its
+   * house style writes it, and that is not a decision about who the person is.
+   */
+  async resolveSpeaker(entries: RosterEntry[], speakerName: string): Promise<Figure | null> {
+    const wanted = fold(speakerName);
+    const entry = entries.find((candidate) => namesOf(candidate).some((name) => fold(name) === wanted));
+    return entry ? this.getFigure(entry.id) : null;
   }
 
   /** A new name for the same person. The id is a citation and does not move. */
@@ -525,6 +572,37 @@ export class Corpus {
       .bind(figureId)
       .all<Row>();
     return rows.results.map(toUtterance);
+  }
+
+  // ---- speakers we do not track ---------------------------------------------------
+
+  /**
+   * Holds a passage whose speaker is not on the roster. Keyed on the payload position, so
+   * a re-extraction of the same document rewrites the row rather than adding a second.
+   */
+  async recordUnattributed(sourceId: string, passage: UnattributedPassage): Promise<void> {
+    await this.#db
+      .prepare(
+        `INSERT INTO unattributed (id, source_id, speaker_name, speaker_role, ordinal, quote, language, said_at, context, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (source_id, ordinal) DO UPDATE SET speaker_name = excluded.speaker_name,
+                                                        speaker_role = excluded.speaker_role,
+                                                        quote = excluded.quote,
+                                                        language = excluded.language,
+                                                        said_at = excluded.said_at,
+                                                        context = excluded.context`,
+      )
+      .bind(this.#ulid(), sourceId, passage.speakerName, passage.speakerRole ?? null, passage.ordinal,
+            passage.quote, passage.language, passage.saidAt ?? null, passage.context ?? null, this.#now())
+      .run();
+  }
+
+  /** Everything held for a decision, newest source first. */
+  async unattributed(options: { speakerName?: string } = {}): Promise<Unattributed[]> {
+    const rows = options.speakerName
+      ? await this.#db.prepare('SELECT * FROM unattributed WHERE speaker_name = ? ORDER BY id').bind(options.speakerName).all<Row>()
+      : await this.#db.prepare('SELECT * FROM unattributed ORDER BY id').all<Row>();
+    return rows.results.map(toUnattributed);
   }
 
   // ---- clusters, stances and findings --------------------------------------------

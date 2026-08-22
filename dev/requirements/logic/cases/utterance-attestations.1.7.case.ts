@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withSource } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withSource } from '../../shared/fixtures.ts';
 
 const SPOKEN = 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה, ואני אומרת את זה בפעם האחרונה.';
 // The same sentence as three outlets carried it: different quotation marks, a trimmed
@@ -15,7 +15,7 @@ export default {
   title: 'one speech reported by three documents is one utterance with three attestations',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const outlets = ['העיתון לדוגמה', 'ערוץ החדשות לדוגמה', 'The Sample Review'];
 
     const recorded = [];

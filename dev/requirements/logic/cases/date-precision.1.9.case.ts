@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withSource } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withSource } from '../../shared/fixtures.ts';
 import { readSourceDate, sortableInstant } from '../../../../src/backend/corpus/dates.ts';
 
 export default {
@@ -13,7 +13,7 @@ export default {
     assert.equal(readSourceDate('sometime in the spring'), null, 'and so is one we cannot read');
 
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const record = async (text: string, raw: string | null, key: string) =>
       (await corpus.recordReported({
         figureId: figure.id, text, language: 'he', saidAt: readSourceDate(raw),

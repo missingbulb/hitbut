@@ -17,7 +17,7 @@ export default {
     assert.equal(result.ok === false && result.reason, 'blocked');
     assert.equal(result.attempts, 1, 'retrying is the traffic that earned the refusal');
 
-    const world = acquisitionWorld([
+    const world = await acquisitionWorld([
       { key: 'walled-1', url: 'https://example.org/walled', payload: '', response: { status: 200, body: INTERSTITIAL } },
     ]);
     const [outcome] = await runAcquisition(world.options);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withSource } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withSource } from '../../shared/fixtures.ts';
 
 const WORDS = 'התקציב הזה לא ייגע בקו הזה.';
 
@@ -8,7 +8,7 @@ export default {
   title: 'venue and audience belong to the utterance, and who reported it to the attestation',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
 
     // The same words, the same day, two rooms. That is two utterances — and the difference
     // between the rooms is the whole point of an anomaly, so merging them would erase the
