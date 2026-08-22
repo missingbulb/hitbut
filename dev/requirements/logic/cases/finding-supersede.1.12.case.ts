@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withUtterance } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withUtterance } from '../../shared/fixtures.ts';
 
 const EARLY = 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.';
 const LATE = 'הרכבת הקלה מעולם לא הייתה בעדיפות שלי.';
@@ -9,7 +9,7 @@ export default {
   title: 're-analysis writes a new finding and the superseded one still resolves',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const early = await withUtterance(corpus, figure.id, EARLY, {
       key: 'early', saidAt: { value: '2023-05-04', precision: 'day' },
     });

@@ -33,11 +33,12 @@ renumbered, or deleted, and retirement is a status rather than a removal.
 - `1.1` A figure's id is a slug minted once at creation, and does not change when the figure's display name changes.
   <details><summary>Detail</summary>
 
-  The slug is derived from the name at creation — Hebrew stays Hebrew, since transliterating
-  without vowels is a guess and a guess baked into a permanent id is a guess forever;
-  collisions take a numeric suffix. From then on the id is opaque: renaming מורג to
-  מורג־עציון updates `display_name` and leaves `id` alone, because a citation of the old URL
-  must keep resolving.
+  The slug is derived from the name once, when the person's roster entry is authored —
+  Hebrew stays Hebrew, since transliterating without vowels is a guess and a guess baked
+  into a permanent id is a guess forever; collisions take a numeric suffix. From then on the
+  id is opaque and the entry carries it: renaming מורג to מורג־עציון in the roster updates
+  `display_name` and leaves `id` alone, because a citation of the old URL must keep
+  resolving.
   </details>
 
 - `1.2` A statement keeps the ULID it was given at first extraction when the same source payload is extracted again.
@@ -147,6 +148,37 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   date, because a series says the change falls between two observations and no more. A
   record that can be stored missing its own point would let detection produce findings
   that read as complete and are not.
+  </details>
+
+- `1.14` A speaker who is not on the committed roster does not become a tracked figure.
+  <details><summary>Detail</summary>
+
+  A committee protocol names witnesses, petitioners, clerks and private citizens giving
+  testimony. If the roster is whatever got crawled, each of them gets a slug, a page, a
+  timeline and eventually an inconsistency flag — which is the exposure this product must
+  not create, and under Israeli defamation law a serious one. Who we track is a reviewed
+  decision that arrives as an input to acquisition, never a byproduct of it.
+  </details>
+
+- `1.15` A statement by a speaker we do not track is retained under the name the source gave, and does not renumber the statements around it.
+  <details><summary>Detail</summary>
+
+  Not tracked is not the same as not recorded. Dropping the passage would make the raw
+  record incomplete and would silently decide, at crawl time, something a person should
+  decide; promoting it would create the tracked figure `1.14` forbids. So it is held with
+  the speaker's name exactly as the document wrote it, waiting for that decision — and the
+  statements that *did* resolve keep the positions they had in the payload, so adding the
+  speaker to the roster later cannot move anybody's id.
+  </details>
+
+- `1.16` Every roster entry states the written test the person meets, and an entry without one is refused.
+  <details><summary>Detail</summary>
+
+  For an elected official the test is trivial and the entry is a formality. For a
+  commentator it is the whole of the defensibility: the difference between a roster and an
+  arbitrary list of people someone decided to scrutinise is that the first one can say, per
+  person, what put them on it. Refusing the entry is what stops the field being optional in
+  practice.
   </details>
 
 ## 2. Hebrew-aware search

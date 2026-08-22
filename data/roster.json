@@ -1,0 +1,32 @@
+{
+  "note": "EVERY PERSON IN THIS FILE IS INVENTED. The roster is what decides who the product tracks, so it does not carry a real name until the Israeli defamation-law review (issue #28) has landed and the real roster has been reviewed against it. Adding a person here is a reviewed change: state in `qualifies` what put them in the public eye, in the capacity we are tracking them in, and in `coverage` which sources reach them and from when. We do not track private people or personal activity.",
+  "entries": [
+    {
+      "id": "אילנה-מורגעציון",
+      "displayName": "אילנה מורג־עציון",
+      "role": "חברת הכנסת (דמות לדוגמה)",
+      "aliases": ["אילנה מורג"],
+      "qualifies": "חברת כנסת מכהנת; נבחרת ציבור המדברת בתפקידה הציבורי.",
+      "coverage": [{ "sourceModule": "sample-protocols", "from": "2023-01-01" }],
+      "status": "active"
+    },
+    {
+      "id": "דורון-בןשחר",
+      "displayName": "דורון בן־שחר",
+      "role": "פרשן כלכלי (דמות לדוגמה)",
+      "aliases": [],
+      "qualifies": "פרשן קבוע בעיתונות הכלכלית, המפרסם בשמו ובאופן סדיר על מדיניות ציבורית.",
+      "coverage": [{ "sourceModule": "sample-paper", "from": "2022-06-01" }],
+      "status": "active"
+    },
+    {
+      "id": "נטע-קרליבך",
+      "displayName": "נטע קרליבך",
+      "role": "עיתונאית (דמות לדוגמה)",
+      "aliases": [],
+      "qualifies": "עיתונאית המפרסמת בשמה בכלי תקשורת ארצי ומביעה עמדה בנושאי מדיניות.",
+      "coverage": [{ "sourceModule": "sample-channel", "from": "2022-06-01" }],
+      "status": "active"
+    }
+  ]
+}

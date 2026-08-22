@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withUtterance } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withUtterance } from '../../shared/fixtures.ts';
 
 const AT_COMMITTEE = 'הרכבת הקלה היא פרויקט לאומי ואנחנו מחויבים לו.';
 const AT_A_RALLY = 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.';
@@ -15,7 +15,7 @@ export default {
   title: 'a finding names the utterances it rests on and carries the attribute its kind turns on',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const committee = await withUtterance(corpus, figure.id, AT_COMMITTEE, {
       key: 'committee', venue: 'committee', audience: 'parliament',
       saidAt: { value: '2024-02-01', precision: 'day' },

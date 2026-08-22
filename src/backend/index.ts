@@ -3,6 +3,7 @@
 // code sits in the API path and no API code sits in a scraper.
 import type { AnalysisMessage, Env, MessageBatch } from './env.ts';
 import { Corpus } from './corpus/store.ts';
+import { ROSTER } from './corpus/roster-data.ts';
 import { handleRequest } from './api/router.ts';
 import { generateStatementExport } from './api/export.ts';
 import { runAcquisition } from './acquisition/run.ts';
@@ -19,11 +20,16 @@ export default {
 
   async scheduled(_event: unknown, env: Env): Promise<void> {
     const corpus = new Corpus(env.CORPUS);
+    // The roster is an input to every pass, so a reviewed change to who we track — a new
+    // person, a rename, a retirement — reaches the corpus on the next run and never
+    // through anything a crawl did.
+    await corpus.syncRoster(ROSTER);
     const outcomes = await runAcquisition({
       corpus,
       raw: env.RAW,
       queue: env.ANALYSIS,
       registry: productionRegistry(),
+      roster: ROSTER,
       deps: { fetch: (url, init) => fetch(url, init) },
       now: () => new Date().toISOString(),
       fetch: { politenessMs: 800 },
@@ -32,7 +38,7 @@ export default {
     for (const outcome of outcomes) {
       console.log(
         `acquisition ${outcome.module}: fetched ${outcome.fetched}, skipped ${outcome.skipped}, ` +
-          `statements ${outcome.statements}, failures ${outcome.failures.map((f) => `${f.key}=${f.reason}`).join(' ') || 'none'}`,
+          `statements ${outcome.statements}, unattributed ${outcome.unattributed}, failures ${outcome.failures.map((f) => `${f.key}=${f.reason}`).join(' ') || 'none'}`,
       );
     }
     console.log(`export: ${await generateStatementExport(corpus, env.RAW)} statements`);

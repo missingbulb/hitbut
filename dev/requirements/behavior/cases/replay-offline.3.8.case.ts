@@ -7,7 +7,7 @@ import { forbiddenFetch } from '../../shared/fakes.ts';
 export default {
   title: 'a parser fix replays from the cached payload without touching the network',
   async run() {
-    const world = acquisitionWorld([
+    const world = await acquisitionWorld([
       {
         key: 'protocol-1',
         url: 'https://example.org/protocols/1',

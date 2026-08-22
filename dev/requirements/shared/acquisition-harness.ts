@@ -4,15 +4,18 @@
 import { SourceRegistry, type SourceModule } from '../../../src/backend/acquisition/registry.ts';
 import type { AcquisitionOptions } from '../../../src/backend/acquisition/run.ts';
 import { FakeQueue, FakeR2, servingFetch, type ScriptedResponse } from './fakes.ts';
-import { emptyCorpus, fixtureSource, REFERENCE_NOW } from './fixtures.ts';
+import { emptyCorpus, fixtureSource, SAMPLE_ROSTER, STAND_IN, REFERENCE_NOW } from './fixtures.ts';
 
 export type HarnessDocument = { key: string; url: string; payload: string; response?: ScriptedResponse };
 
-export function acquisitionWorld(documents: HarnessDocument[], moduleOverrides: Partial<SourceModule> = {}) {
+export async function acquisitionWorld(documents: HarnessDocument[], moduleOverrides: Partial<SourceModule> = {}) {
   const log: string[] = [];
   const raw = new FakeR2(log);
   const queue = new FakeQueue();
   const corpus = emptyCorpus();
+  // The roster is an input to acquisition, so the harness supplies it the way the Worker
+  // does — synced before the pass, never grown by it.
+  await corpus.syncRoster([...SAMPLE_ROSTER, STAND_IN]);
   const registry = new SourceRegistry();
 
   const module = fixtureSource({
@@ -31,6 +34,7 @@ export function acquisitionWorld(documents: HarnessDocument[], moduleOverrides: 
     raw,
     queue,
     registry,
+    roster: [...SAMPLE_ROSTER, STAND_IN],
     deps: http.deps,
     now: () => new Date(Date.parse(REFERENCE_NOW) + tick++ * 1000).toISOString(),
   };

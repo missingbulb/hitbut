@@ -6,7 +6,7 @@ import { runAcquisition } from '../../../../src/backend/acquisition/run.ts';
 export default {
   title: 'one document failing does not abandon the rest of the batch',
   async run() {
-    const world = acquisitionWorld([
+    const world = await acquisitionWorld([
       { key: 'gone', url: 'https://example.org/gone', payload: '', response: { status: 404, body: 'not found' } },
       {
         key: 'fine',

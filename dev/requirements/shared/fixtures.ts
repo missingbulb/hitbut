@@ -7,10 +7,11 @@
 // Determinism is the other job: one reference instant, a seeded id minter, no wall clock —
 // so the ids in a golden image are the same ids on every machine, forever.
 import { Corpus } from '../../../src/backend/corpus/store.ts';
-import { createUlidFactory } from '../../../src/backend/corpus/ids.ts';
+import { createUlidFactory, mintFigureId } from '../../../src/backend/corpus/ids.ts';
+import { readRoster, type RosterEntry } from '../../../src/backend/corpus/roster.ts';
 import type { D1Database } from '../../../src/backend/env.ts';
 import type { SourceModule } from '../../../src/backend/acquisition/registry.ts';
-import type { Audience, SaidAt, Venue } from '../../../src/shared/types.ts';
+import type { Audience, Figure, SaidAt, Venue } from '../../../src/shared/types.ts';
 import { migratedDatabase } from './local-d1.ts';
 
 /** The one instant everything that formats or compares a date is measured against. */
@@ -73,13 +74,64 @@ export type SeededCorpus = {
 };
 
 /**
+ * The roster the sample corpus is built from. Deliberately not `data/roster.json`: that
+ * file is the product's own input and a case must not go red because somebody reviewed a
+ * change to who we track. Same shape, same loader, invented people.
+ */
+export const SAMPLE_ROSTER: RosterEntry[] = readRoster({
+  entries: [
+    {
+      id: 'אילנה-מורגעציון', displayName: 'אילנה מורג־עציון', role: 'חברת הכנסת (דמות לדוגמה)',
+      aliases: ['אילנה מורג'], qualifies: 'דמות לדוגמה: נבחרת ציבור מכהנת.',
+      coverage: [{ sourceModule: 'sample-protocols', from: '2023-01-01' }], status: 'active',
+    },
+    {
+      id: 'דורון-בןשחר', displayName: 'דורון בן־שחר', role: 'פרשן כלכלי (דמות לדוגמה)',
+      aliases: [], qualifies: 'דמות לדוגמה: פרשן קבוע בעיתונות הכלכלית.',
+      coverage: [{ sourceModule: 'sample-paper', from: '2022-06-01' }], status: 'active',
+    },
+    {
+      id: 'נטע-קרליבך', displayName: 'נטע קרליבך', role: 'עיתונאית (דמות לדוגמה)',
+      aliases: [], qualifies: 'דמות לדוגמה: עיתונאית המפרסמת בשמה.',
+      coverage: [{ sourceModule: 'sample-channel', from: '2022-06-01' }], status: 'active',
+    },
+  ],
+});
+
+/**
+ * The stand-in for a case that needs a tracked speaker and does not care who. Deliberately
+ * NOT in `SAMPLE_ROSTER`: the seeded corpus is what the API and the screen goldens read,
+ * and a fourth person in it would show up in every listing and every picture.
+ */
+export const [STAND_IN] = readRoster({
+  entries: [{
+    id: 'דמות-לדוגמה', displayName: 'דמות לדוגמה', role: 'דמות לדוגמה',
+    aliases: [], qualifies: 'דמות לדוגמה.',
+    coverage: [{ sourceModule: 'sample-protocols', from: '2022-01-01' }], status: 'active',
+  }],
+}) as [RosterEntry];
+
+/**
+ * A tracked figure for a case that needs one and does not care who. Goes through the
+ * roster like everything else — there is no other way to create a figure, which is the
+ * point of #31.
+ */
+export async function withFigure(corpus: Corpus, displayName: string, role = 'דמות לדוגמה'): Promise<Figure> {
+  const [figure] = await corpus.syncRoster([
+    { ...STAND_IN, id: mintFigureId(displayName, []), displayName, role },
+  ]);
+  return figure!;
+}
+
+/**
  * Writes the sample corpus through the shipped store, so what the harness reads back is
  * whatever the product's own writes actually produce.
  */
 export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
-  const ilana = await corpus.ensureFigure({ displayName: 'אילנה מורג־עציון', role: 'חברת הכנסת (דמות לדוגמה)' });
-  const doron = await corpus.ensureFigure({ displayName: 'דורון בן־שחר', role: 'פרשן כלכלי (דמות לדוגמה)' });
-  const neta = await corpus.ensureFigure({ displayName: 'נטע קרליבך', role: 'עיתונאית (דמות לדוגמה)' });
+  const roster = new Map((await corpus.syncRoster(SAMPLE_ROSTER)).map((figure) => [figure.id, figure]));
+  const ilana = roster.get('אילנה-מורגעציון')!;
+  const doron = roster.get('דורון-בןשחר')!;
+  const neta = roster.get('נטע-קרליבך')!;
 
   const protocol = await corpus.recordSource({
     url: 'https://example.org/protocols/2024-03-12',
@@ -241,7 +293,7 @@ export async function withStatement(
   quote: string,
   extras: { saidAt?: string | null; language?: 'he' | 'en'; topics?: string[]; speaker?: string; ordinal?: number } = {},
 ) {
-  const figure = await corpus.ensureFigure({ displayName: extras.speaker ?? 'דמות לדוגמה', role: 'דמות לדוגמה' });
+  const figure = await withFigure(corpus, extras.speaker ?? 'דמות לדוגמה');
   const source = await corpus.recordSource({
     url: `https://example.org/sample/${encodeURIComponent(quote.slice(0, 12))}`,
     publisher: PUBLISHERS.protocols, kind: 'transcript', fetchedAt: REFERENCE_NOW,

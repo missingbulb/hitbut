@@ -200,3 +200,23 @@ export type Finding = {
   supersededBy: string | null;
   surfaced: boolean;
 };
+
+/**
+ * A passage by somebody we do not track, held under the name the document gave. It is a
+ * decision waiting for a person, not a record about a figure — so it has no figure id, no
+ * cluster and no stance, and nothing in analysis reads it.
+ */
+export type Unattributed = {
+  id: string;
+  sourceId: string;
+  /** Exactly as the document wrote it; never normalized towards a roster name. */
+  speakerName: string;
+  speakerRole: string | null;
+  /** Its position in the payload, which is what keeps the resolved statements' ids still. */
+  ordinal: number;
+  quote: string;
+  language: Language;
+  saidAt: string | null;
+  context: string | null;
+  createdAt: string;
+};

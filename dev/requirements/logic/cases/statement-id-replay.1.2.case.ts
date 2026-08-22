@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, REFERENCE_NOW } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, REFERENCE_NOW } from '../../shared/fixtures.ts';
 
 export default {
   title: 'replaying an extractor over the same payload reuses the statement ids',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
     const source = await corpus.recordSource({
       url: 'https://example.org/protocols/1', publisher: 'ארכיון פרוטוקולים לדוגמה', kind: 'transcript',
       fetchedAt: REFERENCE_NOW, rawKey: 'sample/1.raw', extraction: 'extracted',

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withUtterance } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure, withUtterance } from '../../shared/fixtures.ts';
 
 // Two ways of saying the same thing and one about something else entirely. What matters
 // here is not that clustering picks the right answer — that is the embedding's job, and
@@ -14,7 +14,7 @@ export default {
   title: 'a subject is a cluster the corpus opens, not a name chosen in advance',
   async run() {
     const corpus = emptyCorpus();
-    const figure = await corpus.ensureFigure({ displayName: 'דמות לדוגמה', role: 'דמות לדוגמה' });
+    const figure = await withFigure(corpus, 'דמות לדוגמה');
 
     const first = await withUtterance(corpus, figure.id, ABOUT_THE_LINE, { key: 'line-1' });
     const second = await withUtterance(corpus, figure.id, ALSO_ABOUT_THE_LINE, { key: 'line-2' });

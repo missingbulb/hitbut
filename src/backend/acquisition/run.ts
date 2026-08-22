@@ -7,6 +7,7 @@ import type { AnalysisMessage, Queue, R2Bucket } from '../env.ts';
 import type { Corpus, ExtractedStatement } from '../corpus/store.ts';
 import { fetchPage, type FetchDeps, type FetchFailure, type FetchOptions } from './fetcher.ts';
 import type { SourceModule, SourceRegistry, RawStatement } from './registry.ts';
+import type { RosterEntry } from '../corpus/roster.ts';
 
 export type ItemFailure = { key: string; url: string; reason: FetchFailure | 'extraction'; detail: string };
 
@@ -16,6 +17,8 @@ export type ModuleOutcome = {
   /** Already in the cache and already extracted: no request was issued. */
   skipped: number;
   statements: number;
+  /** Passages held for a decision because we do not track their speaker. */
+  unattributed: number;
   failures: ItemFailure[];
 };
 
@@ -24,6 +27,8 @@ export type AcquisitionOptions = {
   raw: R2Bucket;
   queue: Queue<AnalysisMessage>;
   registry: SourceRegistry;
+  /** Who we track. An input to the pass, never something the pass adds to. */
+  roster: RosterEntry[];
   deps: FetchDeps;
   now: () => string;
   /** Re-fetch documents already in the cache — the only way a changed page is re-read. */
@@ -43,7 +48,7 @@ export async function runAcquisition(options: AcquisitionOptions): Promise<Modul
 }
 
 async function runModule(module: SourceModule, options: AcquisitionOptions): Promise<ModuleOutcome> {
-  const outcome: ModuleOutcome = { module: module.id, fetched: 0, skipped: 0, statements: 0, failures: [] };
+  const outcome: ModuleOutcome = { module: module.id, fetched: 0, skipped: 0, statements: 0, unattributed: 0, failures: [] };
   const documents = await module.list();
 
   for (const document of documents) {
@@ -91,7 +96,8 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
 
     try {
       const saved = await extractInto(options, module, source.id, result.body, document);
-      outcome.statements += saved;
+      outcome.statements += saved.statements;
+      outcome.unattributed += saved.unattributed;
     } catch (error) {
       await options.corpus.setExtractionStatus(source.id, 'failed');
       outcome.failures.push({ key: document.key, url: document.url, reason: 'extraction', detail: String(error) });
@@ -100,18 +106,42 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
   return outcome;
 }
 
-/** Turn one payload into statements, mint what needs minting, and hand each to analysis. */
+/**
+ * Turn one payload into statements and hand each to analysis.
+ *
+ * A speaker the roster does not name is neither dropped nor promoted: the passage is held
+ * unattributed, under the name the document wrote, for a person to decide about (#31).
+ * Acquisition cannot create a figure — that is the whole of the fix, and the reason this
+ * function takes the roster rather than reaching for a corpus method that mints one.
+ */
 async function extractInto(
-  options: Pick<AcquisitionOptions, 'corpus' | 'queue'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'queue' | 'roster'>,
   module: SourceModule,
   sourceId: string,
   payload: string,
   document: { key: string; url: string },
-): Promise<number> {
+): Promise<{ statements: number; unattributed: number }> {
   const rawStatements: RawStatement[] = module.extract(payload, document);
   const extracted: ExtractedStatement[] = [];
+  let held = 0;
+
   for (const raw of rawStatements) {
-    const figure = await options.corpus.ensureFigure({ displayName: raw.speaker.displayName, role: raw.speaker.role });
+    const figure = await options.corpus.resolveSpeaker(options.roster, raw.speaker.displayName);
+    if (!figure) {
+      // Its ordinal goes with it, so the statements that did resolve keep the positions
+      // they had in the payload and adding this speaker later moves nobody's id.
+      await options.corpus.recordUnattributed(sourceId, {
+        speakerName: raw.speaker.displayName,
+        speakerRole: raw.speaker.role,
+        ordinal: raw.ordinal,
+        quote: raw.quote,
+        language: raw.language,
+        saidAt: raw.saidAt,
+        context: raw.context,
+      });
+      held += 1;
+      continue;
+    }
     extracted.push({
       ordinal: raw.ordinal,
       figureId: figure.id,
@@ -122,10 +152,11 @@ async function extractInto(
       topics: raw.topics,
     });
   }
+
   const saved = await options.corpus.saveStatements(sourceId, extracted);
   await options.corpus.setExtractionStatus(sourceId, 'extracted');
   for (const statement of saved) await options.queue.send({ statementId: statement.id });
-  return saved.length;
+  return { statements: saved.length, unattributed: held };
 }
 
 /**
@@ -134,9 +165,9 @@ async function extractInto(
  * statements keep the ids they were given the first time.
  */
 export async function reextract(
-  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'queue' | 'registry'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'queue' | 'registry' | 'roster'>,
   sourceId: string,
-): Promise<number> {
+): Promise<{ statements: number; unattributed: number }> {
   const record = await options.corpus.getSourceRecord(sourceId);
   if (!record) throw new Error(`no such source: ${sourceId}`);
   const module = options.registry.get(record.sourceModule);

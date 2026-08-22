@@ -7,7 +7,7 @@ export default {
   title: 'the raw payload reaches the cache before any parser reads it',
   async run() {
     const payload = payloadOf([['דמות לדוגמה', '2026-01-05', 'תקציב', 'אמירה ראשונה לדוגמה.']]);
-    const world = acquisitionWorld([{ key: 'protocol-1', url: 'https://example.org/protocols/1', payload }]);
+    const world = await acquisitionWorld([{ key: 'protocol-1', url: 'https://example.org/protocols/1', payload }]);
 
     await runAcquisition(world.options);
 

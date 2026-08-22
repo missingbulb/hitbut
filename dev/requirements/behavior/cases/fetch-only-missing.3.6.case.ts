@@ -6,7 +6,7 @@ import { runAcquisition } from '../../../../src/backend/acquisition/run.ts';
 export default {
   title: 'a re-run fetches nothing it already has, and re-fetches everything when forced',
   async run() {
-    const world = acquisitionWorld([
+    const world = await acquisitionWorld([
       {
         key: 'protocol-1',
         url: 'https://example.org/protocols/1',

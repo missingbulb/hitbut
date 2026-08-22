@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus } from '../../shared/fixtures.ts';
+import { emptyCorpus, withFigure } from '../../shared/fixtures.ts';
 
 export default {
   title: 'a withdrawn figure leaves the listings and still resolves by id',
   async run() {
     const corpus = emptyCorpus();
-    const kept = await corpus.ensureFigure({ displayName: 'דמות ראשונה לדוגמה', role: 'דמות לדוגמה' });
-    const withdrawn = await corpus.ensureFigure({ displayName: 'דמות שנייה לדוגמה', role: 'דמות לדוגמה' });
+    const kept = await withFigure(corpus, 'דמות ראשונה לדוגמה', 'דמות לדוגמה');
+    const withdrawn = await withFigure(corpus, 'דמות שנייה לדוגמה', 'דמות לדוגמה');
 
     await corpus.retireFigure(withdrawn.id);
 
