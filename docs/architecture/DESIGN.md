@@ -70,6 +70,14 @@ hatch is a smaller slice before it is a second runtime.
 - **Queues** carry the hand-off between stages, so a fetch burst never waits on
   model latency and a failed stage retries without re-fetching.
 
+**The schema moves in three steps, never one.** The deploy applies migrations
+before it replaces the Worker, so for the length of a deploy the previous code
+is serving against the new schema. Additive changes survive that window and
+nothing else does, which makes every schema change three merges — expand,
+migrate the readers, contract — rather than one. `dev/gates/schema-migrations.ts`
+is what enforces it; the deploy order it reasons about is the `ship main` job
+in `.github/workflows/product.yml`.
+
 *Alternatives*: KV rejected — no queries, and the corpus is nothing but
 queries. Durable Objects rejected — no per-entity coordination exists that D1
 row writes don't already serialize. Committing extracted raw records to git

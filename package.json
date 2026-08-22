@@ -8,7 +8,7 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "test": "node --test dev/requirements/coverage.test.ts dev/requirements/gallery.test.ts dev/requirements/logic/run.test.ts dev/requirements/behavior/run.test.ts",
+    "test": "node --test dev/gates/schema-migrations.test.ts dev/requirements/coverage.test.ts dev/requirements/gallery.test.ts dev/requirements/logic/run.test.ts dev/requirements/behavior/run.test.ts",
     "test:server": "node --test dev/requirements/server/run.test.ts",
     "test:screen": "node --test --test-timeout=180000 dev/requirements/screen/run.test.ts",
     "test:all": "npm test && npm run test:server && npm run test:screen",
