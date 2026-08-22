@@ -85,7 +85,25 @@ test('only a visual kind holds images, and every image is a case’s golden', ()
 
 test('leaves are numbered in order and none repeats', () => {
   const ids = leaves.map((leaf) => leaf.id);
-  const repeated = ids.filter((id, i) => ids.indexOf(id) !== i);
-  assert.deepEqual(repeated, [], `duplicate requirement ids — ids are citations and must be unique: ${repeated.join(', ')}`);
-  assert.deepEqual([...ids].sort(compareIds), ids, 'requirements.md lists leaves out of numeric order');
+  // With the lines, because the usual cause is not a real duplicate: a prose reference to
+  // an id that happens to start its line parses as a second requirement, and "duplicate
+  // 5.10" on its own sends you looking for the wrong thing.
+  const repeated = leaves
+    .filter((leaf, i) => ids.indexOf(leaf.id) !== i)
+    .map((leaf) => `${leaf.id} (requirements.md:${leaf.line})`);
+  assert.deepEqual(
+    repeated,
+    [],
+    'duplicate requirement ids — ids are citations and must be unique. If one of these lines is prose '
+      + `rather than a requirement, reflow it so the id is not the first thing on it:\n  ${repeated.join('\n  ')}`,
+  );
+
+  const ordered = [...ids].sort(compareIds);
+  const firstWrong = ids.findIndex((id, i) => id !== ordered[i]);
+  assert.deepEqual(
+    ordered,
+    ids,
+    firstWrong === -1 ? '' : `requirements.md lists leaves out of numeric order, from ${ids[firstWrong]} `
+      + `(requirements.md:${leaves[firstWrong]?.line}) — expected ${ordered[firstWrong]} there`,
+  );
 });

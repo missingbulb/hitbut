@@ -36,6 +36,13 @@ const he = {
   loading: 'טוען…',
   notFound: 'לא נמצא.',
   methodologyLink: 'איך האיתור עובד',
+  coverageTitle: 'מה הרשומה הזו מכסה',
+  coverageLede: 'מה שמופיע כאן נאסף מהמקורות האלה בלבד. דברים שנאמרו במקומות אחרים, או לפני התאריכים האלה, פשוט לא נאספו — היעדרם אינו אומר שלא נאמרו.',
+  coverageFrom: 'מ־',
+  coverageUnknown: 'טרם נרשם אילו מקורות מכסים את הדמות הזו.',
+  rosterTitle: 'את מי אנחנו עוקבים, ולמה',
+  rosterLede: 'אנחנו עוקבים אחרי מי שהעמיד את עצמו בעין הציבור, ובתפקיד שבו עשה זאת. איננו עוקבים אחרי אנשים פרטיים ואיננו אוספים פעילות אישית. לכל דמות רשומה כאן המבחן שהיא עומדת בו:',
+  rosterEmpty: 'אין כרגע דמויות במעקב.',
   footerRights: 'התבטאויות — אוסף מתועד של אמירות פומביות.',
 };
 
@@ -74,6 +81,14 @@ const en: Strings = {
   loading: 'Loading…',
   notFound: 'Not found.',
   methodologyLink: 'How detection works',
+  coverageTitle: 'What this record covers',
+  coverageLede: 'What appears here was gathered from these sources only. Things said elsewhere, or before these dates, were simply not collected — their absence is not evidence they were not said.',
+  // Non-breaking, so the label cannot end up flush against the date it precedes.
+  coverageFrom: 'from\u00a0',
+  coverageUnknown: 'Which sources cover this figure has not been recorded yet.',
+  rosterTitle: 'Who we track, and why',
+  rosterLede: 'We track people who put themselves in the public eye, in the capacity in which they did so. We do not track private people and we do not collect personal activity. For every figure on the roster, the test they meet:',
+  rosterEmpty: 'No figures are being tracked.',
   footerRights: 'hitbut — a sourced record of public statements.',
 };
 

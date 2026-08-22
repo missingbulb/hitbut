@@ -4,7 +4,7 @@ import type { JSX } from 'preact';
 import type { FigureDetail } from '../../../shared/api.ts';
 import { useResource } from '../api.ts';
 import { Link } from '../router.tsx';
-import { Loading, NotFound, Quote, Shell, SourceLine, TopicChips, WhenSaid } from '../components.tsx';
+import { Coverage, Loading, NotFound, Quote, Shell, SourceLine, TopicChips, WhenSaid } from '../components.tsx';
 import { stringsFor } from '../strings.ts';
 
 export function Figure({ id }: { id: string }): JSX.Element {
@@ -39,6 +39,8 @@ export function Figure({ id }: { id: string }): JSX.Element {
         </div>
 
         <TopicChips topics={figure.topics} />
+
+        <Coverage coverage={figure.coverage} strings={strings} />
       </section>
 
       <section class="section">

@@ -2,7 +2,7 @@
 // which reads "hitbut" — carved out of התבטאויות in the one accent colour.
 import type { ComponentChildren, JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
-import type { Judgment, Language, Source, Statement } from '../../shared/types.ts';
+import type { Figure as FigureType, Judgment, Language, Source, Statement } from '../../shared/types.ts';
 import type { WireStatement } from '../../shared/api.ts';
 import { highlightTerms, isHighlighted } from '../../shared/text.ts';
 import { stringsFor, type Strings } from './strings.ts';
@@ -180,6 +180,37 @@ export function TopicChips({ topics }: { topics: string[] }): JSX.Element {
         </span>
       ))}
     </div>
+  );
+}
+
+/**
+ * What a figure's record actually covers. The point is the sentence beside the list, not
+ * the list: without it a thin timeline reads as "this person has said little", which is
+ * the same wrong implication an empty page would carry.
+ */
+export function Coverage(
+  { coverage, strings }: { coverage: FigureType['coverage']; strings: Strings },
+): JSX.Element {
+  return (
+    <section class="coverage">
+      <h2 class="coverage__title">{strings.coverageTitle}</h2>
+      <p class="coverage__lede">{coverage === null ? strings.coverageUnknown : strings.coverageLede}</p>
+      {coverage !== null && (
+        <ul class="coverage__list">
+          {coverage.map((reach) => (
+            <li class="coverage__item" key={reach.sourceModule}>
+              <span class="coverage__source">{reach.sourceModule}</span>
+              <span class="coverage__from">
+                {strings.coverageFrom}
+                {/* Only the date is isolated. Isolating the label with it would put a
+                    Hebrew prefix inside an LTR run, which renders it after the date. */}
+                <span dir="ltr" style="unicode-bidi: isolate">{reach.from}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

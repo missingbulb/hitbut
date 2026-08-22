@@ -2,15 +2,40 @@
 // it does not, on the page a reader reaches straight from the flag — and put the way to
 // tell us we are wrong immediately beside it.
 import type { JSX } from 'preact';
+import type { FigureSummary, Page } from '../../../shared/api.ts';
+import { useResource } from '../api.ts';
+import { Link } from '../router.tsx';
 import { Shell } from '../components.tsx';
+import { stringsFor } from '../strings.ts';
 
 const REPORT_URL = 'https://github.com/missingbulb/hitbut/issues';
 
 export function Methodology(): JSX.Element {
+  const strings = stringsFor('he');
+  const roster = useResource<Page<FigureSummary>>('/figures');
+
   return (
     <Shell>
       <article class="prose" style="padding-block-start: 40px">
         <h1 class="page-title">איך זה עובד</h1>
+
+        <h2>{strings.rosterTitle}</h2>
+        <p>{strings.rosterLede}</p>
+        {roster.state === 'ready' && roster.value.items.length > 0 ? (
+          <dl class="roster">
+            {roster.value.items.map((figure) => (
+              <div class="roster__entry" key={figure.id}>
+                <dt class="roster__who">
+                  <Link href={`/figures/${figure.id}`}>{figure.displayName}</Link>
+                  <span class="meta"> · {figure.role}</span>
+                </dt>
+                <dd class="roster__why">{figure.qualifies}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          roster.state !== 'loading' && <p>{strings.rosterEmpty}</p>
+        )}
 
         <h2>מאיפה מגיעות ההתבטאויות</h2>
         <p>

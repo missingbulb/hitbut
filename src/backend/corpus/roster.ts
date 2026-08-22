@@ -6,7 +6,7 @@
 // track someone is exactly the moment it should be fixed. Minting from the display name
 // would mean a rename in this file minted a second figure — the failure `1.1` exists to
 // prevent.
-import type { Figure } from '../../shared/types.ts';
+import type { Coverage, Figure } from '../../shared/types.ts';
 
 export type RosterEntry = {
   /** The slug, authored once with the entry; opaque from then on. */
@@ -21,7 +21,7 @@ export type RosterEntry = {
    */
   qualifies: string;
   /** Which source modules cover this person, and the earliest date each one reaches. */
-  coverage: { sourceModule: string; from: string }[];
+  coverage: Coverage[];
   status: Figure['status'];
 };
 
