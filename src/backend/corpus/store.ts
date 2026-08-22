@@ -2,9 +2,22 @@
 // D1 directly, so the invariants that make an id citable — mint once, supersede rather
 // than overwrite, retire rather than delete — live in one place.
 import type { D1Database } from '../env.ts';
-import type { Figure, Judgment, JudgmentKind, Language, Source, Statement } from '../../shared/types.ts';
+import type {
+  Attestation,
+  Audience,
+  Figure,
+  Judgment,
+  JudgmentKind,
+  Language,
+  SaidAt,
+  Source,
+  Statement,
+  Utterance,
+  Venue,
+} from '../../shared/types.ts';
 import { indexText, matchExpression } from '../../shared/text.ts';
 import { createUlidFactory, mintFigureId, type Ulid } from './ids.ts';
+import { mergeKey } from './utterances.ts';
 
 type Row = Record<string, unknown>;
 
@@ -54,6 +67,44 @@ const toJudgment = (row: Row): Judgment => ({
   supersededBy: (row.superseded_by as string | null) ?? null,
   surfaced: row.surfaced === 1,
 });
+
+
+const toUtterance = (row: Row): Utterance => ({
+  id: row.id as string,
+  figureId: row.figure_id as string,
+  text: row.text as string,
+  language: row.language as Language,
+  // The three states stay three: a date with its precision, or nothing at all.
+  saidAt: row.said_at
+    ? { value: row.said_at as string, precision: row.said_at_precision as 'day' | 'month' | 'year' }
+    : null,
+  venue: row.venue as Venue,
+  audience: (row.audience as Audience) ?? null,
+  createdAt: row.created_at as string,
+});
+
+const toAttestation = (row: Row): Attestation => ({
+  id: row.id as string,
+  utteranceId: row.utterance_id as string,
+  sourceId: row.source_id as string,
+  text: row.text as string,
+  publishedAt: (row.published_at as string | null) ?? null,
+  createdAt: row.created_at as string,
+});
+
+/** One statement as a document reports it, before we know whether we have heard it before. */
+export type ReportedUtterance = {
+  figureId: string;
+  text: string;
+  language: Language;
+  saidAt: SaidAt;
+  venue: Venue;
+  audience?: Audience;
+  /** The document reporting it, and the text as that document renders it. */
+  sourceId: string;
+  attestedText?: string;
+  publishedAt?: string | null;
+};
 
 /** One statement as an extractor produced it — everything but the id, which is ours to mint. */
 export type ExtractedStatement = {
@@ -339,6 +390,84 @@ export class Corpus {
       figure: toFigure({ ...row, id: row.f_id }),
       source: toSource({ ...row, id: row.s_id }),
     }));
+  }
+
+
+  // ---- utterances and attestations ---------------------------------------------
+
+  /**
+   * Records what a document says was said. If we already hold this utterance — same
+   * speaker, same folded words — the document becomes another attestation of it rather
+   * than a second copy; and if this document carries it more fully than the one we had,
+   * the fuller wording wins, because a quote trimmed for space should not be the record.
+   */
+  async recordReported(reported: ReportedUtterance): Promise<{ utterance: Utterance; attestation: Attestation; merged: boolean }> {
+    const key = mergeKey({ text: reported.text, saidAt: reported.saidAt, venue: reported.venue });
+    const existing = await this.#db
+      .prepare('SELECT * FROM utterances WHERE figure_id = ? AND merge_key = ?')
+      .bind(reported.figureId, key)
+      .first<Row>();
+
+    let utterance: Utterance;
+    if (existing) {
+      if ((reported.text.length) > (existing.text as string).length) {
+        await this.#db.prepare('UPDATE utterances SET text = ? WHERE id = ?').bind(reported.text, existing.id).run();
+      }
+      utterance = (await this.getUtterance(existing.id as string))!;
+    } else {
+      const id = this.#ulid();
+      await this.#db
+        .prepare(
+          `INSERT INTO utterances (id, figure_id, text, language, said_at, said_at_precision, venue, audience, merge_key, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(id, reported.figureId, reported.text, reported.language, reported.saidAt?.value ?? null,
+              reported.saidAt?.precision ?? null, reported.venue, reported.audience ?? null, key, this.#now())
+        .run();
+      utterance = (await this.getUtterance(id))!;
+    }
+
+    const attestation = await this.#attest(utterance.id, reported);
+    return { utterance, attestation, merged: Boolean(existing) };
+  }
+
+  async #attest(utteranceId: string, reported: ReportedUtterance): Promise<Attestation> {
+    const already = await this.#db
+      .prepare('SELECT * FROM attestations WHERE utterance_id = ? AND source_id = ?')
+      .bind(utteranceId, reported.sourceId)
+      .first<Row>();
+    if (already) return toAttestation(already);
+
+    const id = this.#ulid();
+    await this.#db
+      .prepare('INSERT INTO attestations (id, utterance_id, source_id, text, published_at, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(id, utteranceId, reported.sourceId, reported.attestedText ?? reported.text, reported.publishedAt ?? null, this.#now())
+      .run();
+    return toAttestation(
+      (await this.#db.prepare('SELECT * FROM attestations WHERE id = ?').bind(id).first<Row>())!,
+    );
+  }
+
+  async getUtterance(id: string): Promise<Utterance | null> {
+    const row = await this.#db.prepare('SELECT * FROM utterances WHERE id = ?').bind(id).first<Row>();
+    return row ? toUtterance(row) : null;
+  }
+
+  /** Every document that reported this utterance, oldest attestation first. */
+  async attestationsFor(utteranceId: string): Promise<Attestation[]> {
+    const rows = await this.#db
+      .prepare('SELECT * FROM attestations WHERE utterance_id = ? ORDER BY id')
+      .bind(utteranceId)
+      .all<Row>();
+    return rows.results.map(toAttestation);
+  }
+
+  async utterancesFor(figureId: string): Promise<Utterance[]> {
+    const rows = await this.#db
+      .prepare('SELECT * FROM utterances WHERE figure_id = ? ORDER BY id')
+      .bind(figureId)
+      .all<Row>();
+    return rows.results.map(toUtterance);
   }
 
   // ---- judgments ---------------------------------------------------------------
