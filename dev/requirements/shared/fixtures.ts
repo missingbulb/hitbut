@@ -10,6 +10,7 @@ import { Corpus } from '../../../src/backend/corpus/store.ts';
 import { createUlidFactory } from '../../../src/backend/corpus/ids.ts';
 import type { D1Database } from '../../../src/backend/env.ts';
 import type { SourceModule } from '../../../src/backend/acquisition/registry.ts';
+import type { Audience, SaidAt, Venue } from '../../../src/shared/types.ts';
 import { migratedDatabase } from './local-d1.ts';
 
 /** The one instant everything that formats or compares a date is measured against. */
@@ -276,6 +277,30 @@ export async function withSource(corpus: Corpus, publisher: string, key: string)
     rawKey: `sample/${key}.raw`, extraction: 'extracted',
     sourceModule: 'sample-paper', externalKey: key,
   });
+}
+
+/**
+ * One utterance with a single attestation behind it, for cases about what sits *above*
+ * utterances — clusters, stances, findings — where the reporting chain is not the subject.
+ */
+export async function withUtterance(
+  corpus: Corpus,
+  figureId: string,
+  text: string,
+  options: { saidAt?: SaidAt; venue?: Venue; audience?: Audience; key?: string } = {},
+) {
+  const key = options.key ?? `utterance-${text.slice(0, 8)}-${figureId}`;
+  const source = await withSource(corpus, PUBLISHERS.paper, key);
+  const { utterance } = await corpus.recordReported({
+    figureId,
+    text,
+    language: 'he',
+    saidAt: options.saidAt ?? { value: '2024-01-01', precision: 'day' },
+    venue: options.venue ?? 'interview',
+    audience: options.audience ?? null,
+    sourceId: source.id,
+  });
+  return utterance;
 }
 
 /** A migrated, seeded corpus in memory. */

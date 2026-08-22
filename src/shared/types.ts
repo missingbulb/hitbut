@@ -129,3 +129,74 @@ export type Attestation = {
   publishedAt: string | null;
   createdAt: string;
 };
+
+/**
+ * An emergent subject. Discovered from where utterances fall in embedding space, not
+ * chosen from a vocabulary — a list decided in advance decides in advance what the corpus
+ * is allowed to be about. The label is regenerated from the members and is display only.
+ */
+export type Cluster = {
+  id: string;
+  /** Null until the cluster has enough members to be worth naming. */
+  label: string | null;
+  createdAt: string;
+};
+
+/** One utterance's place in one cluster, with the distance it joined at. */
+export type ClusterMember = {
+  clusterId: string;
+  utteranceId: string;
+  distance: number | null;
+  assignedAt: string;
+};
+
+/**
+ * Where one utterance sits on its cluster's own axis. A separate judgment from the
+ * embedding, because distance measures aboutness and not agreement, and only defensible
+ * with the model and prompt that produced it attached.
+ */
+export type Stance = {
+  id: string;
+  utteranceId: string;
+  clusterId: string;
+  /** -1..1 along the cluster's axis. */
+  position: number;
+  /** 0..1. */
+  confidence: number;
+  modelVersion: string;
+  promptVersion: string;
+  createdAt: string;
+};
+
+/**
+ * The two questions a stance series can answer. An anomaly asks who they were talking to;
+ * a trend change asks when the position moved.
+ */
+export type FindingKind = 'anomaly' | 'trend-change';
+
+/** What an utterance is doing in a finding. */
+export type FindingRole = 'deviating' | 'before' | 'after';
+
+/** When a trend change happened: the interval the series bounds it to, never a date. */
+export type ChangeWindow = { after: string; before: string };
+
+export type Finding = {
+  id: string;
+  figureId: string;
+  clusterId: string;
+  kind: FindingKind;
+  rationale: string;
+  score: number;
+  /** Set on an anomaly, null on a trend change. Audience stays null where none is known. */
+  venue: Venue | null;
+  audience: Audience;
+  /** Set on a trend change, null on an anomaly. */
+  changed: ChangeWindow | null;
+  /** The utterances it rests on, and what each one is doing in it. */
+  restsOn: { utteranceId: string; role: FindingRole }[];
+  modelVersion: string;
+  promptVersion: string;
+  createdAt: string;
+  supersededBy: string | null;
+  surfaced: boolean;
+};
