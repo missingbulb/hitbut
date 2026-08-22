@@ -80,6 +80,35 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   is what keeps "the order they were extracted in" recoverable from the ids alone.
   </details>
 
+- `1.7` One thing said, reported by several documents, is one utterance with several attestations.
+  <details><summary>Detail</summary>
+
+  A speech carried by five outlets is one thing that was said and five documents reporting
+  it. Stored as five records instead, a persona's timeline is five copies of one sentence,
+  and analysis compares them with each other and reads the echo as agreement. Identity is
+  the speaker, the date, and the folded text; the utterance keeps the fullest wording any
+  document carries, because a quote trimmed for space should not become the record.
+  </details>
+
+- `1.8` An utterance records the venue it was made in and the audience it was addressed to; an attestation records who reported it.
+  <details><summary>Detail</summary>
+
+  Two different things, and both are needed. *Where it was said and to whom* is a property
+  of the speech act — the same words to a committee and to a rally are two utterances, and
+  the difference between them is the point of an anomaly. *Who reported it* is a property
+  of each document. For an op-ed the two coincide, which is consistent rather than
+  contradictory: the venue is that publication and there is one attestation from it.
+  </details>
+
+- `1.9` A date a source establishes only to the month is stored as a month — distinct from a day and from unknown.
+  <details><summary>Detail</summary>
+
+  Thirty years back, a source often gives "March 1998" and no more. Recording that as the
+  first of the month invents a fact a timeline will then sort by; recording it as unknown
+  throws away most of what the source did say. Three states, carried separately: a date
+  with the precision it was established to, and no date at all.
+  </details>
+
 ## 2. Hebrew-aware search
 
 SQLite's FTS tokenizers split Hebrew on whitespace and nothing else, so `בכנסת` and `כנסת`
