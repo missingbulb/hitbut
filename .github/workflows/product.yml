@@ -77,6 +77,12 @@ jobs:
           fi
       - if: steps.account.outputs.ready == 'true'
         run: npm ci
+      # Turns "the deploy failed somewhere in wrangler" into a named missing resource.
+      # Only the resources stage: the origins cannot exist before the first deploy has
+      # happened, so gating on them here would deadlock.
+      - name: Does production exist?
+        if: steps.account.outputs.ready == 'true'
+        run: npm run preflight -- --stage resources
       - name: Bring the corpus schema up to date
         if: steps.account.outputs.ready == 'true'
         run: npm run corpus:migrate:remote
@@ -87,12 +93,24 @@ jobs:
         if: steps.account.outputs.ready == 'true'
         env:
           VITE_API_ORIGIN: ${{ vars.API_ORIGIN }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
         run: |
-          if [ -z "$VITE_API_ORIGIN" ]; then
-            echo "::error::the API_ORIGIN repository variable is unset — the site would ship pointing at itself"
+          if [ -z "$VITE_API_ORIGIN" ] || [ -z "$SITE_ORIGIN" ]; then
+            echo "::error::API_ORIGIN and SITE_ORIGIN must both be set as repository variables."
+            echo "::error::This is expected on the very first deploy: the Worker above has just been"
+            echo "::error::deployed and the site has not, so neither origin existed until now. Copy both"
+            echo "::error::in and re-run this workflow — see the two-pass section of issue #27."
             exit 1
           fi
           npm run build:site
       - name: Deploy the site
         if: steps.account.outputs.ready == 'true'
         run: npm run deploy:site
+      # Everything the suite proves is proven against a local workerd. This is the only
+      # step that reads what actually shipped.
+      - name: Does what shipped answer?
+        if: steps.account.outputs.ready == 'true'
+        env:
+          API_ORIGIN: ${{ vars.API_ORIGIN }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+        run: npm run smoke

@@ -14,6 +14,8 @@
     "test:all": "npm test && npm run test:server && npm run test:screen",
     "typecheck": "tsc --noEmit",
     "requirements:refresh": "node dev/requirements/refresh.ts",
+    "preflight": "node dev/tools/preflight.ts",
+    "smoke": "node dev/tools/smoke.ts",
     "corpus:migrate": "wrangler d1 migrations apply hitbut-corpus --local",
     "corpus:migrate:remote": "wrangler d1 migrations apply hitbut-corpus --remote",
     "dev:api": "wrangler dev",
