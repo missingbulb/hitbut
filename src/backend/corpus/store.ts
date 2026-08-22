@@ -5,12 +5,19 @@ import type { D1Database } from '../env.ts';
 import type {
   Attestation,
   Audience,
+  ChangeWindow,
+  Cluster,
+  ClusterMember,
   Figure,
+  Finding,
+  FindingKind,
+  FindingRole,
   Judgment,
   JudgmentKind,
   Language,
   SaidAt,
   Source,
+  Stance,
   Statement,
   Utterance,
   Venue,
@@ -68,6 +75,56 @@ const toJudgment = (row: Row): Judgment => ({
   surfaced: row.surfaced === 1,
 });
 
+
+const toCluster = (row: Row): Cluster => ({
+  id: row.id as string,
+  label: (row.label as string | null) ?? null,
+  createdAt: row.created_at as string,
+});
+
+const toClusterMember = (row: Row): ClusterMember => ({
+  clusterId: row.cluster_id as string,
+  utteranceId: row.utterance_id as string,
+  distance: (row.distance as number | null) ?? null,
+  assignedAt: row.assigned_at as string,
+});
+
+const toStance = (row: Row): Stance => ({
+  id: row.id as string,
+  utteranceId: row.utterance_id as string,
+  clusterId: row.cluster_id as string,
+  position: row.position as number,
+  confidence: row.confidence as number,
+  modelVersion: row.model_version as string,
+  promptVersion: row.prompt_version as string,
+  createdAt: row.created_at as string,
+});
+
+/** Needs the rows it rests on, which is why it is not a plain row mapper. */
+const toFinding = (row: Row, restsOn: Row[]): Finding => ({
+  id: row.id as string,
+  figureId: row.figure_id as string,
+  clusterId: row.cluster_id as string,
+  kind: row.kind as FindingKind,
+  rationale: row.rationale as string,
+  score: row.score as number,
+  venue: (row.venue as Venue | null) ?? null,
+  audience: (row.audience as Audience) ?? null,
+  // Two nullable columns in the table, one nullable object out here: half an interval is
+  // not a claim, so the shape the reader gets cannot express one.
+  changed: row.changed_after
+    ? { after: row.changed_after as string, before: row.changed_before as string }
+    : null,
+  restsOn: restsOn.map((member) => ({
+    utteranceId: member.utterance_id as string,
+    role: member.role as FindingRole,
+  })),
+  modelVersion: row.model_version as string,
+  promptVersion: row.prompt_version as string,
+  createdAt: row.created_at as string,
+  supersededBy: (row.superseded_by as string | null) ?? null,
+  surfaced: row.surfaced === 1,
+});
 
 const toUtterance = (row: Row): Utterance => ({
   id: row.id as string,
@@ -468,6 +525,208 @@ export class Corpus {
       .bind(figureId)
       .all<Row>();
     return rows.results.map(toUtterance);
+  }
+
+  // ---- clusters, stances and findings --------------------------------------------
+
+  /**
+   * Puts an utterance in a cluster. `clusterId` null opens a new one — which is the whole
+   * of what "subjects are discovered" means operationally: nothing anywhere is edited to
+   * let the corpus be about something new.
+   */
+  async assignToCluster(
+    utteranceId: string,
+    clusterId: string | null,
+    distance: number | null = null,
+  ): Promise<ClusterMember> {
+    let target = clusterId;
+    if (!target) {
+      target = this.#ulid();
+      await this.#db
+        .prepare('INSERT INTO clusters (id, label, created_at) VALUES (?, NULL, ?)')
+        .bind(target, this.#now())
+        .run();
+    }
+    await this.#db
+      .prepare(
+        `INSERT INTO cluster_members (utterance_id, cluster_id, distance, assigned_at) VALUES (?, ?, ?, ?)
+         ON CONFLICT (utterance_id) DO UPDATE SET cluster_id = excluded.cluster_id,
+                                                  distance = excluded.distance,
+                                                  assigned_at = excluded.assigned_at`,
+      )
+      .bind(utteranceId, target, distance, this.#now())
+      .run();
+    return (await this.clusterOf(utteranceId))!;
+  }
+
+  async clusterOf(utteranceId: string): Promise<ClusterMember | null> {
+    const row = await this.#db
+      .prepare('SELECT * FROM cluster_members WHERE utterance_id = ?')
+      .bind(utteranceId)
+      .first<Row>();
+    return row ? toClusterMember(row) : null;
+  }
+
+  async getCluster(id: string): Promise<Cluster | null> {
+    const row = await this.#db.prepare('SELECT * FROM clusters WHERE id = ?').bind(id).first<Row>();
+    return row ? toCluster(row) : null;
+  }
+
+  async clusterMembers(clusterId: string): Promise<ClusterMember[]> {
+    const rows = await this.#db
+      .prepare('SELECT * FROM cluster_members WHERE cluster_id = ? ORDER BY utterance_id')
+      .bind(clusterId)
+      .all<Row>();
+    return rows.results.map(toClusterMember);
+  }
+
+  /** The label is display only, regenerated from the members; nothing keys on it. */
+  async relabelCluster(id: string, label: string | null): Promise<void> {
+    await this.#db.prepare('UPDATE clusters SET label = ? WHERE id = ?').bind(label, id).run();
+  }
+
+  /**
+   * Records where an utterance sits on its cluster's axis. Re-running the same model and
+   * prompt over the same utterance is idempotent; a different model or prompt writes its
+   * own row beside the existing one, so no judgment is ever lost behind a re-analysis.
+   */
+  async recordStance(input: {
+    utteranceId: string;
+    clusterId: string;
+    position: number;
+    confidence: number;
+    modelVersion: string;
+    promptVersion: string;
+  }): Promise<Stance> {
+    const existing = await this.#db
+      .prepare('SELECT * FROM stances WHERE utterance_id = ? AND model_version = ? AND prompt_version = ?')
+      .bind(input.utteranceId, input.modelVersion, input.promptVersion)
+      .first<Row>();
+    if (existing) return toStance(existing);
+
+    const id = this.#ulid();
+    await this.#db
+      .prepare(
+        `INSERT INTO stances (id, utterance_id, cluster_id, position, confidence, model_version, prompt_version, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(id, input.utteranceId, input.clusterId, input.position, input.confidence,
+            input.modelVersion, input.promptVersion, this.#now())
+      .run();
+    return toStance((await this.#db.prepare('SELECT * FROM stances WHERE id = ?').bind(id).first<Row>())!);
+  }
+
+  /** Every stance recorded for one utterance, whichever model produced it. */
+  async stancesFor(utteranceId: string): Promise<Stance[]> {
+    const rows = await this.#db
+      .prepare('SELECT * FROM stances WHERE utterance_id = ? ORDER BY id')
+      .bind(utteranceId)
+      .all<Row>();
+    return rows.results.map(toStance);
+  }
+
+  /**
+   * One persona's positions on one subject through time — the series both kinds of finding
+   * are read off. Ordered by when the utterance was said, with undated utterances last:
+   * a series is a claim about time, and an utterance with no date is not on it.
+   */
+  async stanceSeries(
+    figureId: string,
+    clusterId: string,
+    versions: { modelVersion: string; promptVersion: string },
+  ): Promise<{ utterance: Utterance; stance: Stance }[]> {
+    const rows = await this.#db
+      .prepare(
+        `SELECT s.*, u.said_at AS u_said_at FROM stances s
+         JOIN utterances u ON u.id = s.utterance_id
+         WHERE s.cluster_id = ? AND u.figure_id = ? AND s.model_version = ? AND s.prompt_version = ?
+         ORDER BY u.said_at IS NULL, u.said_at, u.id`,
+      )
+      .bind(clusterId, figureId, versions.modelVersion, versions.promptVersion)
+      .all<Row>();
+    const series = [];
+    for (const row of rows.results) {
+      series.push({ utterance: (await this.getUtterance(row.utterance_id as string))!, stance: toStance(row) });
+    }
+    return series;
+  }
+
+  /**
+   * Records a finding, superseding any live one about the same persona, subject and kind.
+   * The old record keeps its id and everything it said, and gains a pointer to what
+   * replaced it, so a citation of it resolves forever.
+   *
+   * The table refuses a record missing the attribute its kind turns on, so a caller cannot
+   * store an anomaly with no venue or a trend change with no interval.
+   */
+  async recordFinding(
+    input: {
+      figureId: string;
+      clusterId: string;
+      kind: FindingKind;
+      rationale: string;
+      score: number;
+      venue?: Venue | null;
+      audience?: Audience;
+      changed?: ChangeWindow | null;
+      restsOn: { utteranceId: string; role: FindingRole }[];
+      modelVersion: string;
+      promptVersion: string;
+    },
+    surfacingThreshold: number,
+  ): Promise<Finding> {
+    const id = this.#ulid();
+    await this.#db
+      .prepare(
+        `INSERT INTO findings (id, figure_id, cluster_id, kind, rationale, score, venue, audience,
+                               changed_after, changed_before, model_version, prompt_version,
+                               created_at, superseded_by, surfaced)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+      )
+      .bind(id, input.figureId, input.clusterId, input.kind, input.rationale, input.score,
+            input.venue ?? null, input.audience ?? null,
+            input.changed?.after ?? null, input.changed?.before ?? null,
+            input.modelVersion, input.promptVersion, this.#now(),
+            input.score >= surfacingThreshold ? 1 : 0)
+      .run();
+
+    for (const rests of input.restsOn) {
+      await this.#db
+        .prepare('INSERT INTO finding_utterances (finding_id, utterance_id, role) VALUES (?, ?, ?)')
+        .bind(id, rests.utteranceId, rests.role)
+        .run();
+    }
+
+    await this.#db
+      .prepare(
+        `UPDATE findings SET superseded_by = ?, surfaced = 0
+         WHERE figure_id = ? AND cluster_id = ? AND kind = ? AND superseded_by IS NULL AND id <> ?`,
+      )
+      .bind(id, input.figureId, input.clusterId, input.kind, id)
+      .run();
+
+    return (await this.getFinding(id))!;
+  }
+
+  async getFinding(id: string): Promise<Finding | null> {
+    const row = await this.#db.prepare('SELECT * FROM findings WHERE id = ?').bind(id).first<Row>();
+    if (!row) return null;
+    const rests = await this.#db
+      .prepare('SELECT * FROM finding_utterances WHERE finding_id = ? ORDER BY role, utterance_id')
+      .bind(id)
+      .all<Row>();
+    return toFinding(row, rests.results);
+  }
+
+  /** The live findings for one persona, newest first. */
+  async findingsFor(figureId: string): Promise<Finding[]> {
+    const rows = await this.#db
+      .prepare('SELECT id FROM findings WHERE figure_id = ? AND superseded_by IS NULL ORDER BY id DESC')
+      .bind(figureId)
+      .all<Row>();
+    const findings = [];
+    for (const row of rows.results) findings.push((await this.getFinding(row.id as string))!);
+    return findings;
   }
 
   // ---- judgments ---------------------------------------------------------------

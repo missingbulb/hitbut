@@ -204,7 +204,7 @@ sequence of positions through time. Two kinds of finding fall out of it:
 
 - **Anomaly** — an utterance that deviates from the persona's prevailing stance
   in that cluster *at that date*. The interesting attribute is then **who they
-  were talking to**: the venue and the audience, which the attestation carries
+  were talking to**: the venue and the audience, which the utterance carries
   precisely so this question is answerable.
 - **Trend change** — a change point in the series. The interesting attribute is
   **when** it happened, and the finding reports the interval the change falls

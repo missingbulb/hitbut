@@ -109,6 +109,46 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   with the precision it was established to, and no date at all.
   </details>
 
+- `1.10` A subject is a cluster the corpus discovers; an utterance about something new opens one, with no vocabulary edited anywhere.
+  <details><summary>Detail</summary>
+
+  A committed list of topics decides in advance what the corpus is allowed to be about,
+  and two sources describing one subject in different words never meet. So a cluster is a
+  row that an utterance can open, and the label a reader sees is regenerated from the
+  cluster's members — display only. Pairing and detection key on the id, never the label,
+  which is why relabelling a cluster must move nothing.
+  </details>
+
+- `1.11` A stance places one utterance on one cluster's axis and carries the model and prompt version that produced it.
+  <details><summary>Detail</summary>
+
+  Embedding distance measures aboutness, not agreement — "I will not cut a shekel from
+  this line" and "this line was never a priority of mine" sit close together precisely
+  because they are about the same thing. So position is a separate, recorded judgment
+  rather than something read off the geometry, and it is only defensible if a reader can
+  see which model and which prompt produced it.
+  </details>
+
+- `1.12` Re-analysis writes a new finding and marks the previous one superseded; the superseded finding still resolves and names what replaced it.
+  <details><summary>Detail</summary>
+
+  A finding is citable, so it cannot become a different claim under the same id, and it
+  cannot vanish. The same rule `1.5` holds for the pairwise records v1 shipped, restated
+  for the record the stance series produces — the two coexist until the pairwise shape is
+  retired.
+  </details>
+
+- `1.13` A finding names the utterances it rests on, and carries the attribute its kind turns on — an anomaly the venue and audience, a trend change the interval.
+  <details><summary>Detail</summary>
+
+  The two kinds answer different questions. An anomaly's interesting part is *who they
+  were talking to*, so a finding without a venue is not an anomaly anyone can act on. A
+  trend change's is *when it moved*, and the honest answer is an interval rather than a
+  date, because a series says the change falls between two observations and no more. A
+  record that can be stored missing its own point would let detection produce findings
+  that read as complete and are not.
+  </details>
+
 ## 2. Hebrew-aware search
 
 SQLite's FTS tokenizers split Hebrew on whitespace and nothing else, so `בכנסת` and `כנסת`
