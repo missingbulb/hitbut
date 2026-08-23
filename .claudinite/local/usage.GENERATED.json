@@ -1,9 +1,9 @@
 {
   "version": 3,
-  "generated": "2026-08-23T15:02:14.979Z",
+  "generated": "2026-08-23T16:01:07.150Z",
   "foldedThrough": "2026-08-22",
-  "runsFoldedThrough": "2026-08-23T15:01:23Z",
-  "queueFoldedThrough": "2026-08-23T14:04:03Z",
+  "runsFoldedThrough": "2026-08-23T16:00:15Z",
+  "queueFoldedThrough": "2026-08-23T15:03:32Z",
   "fields": {
     "day": ["captures","merges","sessions","userMessages","userCommands","ruleTokens","ruleTokenSessions","tokensIn","tokensOut","tokenSessions","commits","linesAdded","linesRemoved","releases"],
     "week": ["days","captures","merges","sessionDays","userMessages","userCommands","ruleTokens","ruleTokenSessions","tokensIn","tokensOut","tokenSessions","commits","linesAdded","linesRemoved","releases"],
@@ -60,7 +60,8 @@
     "2026-08-23T12": {"totals":[0,2,3,0]},
     "2026-08-23T13": {"totals":[1,1,0,0]},
     "2026-08-23T14": {"totals":[2,2,2,0]},
-    "2026-08-23T15": {"totals":[1,0,0,0]}
+    "2026-08-23T15": {"totals":[1,1,1,0]},
+    "2026-08-23T16": {"totals":[1,0,0,0]}
   },
   "days": {
     "2026-07-25": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
@@ -92,7 +93,7 @@
     "2026-08-20": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-08-21": {"totals":[5,5,2,10,2,17000,1,139146635,787168,2,null,null,null,0],"skillLoads":{"artifact-capabilities":1,"design":1,"merge-to-main":2,"verify-in-production":1,"writing-migration-plans":1},"checks":{"work":[2,0,0,0,10,0,0],"world":[14,4,0,11,194,0,0]},"checkFindings":{"barrier":[2,0],"file-placement":[0,4],"generated-merge-driver":[0,1],"preferences-store-configured":[0,3],"product-wiki-isolation":[3,0],"product-wiki-layout":[6,0]},"queue":{"claudinite-lifecycle/update":[1,0,0,0]}},
     "2026-08-22": {"totals":[6,6,1,9,0,17500,1,81960827,242906,1,null,null,null,0],"skillLoads":{"merge-to-main":1,"verify-in-production":1},"checks":{"work":[7,0,0,0,0,0,0],"world":[12,1,0,1,843,0,0]},"checkFindings":{"claudinite-isolation":[1,0],"file-placement":[0,5]}},
-    "2026-08-23": {"totals":[15,15,4,18,2,70000,4,169068889,409887,4,1,47005,0,0],"skillLoads":{"dataviz":1,"do-later":1,"merge-to-main":4,"verify-in-production":1},"checks":{"work":[11,2,0,2,0,0,0],"world":[29,1,0,1,3038,0,0]},"checkFindings":{"barrier":[2,0],"file-placement":[0,71],"squash-merge-history":[1,0],"task-lifecycle":[1,0]},"queue":{"basics/ci-performance":[1,0,0,0],"basics/task-janitor":[1,0,0,0],"claudinite-growth/logs-prune":[0,0,1,0],"claudinite-growth/usage-fold":[3,0,0,0]}}
+    "2026-08-23": {"totals":[16,16,5,20,2,87500,5,183335980,468008,5,1,47111,0,0],"skillLoads":{"dataviz":1,"do-later":1,"merge-to-main":5,"verify-in-production":1},"checks":{"work":[11,2,0,2,0,0,0],"world":[29,1,0,1,3038,0,0]},"checkFindings":{"barrier":[2,0],"file-placement":[0,71],"squash-merge-history":[1,0],"task-lifecycle":[1,0]},"queue":{"basics/ci-performance":[1,0,0,0],"basics/task-janitor":[1,0,0,0],"claudinite-growth/logs-prune":[0,0,1,0],"claudinite-growth/usage-fold":[4,0,0,0]}}
   },
   "weeks": {
     "2026-W30": {"totals":[2,0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
