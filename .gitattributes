@@ -5,3 +5,4 @@ fonts.GENERATED.css merge=ours
 dev/requirements/screen/cases/*.png binary
 dev/requirements/screen/fallback-fonts/*.ttf binary
 src/frontend/public/fonts/*.woff2 binary
+usage.GENERATED.json merge=ours
