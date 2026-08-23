@@ -36,6 +36,8 @@ const dashboard =
     accountId ? `https://dash.cloudflare.com/${accountId}/${section}` : 'https://dash.cloudflare.com/';
 
 export const D1_DATABASE = 'hitbut-corpus';
+/** What `wrangler.toml` carries until an account has handed out a real one. */
+export const PLACEHOLDER_DATABASE_ID = '00000000-0000-0000-0000-000000000000';
 export const PAGES_PROJECT = 'hitbut';
 export const VECTORIZE_INDEX = 'hitbut-utterances';
 
@@ -140,10 +142,71 @@ export function jsonArrayIn<T>(output: string): T[] | null {
   return null;
 }
 
+export const databaseIdIn = (toml: string): string | null => /database_id\s*=\s*"([^"]+)"/.exec(toml)?.[1] ?? null;
+
+/**
+ * The config with the real database id in it. Only the placeholder is ever replaced: an id
+ * that is already real is the one production runs against, and pointing a deploy at a
+ * different database would strand the corpus in the old one.
+ */
+export function withDatabaseId(toml: string, uuid: string): string {
+  const current = databaseIdIn(toml);
+  if (current === null) throw new Error('no database_id line in wrangler.toml — has the config changed shape?');
+  return current === PLACEHOLDER_DATABASE_ID ? toml.replace(PLACEHOLDER_DATABASE_ID, uuid) : toml;
+}
+
 export type Run = { ok: boolean; output: string; reason: string };
+
+/**
+ * Every wrangler command these tools may run. Provisioning holds an API token that can
+ * erase the corpus and the raw bucket, so the runner is closed by default: it lists, it
+ * creates, it deploys, and a command that is not spelled here does not run — including one
+ * a future edit adds without meaning to.
+ *
+ * A prefix, matched against the argv with flags removed, so `--json` and friends stay free.
+ */
+export const ALLOWED: readonly (readonly string[])[] = [
+  ['d1', 'list'],
+  ['d1', 'create'],
+  ['r2', 'bucket', 'list'],
+  ['r2', 'bucket', 'create'],
+  ['vectorize', 'list'],
+  ['vectorize', 'create'],
+  ['pages', 'project', 'list'],
+  ['pages', 'project', 'create'],
+  ['pages', 'deploy'],
+  ['deploy'],
+];
+
+/**
+ * The second net, independent of the first: a word that destroys something, wherever it
+ * appears. The allowlist alone would already stop these; this is what makes *adding* one to
+ * the allowlist by hand fail loudly instead of quietly widening what the token can do.
+ */
+const DESTRUCTIVE = /^(delete|remove|rm|destroy|drop|purge|truncate|clear|empty|rollback|--force|-f|--yes|-y)$/i;
+
+/** Throws — rather than reports — because a destructive command here is a bug, not an outcome. */
+export function assertSafe(argv: readonly string[]): void {
+  const destructive = argv.find((token) => DESTRUCTIVE.test(token));
+  if (destructive) {
+    throw new Error(
+      `refusing to run \`wrangler ${argv.join(' ')}\`: "${destructive}" destroys something, and these tools only ` +
+        'list, create and deploy. Nothing here is allowed to remove a resource or its contents.',
+    );
+  }
+  const words = argv.filter((token) => !token.startsWith('-'));
+  const allowed = ALLOWED.some((command) => command.every((word, at) => words[at] === word));
+  if (!allowed) {
+    throw new Error(
+      `refusing to run \`wrangler ${argv.join(' ')}\`: it is not one of the commands these tools may run ` +
+        `(${ALLOWED.map((command) => command.join(' ')).join(', ')}). Add it deliberately if it belongs.`,
+    );
+  }
+}
 
 /** Runs wrangler and hands back its whole output, whichever stream it chose. */
 export function wrangler(argv: string[], timeout = 180_000): Run {
+  assertSafe(argv);
   const result = spawnSync('npx', ['--no-install', 'wrangler', ...argv], {
     encoding: 'utf8',
     timeout,

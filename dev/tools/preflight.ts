@@ -8,10 +8,19 @@
 // a resource or a secret that is not there.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { D1_DATABASE, RESOURCES, look, missing, present, unknown, type Result } from './cloudflare.ts';
+import {
+  D1_DATABASE,
+  PLACEHOLDER_DATABASE_ID,
+  RESOURCES,
+  databaseIdIn,
+  look,
+  missing,
+  present,
+  unknown,
+  type Result,
+} from './cloudflare.ts';
 
 const WRANGLER_TOML = fileURLToPath(new URL('../../wrangler.toml', import.meta.url));
-const PLACEHOLDER_DATABASE_ID = '00000000-0000-0000-0000-000000000000';
 const SECRETS_SETTINGS = 'https://github.com/missingbulb/hitbut/settings/secrets/actions';
 
 type Check = {
@@ -30,8 +39,7 @@ function fromEnvironment(name: string): Result {
 }
 
 function databaseIdPinned(): Result {
-  const toml = readFileSync(WRANGLER_TOML, 'utf8');
-  const id = /database_id\s*=\s*"([^"]+)"/.exec(toml)?.[1];
+  const id = databaseIdIn(readFileSync(WRANGLER_TOML, 'utf8'));
   if (!id) return unknown('no database_id line in wrangler.toml — has the config changed shape?');
   return id === PLACEHOLDER_DATABASE_ID
     ? missing('still the all-zeros placeholder')

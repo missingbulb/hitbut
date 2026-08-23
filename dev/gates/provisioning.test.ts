@@ -9,14 +9,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ALLOWED,
   PAGES_PROJECT,
+  PLACEHOLDER_DATABASE_ID,
   RESOURCES,
   VECTORIZE_INDEX,
+  assertSafe,
   decide,
   firstUsefulLine,
   missing,
   present,
   unknown,
+  withDatabaseId,
 } from '../tools/cloudflare.ts';
 import { deployedSite, deployedWorker, overrideFrom, projectSite } from '../tools/origins.ts';
 
@@ -60,6 +64,57 @@ test('every create command names the resource the check looks for', () => {
 test('creating the Pages project cannot stop to ask a question', () => {
   // A prompt on a runner is a hang, not a failure. --production-branch is what removes it.
   assert.ok(resource(PAGES_PROJECT).create.includes('--production-branch'));
+});
+
+// The token provisioning holds can erase the corpus and the raw bucket. What follows is the
+// closed door: these tools list, create and deploy, and every other command is refused
+// before a process is started — including one a later edit adds without meaning to.
+for (const argv of [
+  ['d1', 'delete', 'hitbut-corpus'],
+  ['d1', 'execute', 'hitbut-corpus', '--command', 'DROP TABLE utterances'],
+  ['r2', 'bucket', 'delete', 'hitbut-raw'],
+  ['r2', 'object', 'delete', 'hitbut-raw/anything'],
+  ['vectorize', 'delete', VECTORIZE_INDEX],
+  ['pages', 'project', 'delete', PAGES_PROJECT],
+  ['delete', '--name', 'hitbut-api'],
+  ['rollback'],
+  ['secret', 'delete', 'ANYTHING'],
+]) {
+  test(`\`wrangler ${argv.join(' ')}\` does not run`, () => {
+    assert.throws(() => assertSafe(argv), /refusing to run/);
+  });
+}
+
+test('the commands that are allowed are only lists, creates and deploys', () => {
+  for (const command of ALLOWED) {
+    assert.doesNotThrow(() => assertSafe([...command]));
+    assert.match(
+      command.join(' '),
+      /(^| )(list|create|deploy)$/,
+      `"${command.join(' ')}" is allowed but is not a list, a create or a deploy`,
+    );
+  }
+});
+
+test('every command the tools actually run is one of the allowed ones', () => {
+  for (const resource of RESOURCES) {
+    assert.doesNotThrow(() => assertSafe(resource.list), `\`wrangler ${resource.list.join(' ')}\` would be refused`);
+    assert.doesNotThrow(() => assertSafe(resource.create), `\`wrangler ${resource.create.join(' ')}\` would be refused`);
+  }
+  assert.doesNotThrow(() => assertSafe(['deploy']));
+  assert.doesNotThrow(() => assertSafe(['pages', 'deploy', 'src/frontend/dist', '--project-name', PAGES_PROJECT]));
+  assert.doesNotThrow(() => assertSafe(['pages', 'project', 'list', '--json']));
+});
+
+test('a real database id is never rewritten, whatever the account says', () => {
+  const pinned = 'database_id = "8f14e45f-ce0a-4b1f-9a3c-2d5b7c1e0a99"';
+  assert.equal(withDatabaseId(pinned, 'a-different-database'), pinned);
+});
+
+test('the placeholder is the only id that gets replaced', () => {
+  const placeholder = `database_id = "${PLACEHOLDER_DATABASE_ID}"`;
+  assert.equal(withDatabaseId(placeholder, 'the-real-one'), 'database_id = "the-real-one"');
+  assert.throws(() => withDatabaseId('name = "hitbut-api"', 'the-real-one'), /changed shape/);
 });
 
 test("the Worker's origin is read out of what wrangler printed", () => {

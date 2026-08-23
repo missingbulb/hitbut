@@ -7,8 +7,12 @@
 // spend money in that account, which is why this runs from a `workflow_dispatch` rather than
 // on its own.
 //
-// Two rules it will not break:
+// Three rules it will not break:
 //
+//   * **It cannot destroy anything.** The runner is closed by default — it lists, it creates,
+//     it deploys — so no command that removes a database, a bucket, an index or their
+//     contents will run, whatever a later edit here asks for. The token it holds could do
+//     all of that; this is what stops it.
 //   * **It creates only on a confirmed absence.** A resource we could not ask about (a token
 //     scope, a renamed command, a refused network) is left alone and reported, because
 //     creating a second copy of something that is already there is worse than stopping.
@@ -19,10 +23,19 @@
 // Usage: `npm run provision` (creates), `npm run provision -- --dry-run` (says what it would).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { D1_DATABASE, RESOURCES, decide, jsonArrayIn, look, wrangler } from './cloudflare.ts';
+import {
+  D1_DATABASE,
+  PLACEHOLDER_DATABASE_ID,
+  RESOURCES,
+  databaseIdIn,
+  decide,
+  jsonArrayIn,
+  look,
+  withDatabaseId,
+  wrangler,
+} from './cloudflare.ts';
 
 const WRANGLER_TOML = fileURLToPath(new URL('../../wrangler.toml', import.meta.url));
-const PLACEHOLDER_DATABASE_ID = '00000000-0000-0000-0000-000000000000';
 const dryRun = process.argv.includes('--dry-run');
 
 type Outcome = 'already there' | 'created' | 'would create' | 'declined' | 'failed';
@@ -58,7 +71,7 @@ for (const resource of RESOURCES) {
  */
 function pinDatabaseId(): void {
   const toml = readFileSync(WRANGLER_TOML, 'utf8');
-  const pinned = /database_id\s*=\s*"([^"]+)"/.exec(toml)?.[1];
+  const pinned = databaseIdIn(toml);
   if (pinned && pinned !== PLACEHOLDER_DATABASE_ID) {
     record('wrangler.toml database_id', 'already there', `pinned to ${pinned}`);
     return;
@@ -83,7 +96,7 @@ function pinDatabaseId(): void {
     record('wrangler.toml database_id', 'would create', `would pin ${uuid}`);
     return;
   }
-  writeFileSync(WRANGLER_TOML, toml.replace(PLACEHOLDER_DATABASE_ID, uuid));
+  writeFileSync(WRANGLER_TOML, withDatabaseId(toml, uuid));
   record('wrangler.toml database_id', 'created', `pinned to ${uuid} — commit this`);
 }
 
