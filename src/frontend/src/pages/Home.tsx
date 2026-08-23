@@ -4,7 +4,7 @@ import type { JSX } from 'preact';
 import type { FigureSummary, FindingSummary, Page } from '../../../shared/api.ts';
 import { useResource } from '../api.ts';
 import { Link } from '../router.tsx';
-import { KindBadge, Loading, Quote, SearchBox, Shell, WhenSaid } from '../components.tsx';
+import { Carriers, KindBadge, Loading, Quote, SearchBox, Shell, WhenSaid } from '../components.tsx';
 import { stringsFor, type Strings } from '../strings.ts';
 
 /**
@@ -24,7 +24,7 @@ function FindingCard({ item, strings }: { item: FindingSummary; strings: Strings
     <article class="card card--flagged">
       <div class="card__head">
         <KindBadge finding={item.finding} strings={strings} />
-        <span class="meta">{strings.attestedBy(item.restsOn[0]?.attestations.length ?? 0)}</span>
+        
       </div>
       <h3 class="section__title">
         <Link href={`/findings/${item.finding.id}`}>{item.figure.displayName}</Link>
@@ -36,6 +36,7 @@ function FindingCard({ item, strings }: { item: FindingSummary; strings: Strings
               {label} · <WhenSaid utterance={side.utterance} strings={strings} />
             </div>
             <Quote utterance={side.utterance} class="quote quote--card" />
+            <Carriers publishers={side.attestations.map(({ source }) => source.publisher)} />
           </div>
         ))}
       </div>

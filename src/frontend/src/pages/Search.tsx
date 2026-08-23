@@ -4,7 +4,7 @@ import type { JSX } from 'preact';
 import type { UtteranceSearchResults } from '../../../shared/api.ts';
 import { useResource } from '../api.ts';
 import { Link } from '../router.tsx';
-import { Highlighted, Loading, Quote, SearchBox, Shell, WhenSaid } from '../components.tsx';
+import { Carriers, Highlighted, Loading, Quote, SearchBox, Shell, WhenSaid } from '../components.tsx';
 import { stringsFor } from '../strings.ts';
 
 export function Search({ query }: { query: string }): JSX.Element {
@@ -46,9 +46,9 @@ export function Search({ query }: { query: string }): JSX.Element {
                   </Link>
                 </Quote>
                 {/* One result per thing said, so a speech five outlets carried is one row
-                    with five sources behind it rather than five rows of the same sentence. */}
-                <div class="meta" style="margin-block-start: 10px">
-                  {strings.attestedBy(hit.attestationCount)}
+                    naming five outlets rather than five rows of the same sentence. */}
+                <div style="margin-block-start: 10px">
+                  <Carriers publishers={hit.publishers} />
                 </div>
               </article>
             ))}

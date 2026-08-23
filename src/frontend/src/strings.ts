@@ -31,6 +31,10 @@ const he = {
   topics: 'נושאים',
   kind: { anomaly: 'חריגה', 'trend-change': 'שינוי מגמה' },
   anomalyLede: 'ההתבטאות הזו רחוקה מהעמדה שהדמות מחזיקה בנושא הזה בדרך כלל.',
+  // The sentence that matters most, on the page where the claim is made rather than one
+  // click away on the methodology page.
+  caveat: 'מודל שפה השווה בין ציטוטים שחילצנו ממקורות פומביים. הוא לא יודע מה הדובר התכוון, הוא לא רואה הקשר שלא נכתב, והוא יכול לטעות. הסימון הוא הזמנה לקרוא את הציטוטים ואת המקורות שלהם — לא מסקנה סופית.',
+  caveatMore: 'מה עוד הסימון לא אומר',
   // No trailing space: Hebrew glues the prefix to the word after it.
   addressedTo: 'נאמר ב',
   audienceLabel: 'בפני\u00a0',
@@ -62,7 +66,8 @@ const he = {
   coverageFrom: 'מ־',
   coverageUnknown: 'טרם נרשם אילו מקורות מכסים את הדמות הזו.',
   rosterTitle: 'את מי אנחנו עוקבים, ולמה',
-  rosterLede: 'אנחנו עוקבים אחרי מי שהעמיד את עצמו בעין הציבור, ובתפקיד שבו עשה זאת. איננו עוקבים אחרי אנשים פרטיים ואיננו אוספים פעילות אישית. לכל דמות רשומה כאן המבחן שהיא עומדת בו:',
+  rosterLede: 'זה המבחן שאנחנו מחילים, כתוב פעם אחת וחל על כולם:',
+  rosterPer: 'ולכל דמות ברשימה — איך היא עומדת בו:',
   rosterEmpty: 'אין כרגע דמויות במעקב.',
   footerRights: 'התבטאויות — אוסף מתועד של אמירות פומביות.',
 };
@@ -97,6 +102,8 @@ const en: Strings = {
   topics: 'topics',
   kind: { anomaly: 'anomaly', 'trend-change': 'trend change' },
   anomalyLede: 'This is far from the position this figure usually holds on this subject.',
+  caveat: 'A language model compared quotes we extracted from public sources. It does not know what the speaker meant, it cannot see context that was never written down, and it can be wrong. A flag is an invitation to read the quotes and their sources — not a conclusion.',
+  caveatMore: 'What else a flag does not say',
   addressedTo: 'Said at a\u00a0',
   audienceLabel: 'to\u00a0',
   venue: {
@@ -128,7 +135,8 @@ const en: Strings = {
   coverageFrom: 'from\u00a0',
   coverageUnknown: 'Which sources cover this figure has not been recorded yet.',
   rosterTitle: 'Who we track, and why',
-  rosterLede: 'We track people who put themselves in the public eye, in the capacity in which they did so. We do not track private people and we do not collect personal activity. For every figure on the roster, the test they meet:',
+  rosterLede: 'This is the test we apply, written once and applying to everybody:',
+  rosterPer: 'And for every figure on the roster, how they meet it:',
   rosterEmpty: 'No figures are being tracked.',
   footerRights: 'hitbut — a sourced record of public statements.',
 };

@@ -4,7 +4,7 @@ import type { JSX } from 'preact';
 import type { FigureRecord } from '../../../shared/api.ts';
 import { useResource } from '../api.ts';
 import { Link } from '../router.tsx';
-import { Coverage, Loading, NotFound, Quote, Shell, TopicChips, WhenSaid } from '../components.tsx';
+import { Carriers, Coverage, Loading, NotFound, Quote, Shell, TopicChips, WhenSaid } from '../components.tsx';
 import { stringsFor } from '../strings.ts';
 
 export function Figure({ id }: { id: string }): JSX.Element {
@@ -57,10 +57,9 @@ export function Figure({ id }: { id: string }): JSX.Element {
                 <span class="meta">
                   <WhenSaid utterance={entry.utterance} strings={strings} />
                 </span>
-                {/* How many documents reported it, rather than one of them. Naming a single
-                    source here would make one of five outlets look like the record. */}
+                {/* Every outlet that carried it, named — not a count, and not one of them. */}
                 <span class="meta">
-                  {strings.venue[entry.utterance.venue]} · {strings.attestedBy(entry.attestationCount)}
+                  {strings.venue[entry.utterance.venue]} · <Carriers publishers={entry.publishers} />
                 </span>
               </div>
               <Quote utterance={entry.utterance}>

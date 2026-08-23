@@ -16,11 +16,13 @@ import type {
   UtteranceDetail,
   UtteranceHit,
   UtteranceSearchResults,
+  RosterView,
   UtteranceTimelineEntry,
   WireAttestation,
 } from '../../shared/api.ts';
 import { API_BASE } from '../../shared/api.ts';
 import { EXPORT_KEY } from './export.ts';
+import { INCLUSION_RULE } from '../corpus/roster-data.ts';
 
 /** Open on purpose: the corpus is public, and researchers read it from their own pages. */
 const CORS: Record<string, string> = {
@@ -65,6 +67,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   if (segments.length === 0) return json({ service: 'hitbut', version: 'v1' });
 
   if (segments[0] === 'figures' && segments.length === 1) return listFigures(corpus, url);
+  if (segments[0] === 'roster' && segments.length === 1) return roster(corpus);
   if (segments[0] === 'figures' && segments.length === 2) return figureDetail(corpus, segments[1]);
   if (segments[0] === 'utterances' && segments.length === 2) return utteranceDetail(corpus, segments[1]);
   if (segments[0] === 'findings' && segments.length === 1) return listFindings(corpus, url);
@@ -92,6 +95,13 @@ async function listFigures(corpus: Corpus, url: URL): Promise<Response> {
   return json({ items, nextCursor } satisfies Page<FigureSummary>);
 }
 
+async function roster(corpus: Corpus): Promise<Response> {
+  const { figures } = await corpus.listFigures({ limit: 500 });
+  const items: FigureSummary[] = [];
+  for (const figure of figures) items.push({ ...figure, ...(await corpus.utteranceStats(figure.id)) });
+  return json({ inclusionRule: INCLUSION_RULE, figures: items } satisfies RosterView);
+}
+
 async function figureDetail(corpus: Corpus, id: string): Promise<Response> {
   const figure = await summarise(corpus, id);
   // A typo must not read as "this person has said nothing".
@@ -101,11 +111,16 @@ async function figureDetail(corpus: Corpus, id: string): Promise<Response> {
   for (const utterance of await corpus.utteranceTimeline(id)) {
     timeline.push({
       utterance: toWireUtterance(utterance),
-      attestationCount: (await corpus.attestationsFor(utterance.id)).length,
+      publishers: await publishersOf(corpus, utterance.id),
       flagged: flagged.has(utterance.id),
     });
   }
   return json({ figure, timeline } satisfies FigureRecord);
+}
+
+/** Who carried an utterance, named, in the order the documents arrived. */
+async function publishersOf(corpus: Corpus, utteranceId: string): Promise<string[]> {
+  return (await attestationsOf(corpus, utteranceId)).map(({ source }) => source.publisher);
 }
 
 /** The documents that reported an utterance, each with the source it is. */
@@ -194,7 +209,7 @@ async function search(corpus: Corpus, url: URL): Promise<Response> {
     hits.push({
       utterance: toWireUtterance(utterance),
       figure,
-      attestationCount: (await corpus.attestationsFor(utterance.id)).length,
+      publishers: await publishersOf(corpus, utterance.id),
     });
   }
   return json({ query, hits, nextCursor } satisfies UtteranceSearchResults);

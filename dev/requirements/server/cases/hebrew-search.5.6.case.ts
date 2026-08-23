@@ -22,7 +22,7 @@ export default {
     const carried = await api.json<UtteranceSearchResults>(`/api/v1/search?q=${encodeURIComponent('הרכבת')}`);
     const pledge = carried.hits.filter((hit) => hit.utterance.id === api.seeded.utterances.lightRailPledge);
     assert.equal(pledge.length, 1, 'one speech, one result');
-    assert.equal(pledge[0]?.attestationCount, 3, 'with the number of documents behind it');
+    assert.equal(pledge[0]?.publishers.length, 3, 'with every publication that carried it named');
 
     const nothing = await api.json<UtteranceSearchResults>(`/api/v1/search?q=${encodeURIComponent('מונחשאיננובקורפוס')}`);
     assert.deepEqual(nothing.hits, []);

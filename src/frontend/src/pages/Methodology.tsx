@@ -2,7 +2,7 @@
 // it does not, on the page a reader reaches straight from the flag — and put the way to
 // tell us we are wrong immediately beside it.
 import type { JSX } from 'preact';
-import type { FigureSummary, Page } from '../../../shared/api.ts';
+import type { RosterView } from '../../../shared/api.ts';
 import { useResource } from '../api.ts';
 import { Link } from '../router.tsx';
 import { Shell } from '../components.tsx';
@@ -12,7 +12,7 @@ const REPORT_URL = 'https://github.com/missingbulb/hitbut/issues';
 
 export function Methodology(): JSX.Element {
   const strings = stringsFor('he');
-  const roster = useResource<Page<FigureSummary>>('/figures');
+  const roster = useResource<RosterView>('/roster');
 
   return (
     // Not ready until the roster has landed. `data-ready` is this page's own statement that
@@ -24,9 +24,13 @@ export function Methodology(): JSX.Element {
 
         <h2>{strings.rosterTitle}</h2>
         <p>{strings.rosterLede}</p>
-        {roster.state === 'ready' && roster.value.items.length > 0 ? (
+        {/* The test itself, written once and applying to everybody — which is what makes
+            the roster a rule rather than a list of people somebody decided to scrutinise. */}
+        {roster.state === 'ready' && <blockquote class="rule">{roster.value.inclusionRule}</blockquote>}
+        <p>{strings.rosterPer}</p>
+        {roster.state === 'ready' && roster.value.figures.length > 0 ? (
           <dl class="roster">
-            {roster.value.items.map((figure) => (
+            {roster.value.figures.map((figure) => (
               <div class="roster__entry" key={figure.id}>
                 <dt class="roster__who">
                   <Link href={`/figures/${figure.id}`}>{figure.displayName}</Link>

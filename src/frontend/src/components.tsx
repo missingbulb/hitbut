@@ -222,6 +222,16 @@ export function Coverage(
   );
 }
 
+/**
+ * Who carried a quote, named. Every surface that shows a quote shows this beside it: a
+ * quote with no visible publisher is our word for what somebody said, and one click away is
+ * not beside it. Where several outlets carried one utterance, all of them are named —
+ * which outlets carried something is itself part of the record.
+ */
+export function Carriers({ publishers }: { publishers: string[] }): JSX.Element {
+  return <span class="meta carriers">{publishers.join(' · ')}</span>;
+}
+
 /** The «אבל» mark: what sits between a Then and a Now, and what the site is named after. */
 export function ButMark({ strings }: { strings: Strings }): JSX.Element {
   return <div class="mark">{strings.but}</div>;

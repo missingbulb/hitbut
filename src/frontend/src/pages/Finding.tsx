@@ -95,10 +95,19 @@ export function Finding({ id }: { id: string }): JSX.Element {
           <p style="margin: 0 0 8px">{finding.rationale}</p>
           <div class="meta">
             {strings.confidence} <strong style="color: var(--oxide)">{finding.score.toFixed(2)}</strong> ·{' '}
-            <span class="ltr">{finding.modelVersion}</span> · <span class="ltr">{finding.promptVersion}</span> ·{' '}
-            <Link href="/methodology">{strings.methodologyLink}</Link>
+            <span class="ltr">{finding.modelVersion}</span> · <span class="ltr">{finding.promptVersion}</span>
           </div>
         </div>
+
+        {/* The qualification, where the claim is made. A reader who has just been shown that
+            a named person contradicted themselves is the reader least likely to go looking
+            for it on another page. */}
+        <aside class="caveat">
+          <p class="caveat__text">{strings.caveat}</p>
+          <p class="caveat__more">
+            <Link href="/methodology">{strings.caveatMore}</Link>
+          </p>
+        </aside>
 
         <p style="margin-block-start: 24px">
           <Link href={`/figures/${encodeURIComponent(figure.id)}`}>

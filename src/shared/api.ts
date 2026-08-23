@@ -8,6 +8,16 @@ export type ErrorBody = { error: { code: string; message: string } };
 
 export type Page<T> = { items: T[]; nextCursor: string | null };
 
+/**
+ * The roster as a reader sees it: the test, and who it admits. Both in one response because
+ * a page that renders half of them says the wrong thing either way — the test alone reads
+ * as a policy nobody applied, the people alone as a list somebody chose.
+ */
+export type RosterView = {
+  inclusionRule: string;
+  figures: FigureSummary[];
+};
+
 export type FigureSummary = Figure & {
   utteranceCount: number;
   /** Utterances a live surfaced finding rests on. */
@@ -47,8 +57,11 @@ export type UtteranceDetail = {
 
 export type UtteranceTimelineEntry = {
   utterance: WireUtterance;
-  /** How many documents reported it. The site shows the count and links to the utterance. */
-  attestationCount: number;
+  /**
+   * Every publication that carried it, named. A quote with no visible publisher is our word
+   * for what somebody said, and which outlets carried something is part of the record.
+   */
+  publishers: string[];
   /** Whether a live surfaced finding rests on it. */
   flagged: boolean;
 };
@@ -79,7 +92,7 @@ export type FindingDetail = FindingSummary & {
 export type UtteranceHit = {
   utterance: WireUtterance;
   figure: Figure;
-  attestationCount: number;
+  publishers: string[];
 };
 
 export type UtteranceSearchResults = { query: string; hits: UtteranceHit[]; nextCursor: string | null };

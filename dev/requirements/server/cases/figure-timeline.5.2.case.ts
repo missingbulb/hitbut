@@ -26,9 +26,10 @@ export default {
       'exactly the utterances a live surfaced finding rests on are marked',
     );
 
-    // The count, not one of the sources: naming a single publisher here would make one of
-    // three outlets look like the record.
+    // Every publication that carried it, named. Not a count, and not one of them: a quote
+    // with no visible publisher is our word for what somebody said, and picking one of
+    // three would make that outlet look like the record.
     const entry = detail.timeline.find((item) => item.utterance.id === api.seeded.utterances.lightRailPledge);
-    assert.equal(entry?.attestationCount, 3);
+    assert.deepEqual(entry?.publishers.sort(), ['ארכיון פרוטוקולים לדוגמה', 'העיתון לדוגמה', 'ערוץ החדשות לדוגמה'].sort());
   },
 } satisfies Case<ApiContext>;

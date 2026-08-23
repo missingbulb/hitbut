@@ -156,13 +156,14 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   speaker to the roster later cannot move anybody's id.
   </details>
 
-- `1.16` Every roster entry states the written test the person meets, and an entry without one is refused.
+- `1.16` The roster states the public-eye test it applies, and every entry says how its person meets it; a roster missing either is refused.
   <details><summary>Detail</summary>
 
-  For an elected official the test is trivial and the entry is a formality. For a
-  commentator it is the whole of the defensibility: the difference between a roster and an
-  arbitrary list of people someone decided to scrutinise is that the first one can say, per
-  person, what put them on it. Refusing the entry is what stops the field being optional in
+  Two halves, and both are load-bearing. The **test** is written once and applies to
+  everybody, so who we track is a rule rather than a series of individual judgements — the
+  difference between a roster and a list of people somebody decided to scrutinise. The
+  **entry** then says how that person meets it, so the rule is applied visibly rather than
+  asserted. Refusing the file when either is missing is what stops both being optional in
   practice.
   </details>
 
@@ -408,6 +409,15 @@ consumer; everything a reader sees comes through here, including the site's own 
   the record rather than being assembled by whichever page happens to want them.
   </details>
 
+- `5.13` `GET /api/v1/roster` returns the public-eye test the roster applies, with the people it admits.
+  <details><summary>Detail</summary>
+
+  One route rather than the rule on one and the people on another: the methodology page
+  publishes both together, and two fetches for one page is a page that can render half of
+  itself — the test without the people reads as a policy nobody applied, and the people
+  without the test as a list somebody chose.
+  </details>
+
 ## 6. The site
 
 RTL-first, Hebrew-primary, with the same layout mirrored for LTR content. Each leaf's
@@ -529,6 +539,35 @@ the design canvas.
 ![6.11 — An anomaly page shows the one utterance that sits apart, and gives the room it was said in the weight the finding rests on.](screen/cases/anomaly.6.11.png)
 
 <!-- /gallery:6.11 -->
+
+- `6.12` A finding page carries the detection caveat itself, not only a link to it.
+  <details><summary>Detail</summary>
+
+  The methodology page carries this caveat already (`6.6`) and every finding links there.
+  That is one click too many for the sentence that matters most: a reader who has just been shown that
+  a named person contradicted themselves is exactly the reader least likely to go looking
+  for the qualification. So the page says it where the claim is made — a model compared
+  what we extracted, it does not know what was meant, and it can be wrong.
+  </details>
+<!-- gallery:6.12 -->
+
+![6.12 — A finding page carries the detection caveat itself, not only a link to it.](screen/cases/finding-caveat.6.12.png)
+
+<!-- /gallery:6.12 -->
+
+- `6.13` Every displayed quote names the publication it was taken from.
+  <details><summary>Detail</summary>
+
+  A quote with no visible publisher is our word for what somebody said. Naming the source
+  in the same breath makes every quote traceable at a glance rather than one click away —
+  and where several outlets carried one utterance, all of them are named, because which
+  outlets carried something is itself part of the record.
+  </details>
+<!-- gallery:6.13 -->
+
+![6.13 — Every displayed quote names the publication it was taken from.](screen/cases/named-sources.6.13.png)
+
+<!-- /gallery:6.13 -->
 
 ## 7. Shipping
 
