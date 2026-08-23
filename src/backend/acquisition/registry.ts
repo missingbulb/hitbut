@@ -1,7 +1,8 @@
 // What a source module is, and what it has to say about itself before the pipeline will
 // run it. There is no support channel for any of these sites, so the two declarations
 // below are the only durable record of the reconnaissance that produced the parser.
-import type { Language, SourceKind } from '../../shared/types.ts';
+import { VENUES } from '../../shared/types.ts';
+import type { Audience, Language, SourceKind, Venue } from '../../shared/types.ts';
 
 /**
  * Where the module reads its data, in the order of preference the reconnaissance works
@@ -29,6 +30,14 @@ export type RawStatement = {
   saidAt: string | null;
   context: string | null;
   topics: string[];
+  /**
+   * Where it was said, when this passage was said somewhere other than the module's usual
+   * room — a witness at a committee inside a plenary transcript, a quote from a rally
+   * inside an article. Absent means the module's `venue`.
+   */
+  venue?: Venue;
+  /** Who it was addressed to, where the document establishes one. */
+  audience?: Audience;
 };
 
 export type SourceModule = {
@@ -42,6 +51,13 @@ export type SourceModule = {
    * thousands of times — which is the traffic most likely to get us blocked.
    */
   refreshMinutes: number;
+  /**
+   * The room this source reports from. A property of the speech act rather than of the
+   * document, and the same words to a committee and at a rally are two utterances — so it
+   * cannot be guessed from `kind`, which says how the document was published rather than
+   * where the speaking happened.
+   */
+  venue: Venue;
   list(): Promise<SourceDocument[]>;
   extract(payload: string, document: SourceDocument): RawStatement[];
 };
@@ -56,6 +72,7 @@ export class SourceRegistry {
     if (!module.publisher) problems.push('a publisher');
     if (!SURFACES.includes(module.surface)) problems.push(`a data surface (one of ${SURFACES.join(', ')})`);
     if (!Number.isFinite(module.refreshMinutes) || module.refreshMinutes <= 0) problems.push('a positive refresh interval in minutes');
+    if (!VENUES.includes(module.venue as (typeof VENUES)[number])) problems.push(`the venue it reports from (one of ${VENUES.join(', ')})`);
     if (typeof module.list !== 'function') problems.push('a list() of documents to fetch');
     if (typeof module.extract !== 'function') problems.push('an extract() from payload to statements');
     if (problems.length) {

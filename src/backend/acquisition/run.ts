@@ -8,6 +8,8 @@ import type { Corpus, ExtractedStatement } from '../corpus/store.ts';
 import { fetchPage, type FetchDeps, type FetchFailure, type FetchOptions } from './fetcher.ts';
 import type { SourceModule, SourceRegistry, RawStatement } from './registry.ts';
 import type { RosterEntry } from '../corpus/roster.ts';
+import { ingest, type IngestDeps, type IngestOutcome } from '../ingestion/pipeline.ts';
+import { readSourceDate } from '../corpus/dates.ts';
 
 export type ItemFailure = { key: string; url: string; reason: FetchFailure | 'extraction'; detail: string };
 
@@ -19,6 +21,10 @@ export type ModuleOutcome = {
   statements: number;
   /** Passages held for a decision because we do not track their speaker. */
   unattributed: number;
+  /** Utterances this pass minted. A merge into one we already held is not one of these. */
+  utterances: number;
+  /** Passages whose ingestion stopped before the last stage, with the reason. */
+  incomplete: { utteranceId: string; reached: string; because: string }[];
   failures: ItemFailure[];
 };
 
@@ -29,6 +35,8 @@ export type AcquisitionOptions = {
   registry: SourceRegistry;
   /** Who we track. An input to the pass, never something the pass adds to. */
   roster: RosterEntry[];
+  /** The embedder, vector index and stance model the ingestion chain runs against. */
+  ingestion: Omit<IngestDeps, 'corpus'>;
   deps: FetchDeps;
   now: () => string;
   /** Re-fetch documents already in the cache — the only way a changed page is re-read. */
@@ -48,7 +56,10 @@ export async function runAcquisition(options: AcquisitionOptions): Promise<Modul
 }
 
 async function runModule(module: SourceModule, options: AcquisitionOptions): Promise<ModuleOutcome> {
-  const outcome: ModuleOutcome = { module: module.id, fetched: 0, skipped: 0, statements: 0, unattributed: 0, failures: [] };
+  const outcome: ModuleOutcome = {
+    module: module.id, fetched: 0, skipped: 0, statements: 0, unattributed: 0,
+    utterances: 0, incomplete: [], failures: [],
+  };
   const documents = await module.list();
 
   for (const document of documents) {
@@ -98,6 +109,8 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
       const saved = await extractInto(options, module, source.id, result.body, document);
       outcome.statements += saved.statements;
       outcome.unattributed += saved.unattributed;
+      outcome.utterances += saved.utterances;
+      outcome.incomplete.push(...saved.incomplete);
     } catch (error) {
       await options.corpus.setExtractionStatus(source.id, 'failed');
       outcome.failures.push({ key: document.key, url: document.url, reason: 'extraction', detail: String(error) });
@@ -115,14 +128,15 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
  * function takes the roster rather than reaching for a corpus method that mints one.
  */
 async function extractInto(
-  options: Pick<AcquisitionOptions, 'corpus' | 'queue' | 'roster'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'queue' | 'roster' | 'ingestion'>,
   module: SourceModule,
   sourceId: string,
   payload: string,
   document: { key: string; url: string },
-): Promise<{ statements: number; unattributed: number }> {
+): Promise<{ statements: number; unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
   const rawStatements: RawStatement[] = module.extract(payload, document);
   const extracted: ExtractedStatement[] = [];
+  const ingested: IngestOutcome[] = [];
   let held = 0;
 
   for (const raw of rawStatements) {
@@ -151,12 +165,33 @@ async function extractInto(
       context: raw.context,
       topics: raw.topics,
     });
+
+    // The expand step of #37's discipline: the same passage lands in both shapes while
+    // every reader is still on `statements`. Ingestion never throws for a stage failure,
+    // so a model call that rate-limits cannot cost us the statement beside it.
+    ingested.push(await ingest({ corpus: options.corpus, ...options.ingestion }, {
+      figureId: figure.id,
+      text: raw.quote,
+      language: raw.language,
+      saidAt: readSourceDate(raw.saidAt),
+      venue: raw.venue ?? module.venue,
+      audience: raw.audience ?? null,
+      sourceId,
+    }));
   }
 
   const saved = await options.corpus.saveStatements(sourceId, extracted);
   await options.corpus.setExtractionStatus(sourceId, 'extracted');
   for (const statement of saved) await options.queue.send({ statementId: statement.id });
-  return { statements: saved.length, unattributed: held };
+
+  return {
+    statements: saved.length,
+    unattributed: held,
+    utterances: ingested.filter((outcome) => outcome.minted).length,
+    incomplete: ingested
+      .filter((outcome) => outcome.stoppedBecause !== null)
+      .map((outcome) => ({ utteranceId: outcome.utterance.id, reached: outcome.reached, because: outcome.stoppedBecause as string })),
+  };
 }
 
 /**
@@ -165,9 +200,9 @@ async function extractInto(
  * statements keep the ids they were given the first time.
  */
 export async function reextract(
-  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'queue' | 'registry' | 'roster'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'queue' | 'registry' | 'roster' | 'ingestion'>,
   sourceId: string,
-): Promise<{ statements: number; unattributed: number }> {
+): Promise<{ statements: number; unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
   const record = await options.corpus.getSourceRecord(sourceId);
   if (!record) throw new Error(`no such source: ${sourceId}`);
   const module = options.registry.get(record.sourceModule);
