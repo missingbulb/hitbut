@@ -10,10 +10,12 @@ document is what the product must *do*, and the harness that runs it is
 > **Green here means "claimed by a passing case", not "verified in the world".** The
 > server- and screen-kind cases run the shipped Worker on the real `workerd` runtime, but
 > against local D1 and R2 — they confirm our code *asks* Cloudflare for the right thing,
-> not that Cloudflare performs it. That gap, and four others (no embedding or stance model
+> not that Cloudflare performs it. That gap, and three others (no embedding or stance model
 > has been chosen, let alone evaluated for Hebrew; there is no real-source matrix yet;
-> requirement `7.1` is provisional; the legal review is outstanding), are tracked in
-> [#28](https://github.com/missingbulb/hitbut/issues/28).
+> requirement `7.1` is provisional), are tracked in
+> [#28](https://github.com/missingbulb/hitbut/issues/28). The legal review that used to
+> stand beside them has been done, and [#54](https://github.com/missingbulb/hitbut/pull/54)
+> landed what it requires.
 
 **Scope of v1.** Israeli politicians, journalists and commentators; utterances mostly in
 Hebrew, some in English. The corpus is the product — a figure's record, checkable in one

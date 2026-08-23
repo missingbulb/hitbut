@@ -10,6 +10,7 @@ import type { SourceModule, SourceRegistry, RawStatement } from './registry.ts';
 import type { RosterEntry } from '../corpus/roster.ts';
 import { ingest, type IngestDeps, type IngestOutcome } from '../ingestion/pipeline.ts';
 import { readSourceDate } from '../corpus/dates.ts';
+import { crawlRawKey } from '../raw-keys.ts';
 
 export type ItemFailure = { key: string; url: string; reason: FetchFailure | 'extraction'; detail: string };
 
@@ -41,9 +42,6 @@ export type AcquisitionOptions = {
   force?: boolean;
   fetch?: FetchOptions;
 };
-
-const rawKeyFor = (module: SourceModule, document: { key: string }, fetchedAt: string): string =>
-  `${module.id}/${encodeURIComponent(document.key)}/${fetchedAt}.raw`;
 
 export async function runAcquisition(options: AcquisitionOptions): Promise<ModuleOutcome[]> {
   const outcomes: ModuleOutcome[] = [];
@@ -86,7 +84,7 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
     }
 
     const fetchedAt = options.now();
-    const rawKey = rawKeyFor(module, document, fetchedAt);
+    const rawKey = crawlRawKey(module, document.key, fetchedAt);
     // Before anything interprets it: a payload that crashes the parser is still on disk
     // to debug against, and a parser fix replays from here without a request.
     await options.raw.put(rawKey, result.body);
