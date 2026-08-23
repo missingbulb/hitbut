@@ -13,7 +13,6 @@ import { chromium, type Browser, type BrowserContext, type Page } from 'playwrig
 import { REFERENCE_NOW } from '../shared/fixtures.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-const DIST = path.join(REPO_ROOT, 'src/frontend/dist');
 const FALLBACK_FONTS = path.join(REPO_ROOT, 'dev/requirements/screen/fallback-fonts');
 const SCRATCH = path.join(REPO_ROOT, '.wrangler', 'requirements');
 
@@ -27,6 +26,25 @@ export const PINNED_PLAYWRIGHT = '1.56.1';
 /** An https origin: geolocation and other capabilities only exist on a secure one, and
  *  routes are fulfilled before any connection, so no certificate is involved. */
 export const SITE_ORIGIN = 'https://hitbut.test';
+
+/**
+ * One built app, and the origin it is served from. Two of them, because the product site
+ * and the operator console are separate artifacts that ship to different hosts — giving
+ * them one origin here would let a case pass on a link between them that cannot exist.
+ */
+export type App = { origin: string; dist: string; config: string };
+
+export const SITE: App = {
+  origin: SITE_ORIGIN,
+  dist: path.join(REPO_ROOT, 'src/frontend/dist'),
+  config: path.join(REPO_ROOT, 'src/frontend/vite.config.ts'),
+};
+
+export const DASHBOARD: App = {
+  origin: 'https://operator.hitbut.test',
+  dist: path.join(REPO_ROOT, 'src/dashboard/dist'),
+  config: path.join(REPO_ROOT, 'src/dashboard/vite.config.ts'),
+};
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -130,6 +148,7 @@ export async function newContext(
   browser: Browser,
   api: (pathAndQuery: string) => Promise<{ status: number; headers: Record<string, string>; body: string }>,
   viewport: Viewport,
+  app: App = SITE,
 ): Promise<BrowserContext> {
   const context = await browser.newContext({
     viewport,
@@ -143,15 +162,15 @@ export async function newContext(
 
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url());
-    if (url.origin !== SITE_ORIGIN) return route.abort();
+    if (url.origin !== app.origin) return route.abort();
 
     if (url.pathname.startsWith('/api/')) {
       const answer = await api(url.pathname + url.search);
       return route.fulfill({ status: answer.status, headers: answer.headers, body: answer.body });
     }
 
-    const asset = path.join(DIST, url.pathname);
-    const file = existsSync(asset) && path.extname(asset) ? asset : path.join(DIST, 'index.html');
+    const asset = path.join(app.dist, url.pathname);
+    const file = existsSync(asset) && path.extname(asset) ? asset : path.join(app.dist, 'index.html');
     return route.fulfill({
       status: 200,
       headers: { 'content-type': MIME[path.extname(file)] ?? 'application/octet-stream' },

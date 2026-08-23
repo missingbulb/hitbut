@@ -5,5 +5,6 @@ node_modules/
 # requirements harness run against, rebuilt from the migrations on demand.
 .wrangler/
 src/frontend/dist/
+src/dashboard/dist/
 # What a failing visual case writes: expected | actual | diff, never beside the goldens.
 dev/requirements/failures/

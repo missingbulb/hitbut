@@ -652,12 +652,27 @@ surface. Its rendered states are committed screenshots, the same contract as § 
   </details>
 
 - `8.7` The dashboard shows the corpus totals, both distributions, and the state of every source module on one screen.
+<!-- gallery:8.7 -->
+
+![8.7 — The dashboard shows the corpus totals, both distributions, and the state of every source module on one screen.](screen/cases/dashboard.8.7.png)
+
+<!-- /gallery:8.7 -->
 
 - `8.8` The dashboard asks for a token when operations refuses it, and keeps showing the corpus numbers it can read without one.
   <details><summary>Detail</summary>
+<!-- gallery:8.8 -->
+
+![8.8 — The dashboard asks for a token when operations refuses it, and keeps showing the corpus numbers it can read without one.](screen/cases/dashboard-token.8.8.png)
+
+<!-- /gallery:8.8 -->
 
   Half the page needs no credential. A dashboard that renders an error page because its
   privileged half was refused throws away the half that answered.
   </details>
 
 - `8.9` The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.
+<!-- gallery:8.9 -->
+
+![8.9 — The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.](screen/cases/dashboard-failures.8.9.png)
+
+<!-- /gallery:8.9 -->

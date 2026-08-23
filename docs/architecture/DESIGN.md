@@ -275,6 +275,41 @@ writers are the cron trigger and the backfill's Workflow. Responses
 are edge-cacheable with short TTLs; bulk export is served as generated snapshots
 from R2 rather than paginated through D1.
 
+## The operator console
+
+A second static app, on GitHub Pages rather than Cloudflare Pages, answering the question
+the public API cannot: not "what did this person say" but "how much is in here, is the
+crawl working, what broke". It reads `/api/v1/status` and `/api/v1/operations`.
+
+**The split between those two routes is by what the data is.** Corpus totals and
+distributions are public, because every number in them can already be arrived at by
+walking the corpus API — a credential there would protect nothing and would stop a
+researcher citing the size of what they cite. Run outcomes are not, because a failure
+reason names internals.
+
+**It counts nobody.** No search term is retained, no view is tallied, no client error is
+beaconed home. Each of those would need a write surface — which `5.8` refuses — and would
+start a record about the people reading a corpus whose own roster says we do not track
+personal activity. What the console shows, the server already knew about itself.
+
+**The credential is supplied by whoever is looking.** A static page cannot hold a secret,
+so the token is compared against a Worker secret and kept in the operator's browser. An
+unset secret closes the route and says so, rather than opening it.
+
+*Alternative — Cloudflare Access in front of the route*: this is the shape worth reaching
+for later. Access runs the login itself and leaves a long-lived HttpOnly cookie, so no
+token touches JavaScript. Two things stop it being the answer today. Its cookie belongs to
+the hostname Access protects and its login is a redirect a `fetch` cannot follow, so the
+console would have to move off GitHub Pages onto a Cloudflare hostname. And an
+Access-aware branch has to trust a forwarded identity header, which is a privilege
+escalation the moment the route is not actually behind Access — so it is not written until
+there is an account (#27) to exercise it against. Unbuilt and unexercised, deliberately.
+
+**A module that has never run reads as never-run.** The view is driven by the source
+registry rather than by the runs table, so a module with no rows is listed and marked,
+never omitted and never shown as a run that found nothing. Absence is how "unknown" is
+encoded here, as everywhere else in this corpus.
+
 ## Frontend
 
 A static site on Cloudflare Pages — no Pages Functions, no server rendering:

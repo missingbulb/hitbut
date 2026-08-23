@@ -1,0 +1,169 @@
+/* The operator console. The product's warm-editorial palette, at a denser rhythm: this is
+   a page somebody scans for a number, not one they read.
+
+   Typography is the system UI stack on purpose. The site vendors its fonts because its
+   typography is part of what readers are shown and what the owner approves; an internal
+   console carries no such promise, and looking native is the better default for one. */
+
+:root {
+  --paper: #f6f3ec;
+  --card: #fdfcf8;
+  --ink: #201e19;
+  --muted: #6e685c;
+  --rule: #e2dccc;
+
+  /* Magnitude has one job and one hue: bar length carries the number, so colour does not
+     have to. */
+  --mark: #a8382a;
+
+  /* Reserved for state, never for a series. Every chip carries its word as well, so the
+     colour is a second signal and never the only one — which is also what keeps the
+     amber/green pair legible for a protan reader. */
+  --ok: #1f7a4d;
+  --stale: #a97a1f;
+  --failing: #b3261e;
+
+  --gap: 20px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 1180px; margin: 0 auto; padding: 28px 32px 64px; }
+
+/* ---- chrome ---------------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.masthead h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+.masthead__role { color: var(--mark); font-weight: 400; }
+.masthead__read { margin: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ---- the headline counts --------------------------------------------------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 12px;
+  margin: var(--gap) 0;
+}
+
+.tile {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.tile__value { font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tile__label { margin-top: 2px; font-size: 13px; color: var(--ink); }
+.tile__note { margin-top: 2px; font-size: 12px; color: var(--muted); }
+
+/* ---- sections and charts --------------------------------------------------- */
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-block: 12px;
+  min-width: 0;
+}
+
+.section h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+
+/* Horizontal bars. The name column is sized to the longest label rather than guessed,
+   so nothing truncates and nothing floats in a gutter. */
+.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bars__row { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 10px; }
+.bars__name { font-size: 12px; }
+.bars__track { display: block; min-width: 0; }
+.bars__fill {
+  display: block; height: 20px; background: var(--mark);
+  /* Square at the baseline, 4px rounded at the data end. */
+  border-radius: 0 4px 4px 0;
+}
+.bars__value { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Columns over time. A 2px surface gap between adjacent fills keeps them separate marks. */
+.columns {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; align-items: flex-end; gap: 6px; height: 150px;
+  border-bottom: 1px solid var(--rule);
+}
+.columns__item { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.columns__value { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.columns__fill { width: 100%; max-width: 44px; background: var(--mark); border-radius: 4px 4px 0 0; }
+
+.years { display: flex; flex-direction: column; gap: 6px; }
+.years__names { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.years__names li { flex: 1 1 0; min-width: 0; text-align: center; font-size: 12px; }
+.years__undated { margin: 0; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 10px; }
+.years__undated strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---- the module table ------------------------------------------------------ */
+
+.modules { width: 100%; border-collapse: collapse; font-size: 13px; }
+.modules th {
+  text-align: left; font-weight: 600; color: var(--muted); font-size: 11px;
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 0 10px 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.modules td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.modules .num { text-align: right; font-variant-numeric: tabular-nums; padding-right: 0; }
+.modules__id { display: block; font-weight: 600; }
+.modules__publisher { display: block; color: var(--muted); font-size: 12px; }
+.none { color: var(--muted); }
+
+.chip {
+  display: inline-block; padding: 1px 8px; border-radius: 999px;
+  font-size: 12px; border: 1px solid currentColor;
+}
+.chip--ok { color: var(--ok); }
+.chip--stale { color: var(--stale); }
+.chip--failing { color: var(--failing); }
+/* No colour at all: never-run is the absence of a reading, not a state beside the others. */
+.chip--unknown { color: var(--muted); border-style: dashed; }
+
+.failures td { padding-top: 0; }
+.failures ul { margin: 0; padding-inline-start: 18px; color: var(--failing); font-size: 12px; }
+.failures code { color: var(--ink); background: var(--paper); padding: 0 4px; border-radius: 3px; }
+
+/* ---- the half that needs a credential -------------------------------------- */
+
+.empty { margin: 0; color: var(--muted); font-size: 13px; }
+
+.token { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.token label { font-size: 13px; color: var(--muted); }
+.token input {
+  flex: 1 1 240px; min-width: 0; font: inherit; padding: 6px 10px;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink);
+}
+.token button {
+  font: inherit; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--mark); background: var(--mark); color: var(--card);
+}
+.token__note { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .page { padding: 20px 16px 48px; }
+}

@@ -1,0 +1,57 @@
+# The operator dashboard on GitHub Pages: a static console, published apart from the
+# product site, which ships to Cloudflare Pages from `product.yml`.
+#
+# Two things it is not. It is not a build of the corpus — every number it shows it reads
+# live from the Worker at view time, so a stale publish still shows fresh data. And it
+# holds no credential: the API origin below is public, and the operations half asks
+# whoever is looking for a token, which lives in their browser and never in this artifact.
+name: dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/dashboard/**'
+      - 'src/shared/**'
+      - '.github/workflows/dashboard.yml'
+  workflow_dispatch:
+
+# Pages takes one deployment at a time. A queued run supersedes an older queued one, but
+# never cancels one already publishing — a half-written site is worse than an old one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    name: publish the console
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Baked in at build time, because the console is static and has no server to ask.
+      # Absent, the page says it has no API origin rather than silently showing nothing.
+      - name: Build
+        env:
+          VITE_API_ORIGIN: ${{ vars.API_ORIGIN }}
+        run: npm run build:dashboard
+      # Three different majors on purpose: these are the versions that run on Node 24,
+      # read from each action's own action.yml rather than assumed to move together.
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: src/dashboard/dist
+      - id: deploy
+        uses: actions/deploy-pages@v5
