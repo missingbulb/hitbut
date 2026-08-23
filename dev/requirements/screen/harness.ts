@@ -46,6 +46,17 @@ export const DASHBOARD: App = {
   config: path.join(REPO_ROOT, 'src/dashboard/vite.config.ts'),
 };
 
+/**
+ * The same app built with no API origin baked in — the state a console is published in
+ * before anybody sets the variable. It needs its own build because the origin is fixed at
+ * build time, and its own origin because the two must not share a served directory.
+ */
+export const DASHBOARD_UNCONFIGURED: App = {
+  origin: 'https://unconfigured.hitbut.test',
+  dist: path.join(REPO_ROOT, 'src/dashboard/dist-no-origin'),
+  config: DASHBOARD.config,
+};
+
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',

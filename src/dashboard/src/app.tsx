@@ -61,20 +61,41 @@ export function App(): JSX.Element {
         <p class="masthead__read">{readAt ? `read ${when(readAt)}` : 'reading…'}</p>
       </header>
 
-      {status.state === 'ready' ? <Corpus status={status.value} /> : <Unavailable loaded={status} what="the corpus" />}
+      {/* One cause, said once. Both halves are blank for the same reason, and repeating it
+          per section reads as two faults rather than one setting. */}
+      {status.state === 'no-origin' ? <NoOrigin /> : null}
 
-      <section class="section">
-        <h2>Sources</h2>
+      {status.state === 'no-origin' ? null : (
+        <>
+          {status.state === 'ready' ? <Corpus status={status.value} /> : <Unavailable loaded={status} what="the corpus" />}
+
+          <section class="section">
+            <h2>Sources</h2>
         {operations.state === 'ready' ? (
           <Modules view={operations.value} />
         ) : (
           <>
-            <Unavailable loaded={operations} what="the crawl" />
-            <TokenPanel onToken={(next) => { storeToken(next); setToken(next); }} current={token} />
-          </>
-        )}
-      </section>
+                <Unavailable loaded={operations} what="the crawl" />
+                <TokenPanel onToken={(next) => { storeToken(next); setToken(next); }} current={token} />
+              </>
+            )}
+          </section>
+        </>
+      )}
     </div>
+  );
+}
+
+/** The whole page's condition, stated where a reader looks first. */
+function NoOrigin(): JSX.Element {
+  return (
+    <section class="section">
+      <p class="empty">
+        No API origin is configured, so nothing was requested. Set the repository variable{' '}
+        <code>API_ORIGIN</code> to the deployed Worker's origin and publish again — the console bakes it in
+        at build time, because a static page has no server to ask.
+      </p>
+    </section>
   );
 }
 
@@ -130,10 +151,10 @@ function Modules({ view }: { view: OperationsView }): JSX.Element {
                 <td><span class={`chip chip--${state.tone}`}>{state.label}</span></td>
                 {/* Never-run is a dash, not a zero: the corpus keeps unknown as its own
                     state everywhere else and this is the page where it matters most. */}
-                <td>{module.lastRun ? when(module.lastRun.startedAt) : <span class="none">—</span>}</td>
-                <td class="num">{module.lastRun ? count(module.lastRun.fetched) : <span class="none">—</span>}</td>
-                <td class="num">{module.lastRun ? count(module.lastRun.cached) : <span class="none">—</span>}</td>
-                <td class="num">{module.lastRun ? count(module.lastRun.utterances) : <span class="none">—</span>}</td>
+                <td data-label="last run">{module.lastRun ? when(module.lastRun.startedAt) : <span class="none">—</span>}</td>
+                <td class="num" data-label="fetched">{module.lastRun ? count(module.lastRun.fetched) : <span class="none">—</span>}</td>
+                <td class="num" data-label="cached">{module.lastRun ? count(module.lastRun.cached) : <span class="none">—</span>}</td>
+                <td class="num" data-label="utterances">{module.lastRun ? count(module.lastRun.utterances) : <span class="none">—</span>}</td>
               </tr>
               {module.lastRun?.failures.length ? (
                 // Against the module they belong to, rather than in one list at the
@@ -159,6 +180,8 @@ function Modules({ view }: { view: OperationsView }): JSX.Element {
 /** Says which of the several ways it went wrong, because they send you to different places. */
 function Unavailable({ loaded, what }: { loaded: Loaded<unknown>; what: string }): JSX.Element {
   if (loaded.state === 'loading') return <p class="empty">Reading {what}…</p>;
+  // Stated once at page level, so a section says only that it has nothing.
+  if (loaded.state === 'no-origin') return <p class="empty">No API origin.</p>;
   if (loaded.state === 'refused') return <p class="empty">{what} needs a token.</p>;
   if (loaded.state === 'unconfigured') return <p class="empty">{loaded.message}</p>;
   if (loaded.state === 'failed') return <p class="empty">Could not read {what}: {loaded.message}</p>;
