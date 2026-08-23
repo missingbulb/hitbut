@@ -279,7 +279,7 @@ of turning it into corrupt data.
   is re-read.
   </details>
 
-- `3.7` A source module that does not declare its data surface and its refresh clock is refused by the registry.
+- `3.7` A source module that has not declared what the pipeline needs — its data surface, its refresh clock, the room it reports from — is refused by the registry.
   <details><summary>Detail</summary>
 
   The surface (`hydration` | `api` | `markup`) records which reconnaissance answer this
@@ -292,6 +292,28 @@ of turning it into corrupt data.
 
   A parser fix costs zero requests. The case runs extraction with the fetcher wired to throw
   on any call, so a network read is a test failure rather than a slow test.
+  </details>
+
+- `3.9` Replaying a payload through ingestion writes nothing new — not an utterance, not an attestation, not a subject, not a stance.
+  <details><summary>Detail</summary>
+
+  Backfilling decades means replaying: a parser fix re-runs every cached payload, and a
+  Workflow step that failed re-runs the slice it was in. If a replay wrote second copies,
+  a persona's timeline would fill with duplicates of one sentence and the analysis would
+  read the echo as agreement — the exact failure the utterance/attestation split exists to
+  prevent, arriving from the other direction. Every stage is keyed on something the payload
+  itself determines, so a second run finds its own work already done.
+  </details>
+
+- `3.10` A stage that fails leaves the stages before it landed, and the next pass resumes from there.
+  <details><summary>Detail</summary>
+
+  Embedding and stance are model calls: they rate-limit, time out, and cost money. A pass
+  that lost the utterance because the stance call failed would re-fetch, re-extract and
+  re-merge to get back to where it was, and would pay for the whole chain again on every
+  retry. So each stage commits before the next one starts, and the pipeline reports how far
+  it got rather than raising — the report is what a Workflow step reads to decide whether to
+  retry.
   </details>
 
 ## 4. Analysis

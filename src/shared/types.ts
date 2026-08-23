@@ -93,26 +93,32 @@ export const SURFACED_KINDS: JudgmentKind[] = ['contradiction', 'position-shift'
  * and the difference between "March 1998", "12 March 1998" and "we do not know" is three
  * states, not two — a month recorded as its first day is a fact nobody established.
  */
-export type DatePrecision = 'day' | 'month' | 'year';
+export const DATE_PRECISIONS = ['day', 'month', 'year'] as const;
+
+export type DatePrecision = (typeof DATE_PRECISIONS)[number];
 
 /** When something was said, and how precisely the source establishes it. */
 export type SaidAt = { value: string; precision: DatePrecision } | null;
 
-/** Where an utterance was made. A property of the speech act, not of who reported it. */
-export type Venue =
-  | 'plenary'
-  | 'committee'
-  | 'interview'
-  | 'press-conference'
-  | 'op-ed'
-  | 'broadcast'
-  | 'rally'
-  | 'party-forum'
-  | 'written-statement'
-  | 'other';
+/**
+ * Where an utterance was made. A property of the speech act, not of who reported it.
+ *
+ * The array is the source and the type is derived from it, because a union of string
+ * literals type-strips to nothing and every runtime that needs to validate a venue would
+ * otherwise keep its own copy. The migrations' CHECK constraints are the copy that cannot
+ * import this one; `dev/gates/sql-vocabularies.test.ts` holds them to it.
+ */
+export const VENUES = [
+  'plenary', 'committee', 'interview', 'press-conference', 'op-ed',
+  'broadcast', 'rally', 'party-forum', 'written-statement', 'other',
+] as const;
+
+export type Venue = (typeof VENUES)[number];
 
 /** Who it was addressed to. `null` where the source does not establish one. */
-export type Audience = 'general-public' | 'parliament' | 'party-members' | 'foreign-press' | 'professional' | null;
+export const AUDIENCES = ['general-public', 'parliament', 'party-members', 'foreign-press', 'professional'] as const;
+
+export type Audience = (typeof AUDIENCES)[number] | null;
 
 /**
  * One thing said once. Several documents reporting it are several attestations of this

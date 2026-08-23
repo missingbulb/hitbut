@@ -4,6 +4,7 @@
 import type { AnalysisMessage, Env, MessageBatch } from './env.ts';
 import { Corpus } from './corpus/store.ts';
 import { ROSTER } from './corpus/roster-data.ts';
+import { UNPROVISIONED_EMBEDDER, UNPROVISIONED_STANCE, UNPROVISIONED_VECTORS } from './ingestion/unprovisioned.ts';
 import { handleRequest } from './api/router.ts';
 import { generateStatementExport } from './api/export.ts';
 import { runAcquisition } from './acquisition/run.ts';
@@ -30,6 +31,9 @@ export default {
       queue: env.ANALYSIS,
       registry: productionRegistry(),
       roster: ROSTER,
+      // Replaced by the real index and models when #27 provisions them. Until then every
+      // pass says, per document, which capability it could not reach.
+      ingestion: { embedder: UNPROVISIONED_EMBEDDER, vectors: UNPROVISIONED_VECTORS, stance: UNPROVISIONED_STANCE },
       deps: { fetch: (url, init) => fetch(url, init) },
       now: () => new Date().toISOString(),
       fetch: { politenessMs: 800 },
@@ -38,8 +42,16 @@ export default {
     for (const outcome of outcomes) {
       console.log(
         `acquisition ${outcome.module}: fetched ${outcome.fetched}, skipped ${outcome.skipped}, ` +
-          `statements ${outcome.statements}, unattributed ${outcome.unattributed}, failures ${outcome.failures.map((f) => `${f.key}=${f.reason}`).join(' ') || 'none'}`,
+          `statements ${outcome.statements}, utterances ${outcome.utterances}, unattributed ${outcome.unattributed}, ` +
+          `failures ${outcome.failures.map((f) => `${f.key}=${f.reason}`).join(' ') || 'none'}`,
       );
+      // Which capability the chain could not reach, once per distinct reason rather than
+      // once per utterance — a pass over a thousand documents would otherwise print the
+      // same missing binding a thousand times and bury everything else.
+      for (const because of new Set(outcome.incomplete.map((stopped) => stopped.because))) {
+        const count = outcome.incomplete.filter((stopped) => stopped.because === because).length;
+        console.log(`acquisition ${outcome.module}: ${count} utterance(s) stopped — ${because}`);
+      }
     }
     console.log(`export: ${await generateStatementExport(corpus, env.RAW)} statements`);
   },

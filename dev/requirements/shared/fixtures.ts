@@ -378,6 +378,7 @@ export function fixtureSource(options: {
     kind: 'transcript',
     surface: 'markup',
     refreshMinutes: 180,
+    venue: 'plenary',
     payloads,
     list: async () => options.documents.map(({ key, url }) => ({ key, url })),
     extract: (payload, document) => {

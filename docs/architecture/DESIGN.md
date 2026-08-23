@@ -174,6 +174,19 @@ retry: Workflows retries a step, the queue redelivers a message.
    one when nothing is near enough.
 7. **Stance** — one model call places the utterance on its cluster's own axis.
 
+Stages 4–7 are one module, `src/backend/ingestion/pipeline.ts`, so the nightly
+cron and the backfill Workflow run the same code. Two properties hold across all
+of them. Every stage is **keyed on something the payload determines**, so a
+replay finds its own work already done rather than writing a second copy —
+backfilling decades means replaying constantly, and duplicates would fill a
+persona's timeline with copies of one sentence that the analysis then reads as
+agreement. And **each stage commits before the next starts**, with a failure
+reported rather than thrown: embedding and stance are model calls that
+rate-limit and cost money, so a pass that lost the utterance would re-fetch,
+re-extract and re-pay for the whole chain on every retry. The outcome names the
+last stage that committed, which is what a Workflow step reads to decide whether
+to retry.
+
 Steps 5–7 are what make the corpus queryable by *position* rather than only by
 word, and each is O(1) per utterance.
 
