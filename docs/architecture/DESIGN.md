@@ -139,7 +139,20 @@ Two drivers over the same modules:
 - **The backfill** walks a source's archive in slices — a year of one archive is
   the working unit — as one Workflow run per slice. A slice that fails retries
   without touching its neighbours, and the window is finite, so the job has an
-  end.
+  end. Slices run oldest first: a backfill that starts at the recent end leaves
+  the corpus looking complete long before it is. Two properties make the retry
+  cheap, and both are asserted rather than assumed (`3.11`, `3.12`) — a slice
+  reads and writes nothing another slice relies on, and a re-run reads what the
+  previous attempt stored in R2 rather than re-fetching it, because the
+  platform's retry re-runs a whole step and every fetch inside one is a request
+  to somebody else's server.
+
+  **The slice size is an unchecked bet.** A year is the unit archives are
+  organised in, not a size anything says fits inside a Workflow's step, duration
+  and payload limits — the session that designed this could not reach
+  Cloudflare's documentation to read them. It is a named constant carrying that
+  provenance, and the planner takes it as an argument, so closing phase 1 of #34
+  is one call site.
 - **The cron** covers the moving edge, on each source's own clock. A transcript
   archive and a press feed do not move at the same speed, and running everything
   on the fastest one re-learns a static document thousands of times.
