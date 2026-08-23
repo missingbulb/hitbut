@@ -347,12 +347,45 @@ export async function withUtterance(
     figureId,
     text,
     language: 'he',
-    saidAt: options.saidAt ?? { value: '2024-01-01', precision: 'day' },
+    // `'saidAt' in options` rather than `??`: a case that says the source establishes no
+    // date means it, and defaulting that would hand every undated utterance a date nobody
+    // established — which is the failure 1.3 and 1.9 exist to prevent, in the fixtures.
+    saidAt: 'saidAt' in options ? (options.saidAt ?? null) : { value: '2024-01-01', precision: 'day' },
     venue: options.venue ?? 'interview',
     audience: options.audience ?? null,
     sourceId: source.id,
   });
   return utterance;
+}
+
+/**
+ * A persona with a scripted stance series on one subject — the shape a detection case needs
+ * and nothing else. Positions are given, not inferred: a case that plants a step change
+ * must be able to say exactly where it planted it.
+ */
+export async function withSeries(
+  corpus: Corpus,
+  points: { position: number; saidAt?: string | null; venue?: Venue; audience?: Audience }[],
+  versions = { modelVersion: 'sample/stance-0', promptVersion: 'stance-v1' },
+) {
+  const figure = await withFigure(corpus, 'דמות לדוגמה');
+  let clusterId: string | null = null;
+  const utterances = [];
+
+  for (const [index, point] of points.entries()) {
+    const utterance = await withUtterance(corpus, figure.id, `התבטאות לדוגמה מספר ${index + 1}.`, {
+      key: `series-${index}`,
+      // Undated when the case says so; otherwise a month apart, so the order is legible.
+      saidAt: point.saidAt === null ? null : { value: point.saidAt ?? `2024-${String(index + 1).padStart(2, '0')}-01`, precision: 'day' },
+      venue: point.venue,
+      audience: point.audience,
+    });
+    clusterId = (await corpus.assignToCluster(utterance.id, clusterId, 0)).clusterId;
+    await corpus.recordStance({ utteranceId: utterance.id, clusterId, position: point.position, confidence: 0.8, ...versions });
+    utterances.push(utterance);
+  }
+
+  return { figure, clusterId: clusterId as string, utterances, versions };
 }
 
 /** A migrated, seeded corpus in memory. */
