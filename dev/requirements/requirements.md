@@ -9,18 +9,18 @@ document is what the product must *do*, and the harness that runs it is
 
 > **Green here means "claimed by a passing case", not "verified in the world".** The
 > server- and screen-kind cases run the shipped Worker on the real `workerd` runtime, but
-> against local D1, R2 and Queues — they confirm our code *asks* Cloudflare for the right
-> thing, not that Cloudflare performs it. That gap, and four others (the judge model is
-> unevaluated for Hebrew, there is no real-source matrix yet, requirement `7.1` is
-> provisional, the legal review is outstanding), are tracked in
+> against local D1 and R2 — they confirm our code *asks* Cloudflare for the right thing,
+> not that Cloudflare performs it. That gap, and four others (no embedding or stance model
+> has been chosen, let alone evaluated for Hebrew; there is no real-source matrix yet;
+> requirement `7.1` is provisional; the legal review is outstanding), are tracked in
 > [#28](https://github.com/missingbulb/hitbut/issues/28).
 
-**Scope of v1.** Israeli politicians, journalists and commentators; statements mostly in
+**Scope of v1.** Israeli politicians, journalists and commentators; utterances mostly in
 Hebrew, some in English. The corpus is the product — a figure's record, checkable in one
 place with the evidence attached — and inconsistency detection is one lens over it.
 
 **A note on the sample data.** Every figure, quote, date and count in the fixtures and in
-the committed screenshots is fictional. Nothing in this repository attributes a statement
+the committed screenshots is fictional. Nothing in this repository attributes an utterance
 to a real person.
 
 ---
@@ -41,15 +41,7 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   resolving.
   </details>
 
-- `1.2` A statement keeps the ULID it was given at first extraction when the same source payload is extracted again.
-  <details><summary>Detail</summary>
-
-  Re-extraction happens whenever a parser is fixed and replayed over the R2 payload cache.
-  Identity is `(source id, the statement's position in that payload)`; a second run over the
-  same bytes must produce the same ids, or every citation breaks on every parser fix.
-  </details>
-
-- `1.3` A statement whose source does not establish a date stores no date — not today's, not the epoch, not the fetch time.
+- `1.3` An utterance whose sources establish no date stores no date — not today's, not the epoch, not the fetch time.
   <details><summary>Detail</summary>
 
   Unknown is a state of its own. The column is nullable, the API omits the key rather than
@@ -66,19 +58,12 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   to a 404.
   </details>
 
-- `1.5` Re-analysis of a statement pair writes a new inconsistency record and marks the previous one superseded, never overwriting it.
+- `1.6` Two utterances minted in the same millisecond get distinct ids that still sort in mint order.
   <details><summary>Detail</summary>
 
-  A prompt or model change re-judges pairs. The old record keeps its id, gains
-  `superseded_by`, and drops out of the surfaced set; the new record is the live one. A
-  reader who cited the old judgment can still see exactly what was said and what replaced it.
-  </details>
-
-- `1.6` Two statements minted in the same millisecond get distinct ids that still sort in mint order.
-  <details><summary>Detail</summary>
-
-  A single payload yields many statements at once. ULID monotonicity within a millisecond
-  is what keeps "the order they were extracted in" recoverable from the ids alone.
+  A single payload yields many utterances at once. ULID monotonicity within a millisecond
+  is what keeps "the order they were extracted in" recoverable from the ids alone — which is
+  the only ordering the corpus can honestly claim about utterances nobody dated.
   </details>
 
 - `1.7` One thing said, reported by several documents, is one utterance with several attestations.
@@ -134,9 +119,9 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   <details><summary>Detail</summary>
 
   A finding is citable, so it cannot become a different claim under the same id, and it
-  cannot vanish. The same rule `1.5` holds for the pairwise records v1 shipped, restated
-  for the record the stance series produces — the two coexist until the pairwise shape is
-  retired.
+  cannot vanish. So a re-analysis leaves the old record exactly as it was, gives it a
+  pointer forward, and drops it out of the surfaced set — the new one is the live one, and
+  a reader who cited the old finding can still see what was said and what replaced it.
   </details>
 
 - `1.13` A finding names the utterances it rests on, and carries the attribute its kind turns on — an anomaly the venue and audience, a trend change the interval.
@@ -160,14 +145,14 @@ renumbered, or deleted, and retirement is a status rather than a removal.
   decision that arrives as an input to acquisition, never a byproduct of it.
   </details>
 
-- `1.15` A statement by a speaker we do not track is retained under the name the source gave, and does not renumber the statements around it.
+- `1.15` A passage by a speaker we do not track is retained under the name the source gave, and does not renumber the passages around it.
   <details><summary>Detail</summary>
 
   Not tracked is not the same as not recorded. Dropping the passage would make the raw
   record incomplete and would silently decide, at crawl time, something a person should
   decide; promoting it would create the tracked figure `1.14` forbids. So it is held with
   the speaker's name exactly as the document wrote it, waiting for that decision — and the
-  statements that *did* resolve keep the positions they had in the payload, so adding the
+  passages that *did* resolve keep the positions they had in the payload, so adding the
   speaker to the roster later cannot move anybody's id.
   </details>
 
@@ -215,8 +200,8 @@ person actually types. hitbut folds the text itself, on both sides of the query.
 - `2.4` A Latin-script query matches Latin utterance text and is not touched by the Hebrew folding.
   <details><summary>Detail</summary>
 
-  Not every statement in scope is Hebrew. `budget` must not be stemmed by rules meant for
-  Hebrew prefixes, and a mixed-script statement is indexed under both scripts.
+  Not every utterance in scope is Hebrew. `budget` must not be stemmed by rules meant for
+  Hebrew prefixes, and a mixed-script utterance is indexed under both scripts.
   </details>
 
 - `2.5` A prefix is never stripped down to a stem too short to be a word.
@@ -319,42 +304,22 @@ of turning it into corrupt data.
 ## 4. Analysis
 
 Detection has to be defensible before it is clever: for every flag, a reader can see which
-two statements were compared, what was said about them, and by which model and prompt.
+utterances a finding rests on, what was said about them, and by which model and prompt.
 
-- `4.1` Candidate pairs are drawn only from one figure's own statements, and only where the topics overlap.
+- `4.1` Detection reads one persona's own stance series and never compares them with anybody else's.
   <details><summary>Detail</summary>
 
-  Two figures disagreeing is not an inconsistency, and one figure's unrelated statements are
-  not a pair worth a model call. Pairing is the cost control and the correctness rule at once.
+  Two people disagreeing is not an inconsistency — it is two people disagreeing, which is
+  what public life is. The claim this product makes is about one persona's own record over
+  time, so a series is read within one persona and one subject and never across two.
   </details>
 
-- `4.2` A pair the judge calls contradictory is stored as kind `contradiction`.
-- `4.3` A pair the judge calls a change of position over time is stored as kind `position-shift`.
+- `4.6` A finding scoring below the surfacing threshold is retained and excluded from the surfaced set.
   <details><summary>Detail</summary>
 
-  Distinct on purpose: a politician who changed their mind and said so is a different claim
-  about them than one who denies ever holding the position. The site labels them differently.
-  </details>
-
-- `4.4` A pair the judge calls consistent is stored with its score and never surfaced.
-  <details><summary>Detail</summary>
-
-  Keeping the negatives is what makes the threshold tunable later, and what stops the same
-  pair being paid for twice.
-  </details>
-
-- `4.5` Every stored judgment carries both statement ids, the rationale, and the model and prompt version that produced it.
-  <details><summary>Detail</summary>
-
-  The defensible trail. A prompt is a committed, versioned file; the version travels with
-  every record it produced, so "which prompt said this?" is answerable years later.
-  </details>
-
-- `4.6` A judgment scoring below the surfacing threshold is retained and excluded from the surfaced set.
-  <details><summary>Detail</summary>
-
-  Only high-confidence pairs reach the product; the full distribution stays for tuning.
-  Surfacing is a query, not a delete.
+  Only high-confidence findings reach the product; everything the detector produced stays,
+  so the threshold can be moved later without re-paying for the analysis. Surfacing is a
+  query, not a delete.
   </details>
 
 - `4.7` A stance that deviates from the persona's prevailing position on a subject is found, and the finding carries where it was said and to whom.
@@ -396,8 +361,8 @@ consumer; everything a reader sees comes through here, including the site's own 
 - `5.5` `GET /api/v1/findings/{id}` resolves a superseded finding and names what superseded it.
   <details><summary>Detail</summary>
 
-  The other half of `1.5`: the invariant is only worth anything if the boundary honours it.
-  A cited link to a superseded judgment answers 200 with the record and a pointer forward.
+  The other half of `1.12`: the invariant is only worth anything if the boundary honours it.
+  A cited link to a superseded finding answers 200 with the record and a pointer forward.
   </details>
 
 - `5.6` `GET /api/v1/search?q=` answers a Hebrew query whose term carries an attached prefix.
@@ -426,8 +391,10 @@ consumer; everything a reader sees comes through here, including the site's own 
 - `5.11` `GET /api/v1/export/utterances.ndjson` serves the whole corpus as one JSON object per utterance, with every document that reported it.
   <details><summary>Detail</summary>
 
-  What a researcher reads instead of paginating the corpus: statement, speaker and source
-  per line, with the stable ids intact so a later pull can be diffed against this one. It
+  What a researcher reads instead of paginating the corpus: one line per thing said, with
+  its speaker and every document that reported it, and the stable ids intact so a later pull
+  can be diffed against this one. A line per document would put one speech in the file
+  several times, and a count of the export would read the echo as several things said. It
   is a snapshot the scheduled run regenerates, not a query assembled per request — and
   before the first run has written one, the route says exactly that rather than serving an
   empty file that reads like an empty corpus.

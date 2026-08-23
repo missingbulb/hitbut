@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
 import type { ApiContext } from '../run.test.ts';
-import type { FigureDetail, FigureSummary, Page } from '../../../../src/shared/api.ts';
+import type { FigureRecord, FigureSummary, Page } from '../../../../src/shared/api.ts';
 
 export default {
   title: 'GET /figures/{id} carries what the record covers and the test the person meets',
   async run(api: ApiContext) {
-    const detail = await api.json<FigureDetail>(`/api/v1/figures/${encodeURIComponent(api.seeded.figures.ilana)}`);
+    const detail = await api.json<FigureRecord>(`/api/v1/figures/${encodeURIComponent(api.seeded.figures.ilana)}`);
 
     // What put this person on the roster. Held privately it is a preference, not a rule.
     assert.equal(typeof detail.figure.qualifies, 'string');

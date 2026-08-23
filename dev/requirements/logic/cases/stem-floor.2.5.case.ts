@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withStatement } from '../../shared/fixtures.ts';
+import { emptyCorpus, withSearchable } from '../../shared/fixtures.ts';
 import { variantsOf } from '../../../../src/shared/text.ts';
 
 export default {
@@ -11,10 +11,10 @@ export default {
     assert.deepEqual(variantsOf('בבית'), ['בבית', 'בית'], 'four letters down to three is the shortest strip made');
 
     const corpus = emptyCorpus();
-    const { statement } = await withStatement(corpus, 'הוועדה התכנסה בבית הנבחרים.');
+    const utterance = await withSearchable(corpus, 'הוועדה התכנסה בבית הנבחרים.');
 
-    const found = async (query: string) => (await corpus.search(query)).statements.map((s) => s.id);
-    assert.deepEqual(await found('בית'), [statement.id], 'the three-letter word is still reachable');
+    const found = async (query: string) => (await corpus.searchUtterances(query)).utterances.map((s) => s.id);
+    assert.deepEqual(await found('בית'), [utterance.id], 'the three-letter word is still reachable');
     assert.deepEqual(await found('ית'), [], 'and the two-letter fragment reaches nothing');
   },
 } satisfies Case<void>;

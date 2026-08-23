@@ -1,7 +1,7 @@
-// The Worker: one deploy, three entry points. The cron trigger runs acquisition, the
-// queue consumer runs analysis, and the fetch handler serves the API — so no acquisition
-// code sits in the API path and no API code sits in a scraper.
-import type { AnalysisMessage, Env, MessageBatch } from './env.ts';
+// The Worker: one deploy, two entry points. The cron trigger acquires and then reads what
+// it acquired; the fetch handler serves the API. No acquisition code sits in the API path
+// and no API code sits in a scraper.
+import type { Env } from './env.ts';
 import { Corpus } from './corpus/store.ts';
 import { ROSTER } from './corpus/roster-data.ts';
 import { UNPROVISIONED_EMBEDDER, UNPROVISIONED_STANCE, UNPROVISIONED_VECTORS } from './ingestion/unprovisioned.ts';
@@ -9,8 +9,7 @@ import { handleRequest } from './api/router.ts';
 import { generateUtteranceExport } from './api/export.ts';
 import { runAcquisition } from './acquisition/run.ts';
 import { productionRegistry } from './acquisition/registry.ts';
-import { analyzeStatement } from './analysis/run.ts';
-import { WorkersAiJudge } from './analysis/judge.ts';
+import { detect } from './detection/run.ts';
 
 const threshold = (env: Env): number => Number(env.SURFACING_THRESHOLD);
 
@@ -28,7 +27,6 @@ export default {
     const outcomes = await runAcquisition({
       corpus,
       raw: env.RAW,
-      queue: env.ANALYSIS,
       registry: productionRegistry(),
       roster: ROSTER,
       // Replaced by the real index and models when #27 provisions them. Until then every
@@ -42,7 +40,7 @@ export default {
     for (const outcome of outcomes) {
       console.log(
         `acquisition ${outcome.module}: fetched ${outcome.fetched}, skipped ${outcome.skipped}, ` +
-          `statements ${outcome.statements}, utterances ${outcome.utterances}, unattributed ${outcome.unattributed}, ` +
+          `utterances ${outcome.utterances}, unattributed ${outcome.unattributed}, ` +
           `failures ${outcome.failures.map((f) => `${f.key}=${f.reason}`).join(' ') || 'none'}`,
       );
       // Which capability the chain could not reach, once per distinct reason rather than
@@ -53,23 +51,23 @@ export default {
         console.log(`acquisition ${outcome.module}: ${count} utterance(s) stopped — ${because}`);
       }
     }
-    console.log(`export: ${await generateUtteranceExport(corpus, env.RAW)} utterances`);
-  },
 
-  async queue(batch: MessageBatch<AnalysisMessage>, env: Env): Promise<void> {
-    const corpus = new Corpus(env.CORPUS);
-    const judge = new WorkersAiJudge(env.AI, env.JUDGE_MODEL);
-    for (const message of batch.messages) {
-      try {
-        const judgments = await analyzeStatement({ corpus, judge, surfacingThreshold: threshold(env) }, message.body.statementId);
-        console.log(`analysis ${message.body.statementId}: ${judgments.length} judgment(s)`);
-        message.ack();
-      } catch (error) {
-        // The statement stays on the queue: a model that failed once is worth asking again,
-        // and dropping it would lose the pair silently.
-        console.error(`analysis ${message.body.statementId} failed: ${String(error)}`);
-        message.retry();
+    // Detection reads what the pass just wrote. Per persona and per subject, because a
+    // series is a claim about one person's position on one thing over time — comparing
+    // across two people would be reporting that two people disagree, which is not an
+    // inconsistency, it is public life.
+    //
+    // At the same model and prompt the placements were made under: a series that mixed two
+    // of them would be measuring the models against each other.
+    const versions = { modelVersion: UNPROVISIONED_STANCE.modelVersion, promptVersion: UNPROVISIONED_STANCE.promptVersion };
+    let found = 0;
+    for (const entry of ROSTER) {
+      for (const subject of (await corpus.utteranceStats(entry.id)).subjects) {
+        found += (await detect({ corpus, versions, surfacingThreshold: threshold(env) }, entry.id, subject.id)).length;
       }
     }
+    console.log(`detection: ${found} finding(s) recorded`);
+
+    console.log(`export: ${await generateUtteranceExport(corpus, env.RAW)} utterances`);
   },
 };

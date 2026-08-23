@@ -1,8 +1,7 @@
+import type { R2Bucket, R2Object } from '../../../src/backend/env.ts';
 // Stand-ins for the platform and for the model. Each one *records* what the product asked
 // it for, because that recording is what a behavior case asserts against — the point is
 // never that the fake worked, it is what our code did with it.
-import type { AnalysisMessage, Ai, Queue, R2Bucket, R2Object } from '../../../src/backend/env.ts';
-import type { Judge, JudgeRequest, Verdict } from '../../../src/backend/analysis/judge.ts';
 import type { Embedder, Neighbour, Placement, StanceModel, Vectors } from '../../../src/backend/ingestion/ports.ts';
 import { tokenize } from '../../../src/shared/text.ts';
 
@@ -31,48 +30,6 @@ export class FakeR2 implements R2Bucket {
 
   async head(key: string): Promise<unknown | null> {
     return this.objects.has(key) ? {} : null;
-  }
-}
-
-export class FakeQueue implements Queue<AnalysisMessage> {
-  sent: AnalysisMessage[] = [];
-
-  async send(message: AnalysisMessage): Promise<void> {
-    this.sent.push(message);
-  }
-}
-
-/** A judge whose answers a case decides, so analysis is tested without a model in it. */
-export class ScriptedJudge implements Judge {
-  readonly modelVersion: string;
-  readonly promptVersion: string;
-  asked: JudgeRequest[] = [];
-  #answer: (request: JudgeRequest) => Verdict;
-
-  constructor(answer: (request: JudgeRequest) => Verdict, versions: { model?: string; prompt?: string } = {}) {
-    this.#answer = answer;
-    this.modelVersion = versions.model ?? 'scripted/v1';
-    this.promptVersion = versions.prompt ?? 'inconsistency/v1';
-  }
-
-  async judge(request: JudgeRequest): Promise<Verdict> {
-    this.asked.push(request);
-    return this.#answer(request);
-  }
-}
-
-/** Workers AI, answering whatever the case put in its mouth. */
-export class FakeAi implements Ai {
-  calls: { model: string; input: unknown }[] = [];
-  #reply: string;
-
-  constructor(reply: string) {
-    this.#reply = reply;
-  }
-
-  async run(model: string, input: unknown): Promise<{ response?: string }> {
-    this.calls.push({ model, input });
-    return { response: this.#reply };
   }
 }
 

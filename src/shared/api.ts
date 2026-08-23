@@ -1,24 +1,12 @@
 // The shapes that cross the HTTP boundary. The site imports these and nothing else from
 // the back end's side of the fence.
-import type { Attestation, Figure, Finding, Judgment, SaidAt, Source, Statement, Utterance } from './types.ts';
+import type { Attestation, Figure, Finding, SaidAt, Source, Utterance } from './types.ts';
 
 export const API_BASE = '/api/v1';
 
 export type ErrorBody = { error: { code: string; message: string } };
 
 export type Page<T> = { items: T[]; nextCursor: string | null };
-
-/**
- * A statement on the wire. `saidAt` is *absent* when the source does not establish a
- * date — the key is omitted rather than sent as null or as a stand-in date, so a
- * consumer cannot mistake "we do not know" for a date we are confident about.
- */
-export type WireStatement = Omit<Statement, 'saidAt'> & { saidAt?: string };
-
-export function toWireStatement(statement: Statement): WireStatement {
-  const { saidAt, ...rest } = statement;
-  return saidAt === null ? rest : { ...rest, saidAt };
-}
 
 export type FigureSummary = Figure & {
   utteranceCount: number;
@@ -32,55 +20,6 @@ export type FigureSummary = Figure & {
   subjects: { id: string; label: string | null }[];
 };
 
-export type TimelineEntry = {
-  statement: WireStatement;
-  source: Source;
-  /** Whether a surfaced judgment names this statement — the site marks these. */
-  flagged: boolean;
-};
-
-export type FigureDetail = {
-  figure: FigureSummary;
-  timeline: TimelineEntry[];
-};
-
-export type StatementDetail = {
-  statement: WireStatement;
-  source: Source;
-  figure: Figure;
-};
-
-export type InconsistencySummary = {
-  judgment: Judgment;
-  figure: Figure;
-  earlier: WireStatement;
-  later: WireStatement;
-};
-
-export type InconsistencyDetail = InconsistencySummary & {
-  earlierSource: Source;
-  laterSource: Source;
-  /** Set when this judgment was replaced: the id that replaced it, and when. */
-  supersededBy: { id: string; createdAt: string } | null;
-};
-
-export type SearchHit = {
-  statement: WireStatement;
-  source: Source;
-  figure: Figure;
-};
-
-export type SearchResults = {
-  query: string;
-  hits: SearchHit[];
-  nextCursor: string | null;
-};
-
-// ---- the utterance surface -------------------------------------------------------------
-//
-// The shapes the API serves now. `statements` is still written and its types are still
-// here, because the reader moved and the writer has not — that is the middle step of the
-// schema discipline in #37, and the pair goes when the contract step lands.
 
 /**
  * An utterance on the wire. `saidAt` is *absent* when no source establishes a date, and

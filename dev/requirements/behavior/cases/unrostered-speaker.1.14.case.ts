@@ -26,7 +26,7 @@ export default {
     const after = (await world.corpus.listFigures()).figures.map((figure) => figure.id).sort();
     assert.deepEqual(after, before, 'a crawl must not add anybody to the roster');
 
-    assert.equal(outcome?.statements, 1, 'only the speaker we track produced a statement');
+    assert.equal(outcome?.utterances, 1, 'only the speaker we track produced an utterance');
     assert.equal(outcome?.unattributed, 3, 'and the other three are held, not dropped');
 
     // None of them resolves as a figure, by name or by slug.
@@ -38,8 +38,9 @@ export default {
       );
     }
 
-    // And nothing was handed to analysis on their behalf: the one queued message is the
-    // tracked speaker's, so no unrostered person can reach an inconsistency flag.
-    assert.equal(world.queue.sent.length, 1);
+    // And nothing was written on their behalf: the one utterance in the corpus is the
+    // tracked speaker's, so no unrostered person can reach a finding.
+    const tracked = (await world.corpus.resolveSpeaker(world.options.roster, 'דמות לדוגמה'))!;
+    assert.equal((await world.corpus.utterancesFor(tracked.id)).length, 1);
   },
 } satisfies Case<void>;

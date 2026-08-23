@@ -67,18 +67,6 @@ export type SeededCorpus = {
   subjects: { lightRail: string; budget: string; housing: string };
   findings: { budgetChange: string; supersededChange: string; rallyAnomaly: string; housingChange: string };
   stanceVersions: { modelVersion: string; promptVersion: string };
-  statements: {
-    lightRailPledge: string;
-    lightRailDenial: string;
-    lightRailFollowUp: string;
-    undatedCommittee: string;
-    housingBudget: string;
-    housingPermits: string;
-    knessetBudgetDelay: string;
-    budgetCommitment: string;
-    budgetDenial: string;
-  };
-  judgments: { lightRailOld: string; lightRail: string; housing: string; budget: string; consistent: string };
 };
 
 /**
@@ -191,91 +179,6 @@ export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
   });
 
   const threshold = 0.7;
-
-  const [pledge] = await corpus.saveStatements(protocol.id, [{
-    ordinal: 0, figureId: ilana.id, language: 'he', saidAt: '2024-03-12',
-    quote: 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.',
-    context: 'דיון במליאה על הצעת התקציב לשנת 2024.',
-    topics: ['רכבת קלה', 'תקציב'],
-  }]);
-  const [undatedCommittee] = await corpus.saveStatements(undated.id, [{
-    // The archive page carries no date at all, so the corpus stores none.
-    ordinal: 0, figureId: ilana.id, language: 'he', saidAt: null,
-    quote: 'דיברנו כאן על תחבורה ציבורית לא פעם, ואין על כך מחלוקת.',
-    context: 'עמוד ארכיון ללא תאריך מתועד.',
-    topics: ['תחבורה'],
-  }]);
-  const [denial, followUp] = await corpus.saveStatements(presser.id, [
-    {
-      ordinal: 0, figureId: ilana.id, language: 'he', saidAt: '2026-06-03',
-      quote: 'הקו הזה מעולם לא היה בראש סדר העדיפויות שלי — המספרים פשוט לא עובדים.',
-      context: 'מסיבת עיתונאים לאחר ישיבת הוועדה.',
-      topics: ['רכבת קלה'],
-    },
-    {
-      ordinal: 1, figureId: ilana.id, language: 'he', saidAt: '2026-06-03',
-      quote: 'נמשיך לעקוב אחרי לוחות הזמנים של הפרויקט.',
-      context: 'מסיבת עיתונאים לאחר ישיבת הוועדה.',
-      topics: ['רכבת קלה'],
-    },
-  ]);
-  const [housingBudget] = await corpus.saveStatements(column2025.id, [{
-    ordinal: 0, figureId: ilana.id, language: 'he', saidAt: '2025-01-20',
-    quote: 'מצוקת הדיור היא בעיה תקציבית. בלי תקציב ייעודי לא נפתור אותה.',
-    context: 'טור אורח.', topics: ['דיור', 'תקציב'],
-  }]);
-  const [housingPermits] = await corpus.saveStatements(column2026.id, [{
-    ordinal: 0, figureId: ilana.id, language: 'he', saidAt: '2026-02-11',
-    quote: 'מצוקת הדיור היא בעיית היתרי בנייה. שיניתי את דעתי מאז 2025.',
-    context: 'טור אורח.', topics: ['דיור'],
-  }]);
-  const [knessetBudgetDelay] = await corpus.saveStatements(newsroom.id, [{
-    ordinal: 0, figureId: neta.id, language: 'he', saidAt: '2026-05-01',
-    quote: 'הדיון בכנסת על התקציב נדחה שוב, וזה כבר לא מקרי.',
-    context: 'טור שבועי.', topics: ['תקציב', 'כנסת'],
-  }]);
-  const [budgetCommitment] = await corpus.saveStatements(englishBrief.id, [{
-    ordinal: 0, figureId: doron.id, language: 'en', saidAt: '2025-11-05',
-    quote: 'We committed to a dedicated budget line for the programme, and that commitment stands.',
-    context: 'Opinion column.', topics: ['budget'],
-  }]);
-  const [budgetDenial] = await corpus.saveStatements(englishFollowUp.id, [{
-    ordinal: 0, figureId: doron.id, language: 'en', saidAt: '2026-04-02',
-    quote: 'Nobody ever promised a dedicated budget line. That is a misreading of the record.',
-    context: 'Opinion column.', topics: ['budget'],
-  }]);
-
-  const consistent = await corpus.recordJudgment({
-    figureId: ilana.id, earlierStatementId: pledge.id, laterStatementId: followUp.id,
-    kind: 'consistent', score: 0.21,
-    rationale: 'שתי האמירות יכולות להתקיים יחד: התחייבות תקציבית ומעקב אחרי לוחות זמנים.',
-    modelVersion: 'sample/judge-1', promptVersion: 'inconsistency/v1',
-  }, threshold);
-  const budget = await corpus.recordJudgment({
-    figureId: doron.id, earlierStatementId: budgetCommitment.id, laterStatementId: budgetDenial.id,
-    kind: 'contradiction', score: 0.88,
-    rationale: 'The earlier column states a commitment to a dedicated budget line; the later one denies any such promise was made.',
-    modelVersion: 'sample/judge-1', promptVersion: 'inconsistency/v1',
-  }, threshold);
-  const housing = await corpus.recordJudgment({
-    figureId: ilana.id, earlierStatementId: housingBudget.id, laterStatementId: housingPermits.id,
-    kind: 'position-shift', score: 0.83,
-    rationale: 'המסגור עבר מבעיה תקציבית לבעיית היתרי בנייה, והדוברת אומרת זאת במפורש.',
-    modelVersion: 'sample/judge-1', promptVersion: 'inconsistency/v1',
-  }, threshold);
-  // Judged once by an older model, then re-judged: the first record stays, superseded.
-  const lightRailOld = await corpus.recordJudgment({
-    figureId: ilana.id, earlierStatementId: pledge.id, laterStatementId: denial.id,
-    kind: 'contradiction', score: 0.71,
-    rationale: 'שתי האמירות אינן מתיישבות זו עם זו.',
-    modelVersion: 'sample/judge-0', promptVersion: 'inconsistency/v1',
-  }, threshold);
-  const lightRail = await corpus.recordJudgment({
-    figureId: ilana.id, earlierStatementId: pledge.id, laterStatementId: denial.id,
-    kind: 'contradiction', score: 0.94,
-    rationale: 'ב־2024 נאמרה התחייבות תקציבית בלתי מסויגת, וב־2026 נאמר שהעמדה הזו מעולם לא הייתה קיימת.',
-    modelVersion: 'sample/judge-1', promptVersion: 'inconsistency/v1',
-  }, threshold);
 
   // ---- the utterance surface ----------------------------------------------------------
   //
@@ -427,55 +330,17 @@ export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
       rallyAnomaly: rallyAnomaly.id, housingChange: housingChange.id,
     },
     stanceVersions,
-    statements: {
-      lightRailPledge: pledge.id, lightRailDenial: denial.id, lightRailFollowUp: followUp.id,
-      undatedCommittee: undatedCommittee.id, housingBudget: housingBudget.id,
-      housingPermits: housingPermits.id, knessetBudgetDelay: knessetBudgetDelay.id,
-      budgetCommitment: budgetCommitment.id, budgetDenial: budgetDenial.id,
-    },
-    judgments: {
-      lightRailOld: lightRailOld.id, lightRail: lightRail.id, housing: housing.id,
-      budget: budget.id, consistent: consistent.id,
-    },
   };
 }
 
 /**
- * One statement in an otherwise empty corpus, for a case that cares about a single
- * quote — a search fold, a null date — and not about the whole sample world.
+ * An utterance by the stand-in persona, for a case about text rather than about people.
+ * Returns the utterance so a search case can assert on its id.
  */
-export async function withStatement(
-  corpus: Corpus,
-  quote: string,
-  extras: { saidAt?: string | null; language?: 'he' | 'en'; topics?: string[]; speaker?: string; ordinal?: number } = {},
-) {
-  const figure = await withFigure(corpus, extras.speaker ?? 'דמות לדוגמה');
-  const source = await corpus.recordSource({
-    url: `https://example.org/sample/${encodeURIComponent(quote.slice(0, 12))}`,
-    publisher: PUBLISHERS.protocols, kind: 'transcript', fetchedAt: REFERENCE_NOW,
-    rawKey: 'sample/one-statement.raw', extraction: 'extracted',
-    sourceModule: 'sample-protocols', externalKey: quote.slice(0, 24),
-  });
-  const [statement] = await corpus.saveStatements(source.id, [{
-    ordinal: extras.ordinal ?? 0,
-    figureId: figure.id,
-    quote,
-    language: extras.language ?? 'he',
-    saidAt: extras.saidAt === undefined ? '2026-01-01' : extras.saidAt,
-    context: null,
-    topics: extras.topics ?? [],
-  }]);
-  return { figure, source, statement };
+export async function withSearchable(corpus: Corpus, text: string, key = text.slice(0, 12)) {
+  const figure = await withFigure(corpus, 'דמות לדוגמה');
+  return withUtterance(corpus, figure.id, text, { key });
 }
-
-/** Two statements by one figure on one topic — the shape analysis is built to compare. */
-export async function withPair(corpus: Corpus, earlierQuote: string, laterQuote: string, topic = 'תקציב') {
-  const speaker = 'דמות לדוגמה';
-  const earlier = await withStatement(corpus, earlierQuote, { speaker, topics: [topic], saidAt: '2025-01-10' });
-  const later = await withStatement(corpus, laterQuote, { speaker, topics: [topic], saidAt: '2026-01-10' });
-  return { figure: earlier.figure, earlier: earlier.statement, later: later.statement };
-}
-
 
 /** A source row to hang attestations off, for cases that care about who reported what. */
 export async function withSource(corpus: Corpus, publisher: string, key: string) {
