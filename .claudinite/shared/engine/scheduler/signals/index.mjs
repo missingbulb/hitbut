@@ -9,6 +9,7 @@
 // collector cannot fetch for itself (manifest version, local-pack presence,
 // retention) are read off the checkout by signals/context.mjs — see signals/local.mjs.
 
+import { SHARED_SUBDIR } from '../../pack_loader/pack-registry.mjs';
 import { LOCAL_PACK_ROOTS } from './local.mjs';
 import { QUEUED_LABEL, ORIGIN_AD_HOC, REQUEST_LABEL } from '../queue/work-item.mjs';
 import { APPROVAL_RE } from '../built-in-tasks.mjs';
@@ -62,9 +63,9 @@ function logStampMs(name) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-async function paged(gh, path) {
+async function paged(gh, path, maxPages = Infinity) {
   const out = [];
-  for (let page = 1; ; page += 1) {
+  for (let page = 1; page <= maxPages; page += 1) {
     const sep = path.includes('?') ? '&' : '?';
     const { status, json } = await gh(`${path}${sep}per_page=100&page=${page}`);
     if (status !== 200 || !Array.isArray(json) || json.length === 0) break;
@@ -104,6 +105,9 @@ async function pagedWindow(gh, path, inWindow) {
 // `commits`-gated precondition ever reaches this listing on its account. The housekeeping regex already covers
 // the growth tasks' own `Claudinite growth: …` PRs and the scheduler's
 // `[claudinite-task]` titles, so the self-trigger guards survive the widening.
+// How far the per-open-PR file read pages before it stops (100 files a page).
+const PR_FILE_PAGES = 3;
+
 const isMinablePr = (p) => {
   if ((p.user?.login ?? '').endsWith('[bot]')) return false;
   return !HOUSEKEEPING.test((p.title ?? '').trim());
@@ -154,15 +158,31 @@ const COLLECTORS = {
       .filter((p) => p.merged_at && new Date(p.merged_at) >= since && isMinablePr(p))
       .map((p) => ({ number: p.number, title: p.title, mergedAt: p.merged_at }));
 
-    return {
-      // `labels` rides along so a precondition can rule on an open PR's family
-      // (e.g. wiki-growth declining while its own labeled PR sits unreviewed) —
-      // the run/no-run decision belongs in the precondition, and it can only
-      // live there if the signal carries the fact it turns on.
-      open: open.map((p) => ({
+    // Each open PR's changed paths — the pending work itself, so a precondition
+    // can rule on WHAT is waiting for review rather than on a marker somebody has
+    // to remember to apply (wiki-growth declines while a `product-wiki/` change is
+    // pending). One read per open PR: the open set is a handful, and no PR listing
+    // carries files.
+    //
+    // `null` is UNKNOWN, and it is a third state, not an empty list: every PR
+    // changes at least one file, so an empty read is a read that failed, and a
+    // precondition gating on a path must decline on "I could not look" rather than
+    // read it as "nothing pending".
+    const withPaths = [];
+    for (const p of open) {
+      // Capped at PR_FILE_PAGES: past it a PR is a mass refactor, whose paths no
+      // consumer of this signal rules on, and paying 30 reads for one would be the
+      // window's whole budget.
+      const files = await paged(gh, `/repos/${ctx.repo}/pulls/${p.number}/files`, PR_FILE_PAGES);
+      const changedPaths = files.map((f) => f.filename).filter(Boolean);
+      withPaths.push({
         number: p.number, title: p.title, updatedAt: p.updated_at,
-        labels: (p.labels ?? []).map((l) => (typeof l === 'string' ? l : l?.name)).filter(Boolean),
-      })),
+        changedPaths: changedPaths.length ? changedPaths : null,
+      });
+    }
+
+    return {
+      open: withPaths,
       touched: open.filter((p) => new Date(p.updated_at) >= since).map((p) => p.number),
       merged,
     };
@@ -177,7 +197,7 @@ const COLLECTORS = {
     // `issues.touched` and wake tidy-issues on the queue's own churn (F8).
     const real = open.filter((i) => !i.pull_request
       && !/^\[claudinite-(task|work|schedule)\]/.test(i.title ?? '')
-      && !/^(claudinite tracker:|auto-improvements tracker\b|repo tidy tracker$)/i.test((i.title ?? '').trim()));
+      && !/^(claudinite tracker:|\[claudinite\] ci performance$|auto-improvements tracker\b|repo tidy tracker$)/i.test((i.title ?? '').trim()));
     return {
       open: real.map((i) => ({ number: i.number, title: i.title, updatedAt: i.updated_at, labels: (i.labels ?? []).map((l) => l.name ?? l) })),
       touched: real.filter((i) => new Date(i.updated_at) >= since).map((i) => i.number),
@@ -288,16 +308,26 @@ const COLLECTORS = {
     };
   },
 
-  // The vendored-mount provenance stamp and its age; the canon head sha when the
-  // Action was given one (the update task's precondition falls back to stamp age).
+  // WHAT THE MOUNT HOLDS, and whether it moved in this window: the installed engine
+  // version, the installed pack versions, and whether any `.claudinite/shared/**`
+  // file was touched by a commit in the window.
+  //
+  // `convergedInWindow` is what replaced the stamp's age (#1252). The age came off a
+  // datetime that recorded the last FULL re-vendor rather than the last converge, so
+  // it read months stale on a member converging nightly — and newness taken from the
+  // objects' OWN movement in the window is where every other precondition here gets
+  // it. `present` is the mount's existence, which the versions answer directly: an
+  // engine that stamps always stamps.
   async stamp(gh, ctx) {
-    const stamp = ctx.config?.claudinite ?? null;
-    let ageDays = null;
-    if (stamp?.updated) {
-      const ms = new Date(ctx.now).getTime() - new Date(stamp.updated).getTime();
-      if (Number.isFinite(ms)) ageDays = ms / 86400000;
-    }
-    return { updated: stamp?.updated ?? null, ref: stamp?.ref ?? null, ageDays, canonHead: ctx.canonHead ?? null };
+    const commits = ctx.commits ?? await windowCommits(gh, ctx.repo, ctx.defaultBranch, ctx.sinceIso);
+    const convergedInWindow = commits.some((c) => c.files.some((f) => f.startsWith(`${SHARED_SUBDIR}/`)));
+    return {
+      present: (ctx.config?.engineVersion ?? null) !== null || Object.keys(ctx.config?.packVersions ?? {}).length > 0,
+      engineVersion: ctx.config?.engineVersion ?? null,
+      packVersions: ctx.config?.packVersions ?? {},
+      convergedInWindow,
+      canonHead: ctx.canonHead ?? null,
+    };
   },
 
   // Fleet aggregate — canon-only, over the fleet PAT (DESIGN §3.3). A consumer
@@ -389,7 +419,7 @@ export const SIGNAL_COLLECTORS = Object.keys(COLLECTORS);
 export async function collectSignals(gh, ctx, names) {
   const out = {};
   // Commit-derived collectors share one window read.
-  if (names.some((n) => ['commits', 'localPacks', 'sharedMount'].includes(n)) && !ctx.commits) {
+  if (names.some((n) => ['commits', 'localPacks', 'sharedMount', 'stamp'].includes(n)) && !ctx.commits) {
     try { ctx = { ...ctx, commits: await windowCommits(gh, ctx.repo, ctx.defaultBranch, ctx.sinceIso) }; } catch { /* collectors re-read on demand */ }
   }
   for (const name of names) {
