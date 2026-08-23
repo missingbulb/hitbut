@@ -24,6 +24,9 @@ npm run dev:api       # wrangler, locally
 npm run dev:site      # vite, locally
 ```
 
-Nothing runs against a Cloudflare account yet: provisioning it is
-[#27](https://github.com/missingbulb/hitbut/issues/27), and what green here does *not*
-prove is [#28](https://github.com/missingbulb/hitbut/issues/28).
+Nothing runs against a Cloudflare account yet. Getting one is
+[#27](https://github.com/missingbulb/hitbut/issues/27): paste two repository secrets, run
+the *provision* workflow — it creates every resource the account needs and stops rather
+than guess at anything it cannot confirm — and the *preflight* workflow says what, if
+anything, is still missing. What green here does *not* prove is
+[#28](https://github.com/missingbulb/hitbut/issues/28).

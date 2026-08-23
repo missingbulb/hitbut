@@ -17,7 +17,7 @@ enabled = true
 [[d1_databases]]
 binding = "CORPUS"
 database_name = "hitbut-corpus"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "2a7f04e1-91c3-4457-869d-3eaa8fd2a598"
 migrations_dir = "src/backend/corpus/migrations"
 
 [[r2_buckets]]
