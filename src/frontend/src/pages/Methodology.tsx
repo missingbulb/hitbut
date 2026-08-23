@@ -15,7 +15,10 @@ export function Methodology(): JSX.Element {
   const roster = useResource<Page<FigureSummary>>('/figures');
 
   return (
-    <Shell>
+    // Not ready until the roster has landed. `data-ready` is this page's own statement that
+    // it has finished rendering — the capture harness waits on it, and a page that says it
+    // while a fetch is still in flight is a page that gets screenshotted half-drawn.
+    <Shell ready={roster.state !== 'loading'}>
       <article class="prose" style="padding-block-start: 40px">
         <h1 class="page-title">איך זה עובד</h1>
 

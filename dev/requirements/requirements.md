@@ -188,7 +188,7 @@ are unrelated words to them. Hebrew glues its prepositions, articles and conjunc
 the front of the word, so an unaided index answers "no results" for most of the ways a
 person actually types. hitbut folds the text itself, on both sides of the query.
 
-- `2.1` A search for a Hebrew word matches statements where that word carries an attached prefix.
+- `2.1` A search for a Hebrew word matches utterances where that word carries an attached prefix.
   <details><summary>Detail</summary>
 
   Querying `כנסת` matches text containing `בכנסת`, `לכנסת`, `שבכנסת`. The indexer emits both
@@ -212,7 +212,7 @@ person actually types. hitbut folds the text itself, on both sides of the query.
   unvocalised one from a press release.
   </details>
 
-- `2.4` A Latin-script query matches Latin statement text and is not touched by the Hebrew folding.
+- `2.4` A Latin-script query matches Latin utterance text and is not touched by the Hebrew folding.
   <details><summary>Detail</summary>
 
   Not every statement in scope is Hebrew. `budget` must not be stemmed by rules meant for
@@ -390,10 +390,10 @@ Public, read-only JSON under `/api/v1`. The only writers are the cron trigger an
 consumer; everything a reader sees comes through here, including the site's own pages.
 
 - `5.1` `GET /api/v1/figures` lists figures with a cursor, and that cursor returns the next page without repeats.
-- `5.2` `GET /api/v1/figures/{id}` returns the profile with its statement timeline, newest first.
-- `5.3` `GET /api/v1/statements/{id}` returns the quote, its context, and the source it came from.
-- `5.4` `GET /api/v1/inconsistencies` returns surfaced records only, newest first.
-- `5.5` `GET /api/v1/inconsistencies/{id}` resolves a superseded record and names what superseded it.
+- `5.2` `GET /api/v1/figures/{id}` returns the profile with its utterance timeline, newest first.
+- `5.3` `GET /api/v1/utterances/{id}` returns what was said, where and to whom, and every document that reported it.
+- `5.4` `GET /api/v1/findings` returns live surfaced findings only, newest first.
+- `5.5` `GET /api/v1/findings/{id}` resolves a superseded finding and names what superseded it.
   <details><summary>Detail</summary>
 
   The other half of `1.5`: the invariant is only worth anything if the boundary honours it.
@@ -423,7 +423,7 @@ consumer; everything a reader sees comes through here, including the site's own 
   which is the single most defamatory thing an empty page could imply here.
   </details>
 
-- `5.11` `GET /api/v1/export/statements.ndjson` serves the whole corpus as one JSON object per line.
+- `5.11` `GET /api/v1/export/utterances.ndjson` serves the whole corpus as one JSON object per utterance, with every document that reported it.
   <details><summary>Detail</summary>
 
   What a researcher reads instead of paginating the corpus: statement, speaker and source
@@ -455,31 +455,31 @@ the design canvas.
 
 <!-- /gallery:6.1 -->
 
-- `6.2` A figure page shows the profile, the counts, the topics, and the statement timeline with flagged statements marked.
+- `6.2` A figure page shows the profile, the counts, the named subjects, and the utterance timeline with flagged utterances marked.
 <!-- gallery:6.2 -->
 
-![6.2 — A figure page shows the profile, the counts, the topics, and the statement timeline with flagged statements marked.](screen/cases/figure.6.2.png)
+![6.2 — A figure page shows the profile, the counts, the named subjects, and the utterance timeline with flagged utterances marked.](screen/cases/figure.6.2.png)
 
 <!-- /gallery:6.2 -->
 
-- `6.3` A statement page shows the quote, its date, its context, and a link to the source it was taken from.
+- `6.3` An utterance page shows what was said, when — to the precision the source established — where, and every document that reported it.
 <!-- gallery:6.3 -->
 
-![6.3 — A statement page shows the quote, its date, its context, and a link to the source it was taken from.](screen/cases/statement.6.3.png)
+![6.3 — An utterance page shows what was said, when — to the precision the source established — where, and every document that reported it.](screen/cases/utterance.6.3.png)
 
 <!-- /gallery:6.3 -->
 
-- `6.4` An inconsistency page shows the two statements side by side, separated by the «אבל» mark, with the rationale and both sources.
+- `6.4` A trend-change page shows the two utterances either side of it, separated by the «אבל» mark, with the interval and the rationale.
 <!-- gallery:6.4 -->
 
-![6.4 — An inconsistency page shows the two statements side by side, separated by the «אבל» mark, with the rationale and both sources.](screen/cases/inconsistency.6.4.png)
+![6.4 — A trend-change page shows the two utterances either side of it, separated by the «אבל» mark, with the interval and the rationale.](screen/cases/trend-change.6.4.png)
 
 <!-- /gallery:6.4 -->
 
-- `6.5` A search results page shows what matched, with the query's term highlighted in each result.
+- `6.5` A search results page shows one result per utterance, with the query's term highlighted and the number of documents behind it.
 <!-- gallery:6.5 -->
 
-![6.5 — A search results page shows what matched, with the query's term highlighted in each result.](screen/cases/search.6.5.png)
+![6.5 — A search results page shows one result per utterance, with the query's term highlighted and the number of documents behind it.](screen/cases/search.6.5.png)
 
 <!-- /gallery:6.5 -->
 
@@ -497,14 +497,14 @@ the design canvas.
 
 <!-- /gallery:6.6 -->
 
-- `6.7` At phone width the inconsistency page stacks the two statements vertically with the mark between them.
+- `6.7` At phone width the trend-change page stacks the two utterances vertically with the mark between them.
 <!-- gallery:6.7 -->
 
-![6.7 — At phone width the inconsistency page stacks the two statements vertically with the mark between them.](screen/cases/mobile-inconsistency.6.7.png)
+![6.7 — At phone width the trend-change page stacks the two utterances vertically with the mark between them.](screen/cases/mobile-trend-change.6.7.png)
 
 <!-- /gallery:6.7 -->
 
-- `6.8` An English statement renders the whole page LTR, with the mark reading "but".
+- `6.8` An English finding renders the whole page LTR, with the mark reading "but".
   <details><summary>Detail</summary>
 
   Direction follows the content's language, not a site-wide setting: an English pair is a
@@ -513,7 +513,7 @@ the design canvas.
   </details>
 <!-- gallery:6.8 -->
 
-![6.8 — An English statement renders the whole page LTR, with the mark reading "but".](screen/cases/english-ltr.6.8.png)
+![6.8 — An English finding renders the whole page LTR, with the mark reading "but".](screen/cases/english-ltr.6.8.png)
 
 <!-- /gallery:6.8 -->
 
@@ -547,6 +547,21 @@ the design canvas.
 ![6.10 — The methodology page publishes the test each tracked person meets.](screen/cases/roster-rule.6.10.png)
 
 <!-- /gallery:6.10 -->
+
+- `6.11` An anomaly page shows the one utterance that sits apart, and gives the room it was said in the weight the finding rests on.
+  <details><summary>Detail</summary>
+
+  A trend change has two sides and the «אבל» mark between them. An anomaly has one, so the
+  page cannot borrow that shape — and what it puts in its place is the venue and the
+  audience, in the page's own type rather than in the metadata run, because "they said this
+  at a rally" *is* the finding. A page that buried it would be showing a quote and calling
+  it an inconsistency.
+  </details>
+<!-- gallery:6.11 -->
+
+![6.11 — An anomaly page shows the one utterance that sits apart, and gives the room it was said in the weight the finding rests on.](screen/cases/anomaly.6.11.png)
+
+<!-- /gallery:6.11 -->
 
 ## 7. Shipping
 

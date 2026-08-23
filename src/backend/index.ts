@@ -6,7 +6,7 @@ import { Corpus } from './corpus/store.ts';
 import { ROSTER } from './corpus/roster-data.ts';
 import { UNPROVISIONED_EMBEDDER, UNPROVISIONED_STANCE, UNPROVISIONED_VECTORS } from './ingestion/unprovisioned.ts';
 import { handleRequest } from './api/router.ts';
-import { generateStatementExport } from './api/export.ts';
+import { generateUtteranceExport } from './api/export.ts';
 import { runAcquisition } from './acquisition/run.ts';
 import { productionRegistry } from './acquisition/registry.ts';
 import { analyzeStatement } from './analysis/run.ts';
@@ -53,7 +53,7 @@ export default {
         console.log(`acquisition ${outcome.module}: ${count} utterance(s) stopped — ${because}`);
       }
     }
-    console.log(`export: ${await generateStatementExport(corpus, env.RAW)} statements`);
+    console.log(`export: ${await generateUtteranceExport(corpus, env.RAW)} utterances`);
   },
 
   async queue(batch: MessageBatch<AnalysisMessage>, env: Env): Promise<void> {

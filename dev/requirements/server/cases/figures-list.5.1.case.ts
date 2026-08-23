@@ -13,9 +13,13 @@ export default {
     const summary = all.items.find((figure) => figure.id === api.seeded.figures.ilana);
     assert.ok(summary, 'the seeded figure is listed');
     assert.equal(summary.displayName, 'אילנה מורג־עציון');
-    assert.equal(summary.statementCount, 6);
-    assert.equal(summary.flaggedCount, 2, 'the light-rail contradiction and the housing shift');
-    assert.ok(summary.topics.includes('רכבת קלה'));
+    assert.equal(summary.utteranceCount, 6);
+    assert.equal(summary.flaggedCount, 3, 'the anomaly rests on one, the housing change on two');
+    assert.deepEqual(
+      summary.subjects.map((subject) => subject.label).sort(),
+      ['הרכבת הקלה', 'מצוקת הדיור'],
+      'the subjects this persona has spoken on, named where the corpus has named them',
+    );
 
     const first = await api.json<Page<FigureSummary>>('/api/v1/figures?limit=2');
     assert.equal(first.items.length, 2);

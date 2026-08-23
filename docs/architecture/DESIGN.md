@@ -229,7 +229,14 @@ calls against a corpus meant to hold decades, it needs a topic vocabulary to
 keep the pair count survivable, and a trend is invisible to it — no two
 statements are where a trend lives. The pairwise page survives as a *view*: the
 two most representative utterances either side of a change point are what the
-inconsistency page shows.
+inconsistency page shows — now the trend-change page, with the anomaly page
+beside it as the shape a single deviating utterance needs.
+
+**What the reader reads has moved; what the writer writes has not.** The API and
+the six pages are on utterances and findings. `statements` and `judgments` are
+still written, still correct, and read by nothing — the middle step of the
+schema discipline above. Dropping them, their leaves, and the queue consumer
+that fills them is the contract step, and its own deploy.
 
 Only findings above a surfacing threshold reach the product; the full
 distribution is kept for tuning. The model call sits behind one interface, so

@@ -2,8 +2,8 @@
 // which reads "hitbut" — carved out of התבטאויות in the one accent colour.
 import type { ComponentChildren, JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
-import type { Figure as FigureType, Judgment, Language, Source, Statement } from '../../shared/types.ts';
-import type { WireStatement } from '../../shared/api.ts';
+import type { Figure as FigureType, Finding, Language, Source } from '../../shared/types.ts';
+import type { WireAttestation, WireUtterance } from '../../shared/api.ts';
 import { highlightTerms, isHighlighted } from '../../shared/text.ts';
 import { stringsFor, type Strings } from './strings.ts';
 import { Link, navigate } from './router.tsx';
@@ -80,10 +80,10 @@ export function SearchBox({ strings, initial = '' }: { strings: Strings; initial
   );
 }
 
-export function KindBadge({ judgment, strings }: { judgment: Judgment; strings: Strings }): JSX.Element {
+export function KindBadge({ finding, strings }: { finding: Finding; strings: Strings }): JSX.Element {
   return (
-    <span class={`badge${judgment.kind === 'position-shift' ? ' badge--shift' : ''}`}>
-      {strings.kind[judgment.kind]}
+    <span class={`badge${finding.kind === 'trend-change' ? ' badge--shift' : ''}`}>
+      {strings.kind[finding.kind]}
     </span>
   );
 }
@@ -120,29 +120,37 @@ export function ExternalArrow(): JSX.Element {
 /** Direction follows the text, so a Latin date or quote inside a Hebrew page stays readable. */
 export const dirOf = (language: Language): 'rtl' | 'ltr' => (language === 'he' ? 'rtl' : 'ltr');
 
-export function WhenSaid({ statement, strings }: { statement: WireStatement; strings: Strings }): JSX.Element {
+/**
+ * The date, rendered to the precision the source established and no finer. A month shown as
+ * a day invents a fact — and it is exactly the kind of invention nobody notices, because a
+ * specific date always looks more authoritative than a vague one.
+ */
+export function WhenSaid({ utterance, strings }: { utterance: WireUtterance; strings: Strings }): JSX.Element {
   // Unknown is shown as unknown. A stand-in date would order a timeline wrongly and look
   // entirely plausible doing it.
-  if (!statement.saidAt) return <span class="meta">{strings.unknownDate}</span>;
-  const formatted = new Intl.DateTimeFormat(statement.language === 'he' ? 'he-IL' : 'en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+  if (!utterance.saidAt) return <span class="meta">{strings.unknownDate}</span>;
+  const { value, precision } = utterance.saidAt;
+  const parts: Intl.DateTimeFormatOptions =
+    precision === 'year' ? { year: 'numeric' }
+    : precision === 'month' ? { month: 'long', year: 'numeric' }
+    : { day: 'numeric', month: 'long', year: 'numeric' };
+  const formatted = new Intl.DateTimeFormat(utterance.language === 'he' ? 'he-IL' : 'en-GB', {
+    ...parts,
     timeZone: 'UTC',
-  }).format(new Date(statement.saidAt));
+  }).format(new Date(`${value}T00:00:00Z`.slice(0, 20)));
   // Isolated: an English date inside a Hebrew page otherwise has its parts reordered.
   return (
-    <span dir={dirOf(statement.language)} style="unicode-bidi: isolate">
+    <span dir={dirOf(utterance.language)} style="unicode-bidi: isolate">
       {formatted}
     </span>
   );
 }
 
 /** A quote, in its own direction — the page it sits on may be in the other one. */
-export function Quote(props: { statement: WireStatement | Statement; class?: string; children?: ComponentChildren }): JSX.Element {
+export function Quote(props: { utterance: WireUtterance; class?: string; children?: ComponentChildren }): JSX.Element {
   return (
-    <p class={props.class ?? 'quote'} dir={dirOf(props.statement.language)} style="unicode-bidi: isolate">
-      “{props.children ?? props.statement.quote}”
+    <p class={props.class ?? 'quote'} dir={dirOf(props.utterance.language)} style="unicode-bidi: isolate">
+      “{props.children ?? props.utterance.text}”
     </p>
   );
 }
@@ -219,24 +227,30 @@ export function ButMark({ strings }: { strings: Strings }): JSX.Element {
   return <div class="mark">{strings.but}</div>;
 }
 
-export function StatementSide(props: {
-  statement: WireStatement | Statement;
-  source: Source;
+/**
+ * One side of the pair a trend change shows. Several documents may have reported the same
+ * utterance, and all of them are listed: the claim is checkable only if a reader can get to
+ * every document it rests on, not just the first one we happened to fetch.
+ */
+export function UtteranceSide(props: {
+  utterance: WireUtterance;
+  attestations: WireAttestation[];
   label: string;
   now?: boolean;
   strings: Strings;
 }): JSX.Element {
-  const wire = props.statement as WireStatement;
   return (
     <div class={`pair__side${props.now ? ' pair__side--now' : ''}`}>
       <div class="pair__when">
         <span class="pair__label">{props.label}</span>
         <span class="pair__date">
-          <WhenSaid statement={wire} strings={props.strings} />
+          <WhenSaid utterance={props.utterance} strings={props.strings} />
         </span>
       </div>
-      <Quote statement={props.statement} />
-      <SourceLine source={props.source} strings={props.strings} />
+      <Quote utterance={props.utterance} />
+      {props.attestations.map(({ attestation, source }) => (
+        <SourceLine source={source} strings={props.strings} key={attestation.id} />
+      ))}
     </div>
   );
 }

@@ -4,17 +4,20 @@
 // it by routing failure.
 import type { Env } from '../env.ts';
 import { Corpus } from '../corpus/store.ts';
-import { toWireStatement } from '../../shared/api.ts';
+import { toWireUtterance } from '../../shared/api.ts';
 import type {
   ErrorBody,
-  FigureDetail,
+  FigureRecord,
   FigureSummary,
-  InconsistencyDetail,
-  InconsistencySummary,
+  FindingDetail,
+  FindingSummary,
+  FindingUtterance,
   Page,
-  SearchResults,
-  StatementDetail,
-  TimelineEntry,
+  UtteranceDetail,
+  UtteranceHit,
+  UtteranceSearchResults,
+  UtteranceTimelineEntry,
+  WireAttestation,
 } from '../../shared/api.ts';
 import { API_BASE } from '../../shared/api.ts';
 import { EXPORT_KEY } from './export.ts';
@@ -63,11 +66,11 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
   if (segments[0] === 'figures' && segments.length === 1) return listFigures(corpus, url);
   if (segments[0] === 'figures' && segments.length === 2) return figureDetail(corpus, segments[1]);
-  if (segments[0] === 'statements' && segments.length === 2) return statementDetail(corpus, segments[1]);
-  if (segments[0] === 'inconsistencies' && segments.length === 1) return listInconsistencies(corpus, url);
-  if (segments[0] === 'inconsistencies' && segments.length === 2) return inconsistencyDetail(corpus, segments[1]);
+  if (segments[0] === 'utterances' && segments.length === 2) return utteranceDetail(corpus, segments[1]);
+  if (segments[0] === 'findings' && segments.length === 1) return listFindings(corpus, url);
+  if (segments[0] === 'findings' && segments.length === 2) return findingDetail(corpus, segments[1]);
   if (segments[0] === 'search' && segments.length === 1) return search(corpus, url);
-  if (path === '/export/statements.ndjson') return exportStatements(env);
+  if (path === '/export/utterances.ndjson') return exportUtterances(env);
 
   return fail(404, 'not_found', `no route for ${url.pathname}`);
 }
@@ -75,7 +78,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 async function summarise(corpus: Corpus, id: string): Promise<FigureSummary | null> {
   const figure = await corpus.getFigure(id);
   if (!figure) return null;
-  const stats = await corpus.figureStats(id);
+  const stats = await corpus.utteranceStats(id);
   return { ...figure, ...stats };
 }
 
@@ -83,7 +86,7 @@ async function listFigures(corpus: Corpus, url: URL): Promise<Response> {
   const { figures, nextCursor } = await corpus.listFigures({ cursor: cursorOf(url), limit: pageLimit(url) });
   const items: FigureSummary[] = [];
   for (const figure of figures) {
-    const stats = await corpus.figureStats(figure.id);
+    const stats = await corpus.utteranceStats(figure.id);
     items.push({ ...figure, ...stats });
   }
   return json({ items, nextCursor } satisfies Page<FigureSummary>);
@@ -93,78 +96,111 @@ async function figureDetail(corpus: Corpus, id: string): Promise<Response> {
   const figure = await summarise(corpus, id);
   // A typo must not read as "this person has said nothing".
   if (!figure) return fail(404, 'no_such_figure', `no figure with id ${id}`);
-  const statements = await corpus.timeline(id);
-  const flagged = await corpus.flaggedStatementIds(id);
-  const timeline: TimelineEntry[] = [];
-  for (const statement of statements) {
-    const source = await corpus.getSource(statement.sourceId);
-    if (!source) continue;
-    timeline.push({ statement: toWireStatement(statement), source, flagged: flagged.has(statement.id) });
+  const flagged = await corpus.flaggedUtteranceIds(id);
+  const timeline: UtteranceTimelineEntry[] = [];
+  for (const utterance of await corpus.utteranceTimeline(id)) {
+    timeline.push({
+      utterance: toWireUtterance(utterance),
+      attestationCount: (await corpus.attestationsFor(utterance.id)).length,
+      flagged: flagged.has(utterance.id),
+    });
   }
-  return json({ figure, timeline } satisfies FigureDetail);
+  return json({ figure, timeline } satisfies FigureRecord);
 }
 
-async function statementDetail(corpus: Corpus, id: string): Promise<Response> {
-  const statement = await corpus.getStatement(id);
-  if (!statement) return fail(404, 'no_such_statement', `no statement with id ${id}`);
-  const source = await corpus.getSource(statement.sourceId);
-  const figure = await corpus.getFigure(statement.figureId);
-  if (!source || !figure) return fail(404, 'no_such_statement', `statement ${id} has lost its source or its speaker`);
-  return json({ statement: toWireStatement(statement), source, figure } satisfies StatementDetail);
-}
-
-async function listInconsistencies(corpus: Corpus, url: URL): Promise<Response> {
-  const figureId = url.searchParams.get('figure') ?? undefined;
-  const { judgments, nextCursor } = await corpus.listSurfaced({ cursor: cursorOf(url), limit: pageLimit(url), figureId });
-  const items: InconsistencySummary[] = [];
-  for (const judgment of judgments) {
-    const figure = await corpus.getFigure(judgment.figureId);
-    const earlier = await corpus.getStatement(judgment.earlierStatementId);
-    const later = await corpus.getStatement(judgment.laterStatementId);
-    if (!figure || !earlier || !later) continue;
-    items.push({ judgment, figure, earlier: toWireStatement(earlier), later: toWireStatement(later) });
+/** The documents that reported an utterance, each with the source it is. */
+async function attestationsOf(corpus: Corpus, utteranceId: string): Promise<WireAttestation[]> {
+  const found: WireAttestation[] = [];
+  for (const attestation of await corpus.attestationsFor(utteranceId)) {
+    const source = await corpus.getSource(attestation.sourceId);
+    if (source) found.push({ attestation, source });
   }
-  return json({ items, nextCursor } satisfies Page<InconsistencySummary>);
+  return found;
 }
 
-async function inconsistencyDetail(corpus: Corpus, id: string): Promise<Response> {
-  const judgment = await corpus.getJudgment(id);
-  if (!judgment) return fail(404, 'no_such_inconsistency', `no inconsistency with id ${id}`);
-  const figure = await corpus.getFigure(judgment.figureId);
-  const earlier = await corpus.getStatement(judgment.earlierStatementId);
-  const later = await corpus.getStatement(judgment.laterStatementId);
-  if (!figure || !earlier || !later) return fail(404, 'no_such_inconsistency', `inconsistency ${id} has lost a statement`);
-  const earlierSource = await corpus.getSource(earlier.sourceId);
-  const laterSource = await corpus.getSource(later.sourceId);
-  if (!earlierSource || !laterSource) return fail(404, 'no_such_inconsistency', `inconsistency ${id} has lost a source`);
-  // A superseded judgment still answers, and says what replaced it: a citation degrades
-  // to "superseded by", never to a 404.
-  const replacement = judgment.supersededBy ? await corpus.getJudgment(judgment.supersededBy) : null;
+async function utteranceDetail(corpus: Corpus, id: string): Promise<Response> {
+  const utterance = await corpus.getUtterance(id);
+  if (!utterance) return fail(404, 'no_such_utterance', `no utterance with id ${id}`);
+  const figure = await corpus.getFigure(utterance.figureId);
+  if (!figure) return fail(404, 'no_such_utterance', `utterance ${id} has lost its speaker`);
+
+  const member = await corpus.clusterOf(id);
+  const cluster = member ? await corpus.getCluster(member.clusterId) : null;
+
   return json({
-    judgment,
+    utterance: toWireUtterance(utterance),
     figure,
-    earlier: toWireStatement(earlier),
-    later: toWireStatement(later),
-    earlierSource,
-    laterSource,
+    attestations: await attestationsOf(corpus, id),
+    // Null before the chain has placed it. A subject nothing assigned is not a subject
+    // called "unknown" — the page says the utterance has not been placed yet.
+    subject: cluster ? { id: cluster.id, label: cluster.label } : null,
+  } satisfies UtteranceDetail);
+}
+
+/** A finding with the utterances it rests on, each resolved and carrying its documents. */
+async function resolve(corpus: Corpus, finding: Awaited<ReturnType<Corpus['getFinding']>>): Promise<FindingSummary | null> {
+  if (!finding) return null;
+  const figure = await corpus.getFigure(finding.figureId);
+  if (!figure) return null;
+
+  const restsOn: FindingUtterance[] = [];
+  for (const rests of finding.restsOn) {
+    const utterance = await corpus.getUtterance(rests.utteranceId);
+    if (!utterance) continue;
+    restsOn.push({
+      utterance: toWireUtterance(utterance),
+      role: rests.role,
+      attestations: await attestationsOf(corpus, utterance.id),
+    });
+  }
+  // A finding whose utterances cannot be resolved is not a finding anybody can check, and
+  // the product's claim is that every one of them can be.
+  if (restsOn.length !== finding.restsOn.length) return null;
+
+  return { finding, figure, restsOn };
+}
+
+async function listFindings(corpus: Corpus, url: URL): Promise<Response> {
+  const figureId = url.searchParams.get('figure') ?? undefined;
+  const { findings, nextCursor } = await corpus.listFindings({ cursor: cursorOf(url), limit: pageLimit(url), figureId });
+  const items: FindingSummary[] = [];
+  for (const finding of findings) {
+    const resolved = await resolve(corpus, finding);
+    if (resolved) items.push(resolved);
+  }
+  return json({ items, nextCursor } satisfies Page<FindingSummary>);
+}
+
+async function findingDetail(corpus: Corpus, id: string): Promise<Response> {
+  const finding = await corpus.getFinding(id);
+  const resolved = await resolve(corpus, finding);
+  if (!finding || !resolved) return fail(404, 'no_such_finding', `no finding with id ${id}`);
+  // A superseded finding still answers, and says what replaced it: a citation degrades to
+  // "superseded by", never to a 404.
+  const replacement = finding.supersededBy ? await corpus.getFinding(finding.supersededBy) : null;
+  return json({
+    ...resolved,
     supersededBy: replacement ? { id: replacement.id, createdAt: replacement.createdAt } : null,
-  } satisfies InconsistencyDetail);
+  } satisfies FindingDetail);
 }
 
 async function search(corpus: Corpus, url: URL): Promise<Response> {
   const query = url.searchParams.get('q') ?? '';
-  const { statements, nextCursor } = await corpus.search(query, { cursor: cursorOf(url), limit: pageLimit(url) });
-  const hits = [];
-  for (const statement of statements) {
-    const source = await corpus.getSource(statement.sourceId);
-    const figure = await corpus.getFigure(statement.figureId);
-    if (!source || !figure) continue;
-    hits.push({ statement: toWireStatement(statement), source, figure });
+  const { utterances, nextCursor } = await corpus.searchUtterances(query, { cursor: cursorOf(url), limit: pageLimit(url) });
+  const hits: UtteranceHit[] = [];
+  for (const utterance of utterances) {
+    const figure = await corpus.getFigure(utterance.figureId);
+    if (!figure) continue;
+    hits.push({
+      utterance: toWireUtterance(utterance),
+      figure,
+      attestationCount: (await corpus.attestationsFor(utterance.id)).length,
+    });
   }
-  return json({ query, hits, nextCursor } satisfies SearchResults);
+  return json({ query, hits, nextCursor } satisfies UtteranceSearchResults);
 }
 
-async function exportStatements(env: Env): Promise<Response> {
+async function exportUtterances(env: Env): Promise<Response> {
   const object = await env.RAW.get(EXPORT_KEY);
   if (!object) {
     return fail(404, 'no_export_yet', 'the bulk export has not been generated yet; it is written by the scheduled run');
