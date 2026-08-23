@@ -32,6 +32,8 @@
 
 **The Twitter API shutdown left a documented data vacuum.** Free academic access ended early 2023; the replacement enterprise tier started at $42,000/month, halting 100+ active projects and 250+ planned ones and pushing doctoral students to change topics ([Fast Company](https://www.fastcompany.com/91040397/under-elon-musk-x-is-denying-api-access-to-academics-who-study-misinformation); [Coalition for Independent Technology Research letter](https://independenttechresearch.org/letter-twitters-new-api-plans-will-devastate-public-interest-research/); ["RIP Twitter API" eulogy, arXiv](https://arxiv.org/abs/2404.07340)). There is still no academic tier in 2026 ([xcrop.io overview](https://xcrop.io/blog/twitter-data-academic-research)). A stable, exportable statements corpus lands directly in this gap.
 
+**The substitute researchers actually adopted is broadcast, not social.** Where the text corpora went dark, the Internet Archive's TV News Archive stayed free and grew: closed captions indexed across 9.5 million broadcasts and 6.6 million hours from 108 channels in 50 countries and 35 languages over 20 years, with GDELT's Visual Explorer rendering each broadcast as a thumbnail grid and letting the thumbnails be downloaded in bulk for non-consumptive computational analysis ([GDELT: Visual Explorer](https://blog.gdeltproject.org/visual-explorer-unlocking-9-5-million-broadcasts-6-6-million-hours-of-television-news/)). GDELT reports 2,000+ articles and research papers drawing on the holdings over the archive's first decade ([GDELT: the TV News Archive turns 10](https://blog.gdeltproject.org/the-internet-archives-tv-news-archive-turns-10-a-look-back-at-a-decade-of-pioneering-collaboration-reimagining-media-research/)), and web-science groups have published tooling for treating it as research data ([WS-DL: Tools for Using the Internet Archive's TV News Archive as Research Data](https://ws-dl.blogspot.com/2024/08/2024-08-07-tools-for-using-internet.html)). The asymmetry is the useful part: what a figure said *on camera* is well-corpused and free; what they said in text and on social platforms is the starved half — which is where hitbut's gap actually sits.
+
 **Replication norms make stable identifiers and dumps a hard requirement, not a nicety.** AJPS has required open replication data since 2012; sharing rose from ~8% of political-science articles in 2012 to 31% in 2022 — meaning 69% still don't, partly because sources are hard to package ([PS: Political Science & Politics](https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/data-and-code-availability-in-political-science-publications-from-1995-to-2022/F95EA30BEDC1B7A52CAE143D332B0746); [AJPS guidelines, PDF](https://ajps.org/wp-content/uploads/2018/05/ajps_replication-guidelines-2-1.pdf)). Harvard Dataverse is the de facto deposit venue. Separately, stance detection over political text is an active NLP subfield with its own datasets (P-STANCE, SemEval-2016), but tracking one figure's position *changes over time* is noted as under-served ([LLM stance-detection survey, arXiv](https://arxiv.org/pdf/2505.08464); [Cambridge PSRM practical guide](https://www.cambridge.org/core/journals/political-science-research-and-methods/article/stance-detection-a-practical-guide-to-classifying-political-beliefs-in-text/E227E746BD7D9751526DA0EC2C378787)) — hitbut's contradiction layer is itself a publishable dataset.
 
 ## Campaign and advocacy staff
@@ -97,6 +99,11 @@
 - [Media monitoring tools market — Fortune Business Insights](https://www.fortunebusinessinsights.com/media-monitoring-tools-market-104157)
 - [Introducing the Flip-O-Meter — PolitiFact](https://www.politifact.com/article/2008/aug/05/introducing-flip-o-meter/)
 
+- [Visual Explorer: Unlocking 9.5 Million Broadcasts & 6.6 Million Hours Of Television News — GDELT Project](https://blog.gdeltproject.org/visual-explorer-unlocking-9-5-million-broadcasts-6-6-million-hours-of-television-news/)
+- [The Internet Archive's TV News Archive Turns 10 — GDELT Project](https://blog.gdeltproject.org/the-internet-archives-tv-news-archive-turns-10-a-look-back-at-a-decade-of-pioneering-collaboration-reimagining-media-research/)
+- [Tools for Using the Internet Archive's TV News Archive as Research Data — WS-DL, Old Dominion University](https://ws-dl.blogspot.com/2024/08/2024-08-07-tools-for-using-internet.html)
+- [Internet Archive TV NEWS: Search Captions, Borrow Broadcasts](https://archive.org/details/tv)
+
 ## Open questions
 
 - Duke census exact 2026 numbers (reporterslab.org egress-blocked here) — needs a human or unblocked environment, not another agent pass.
@@ -104,9 +111,10 @@
 - What do IFCN surveys say verbatim about the claim-finding bottleneck vs distribution bottleneck? Read the State of the Fact-Checkers PDFs directly.
 - Pricing and seat counts: what does a newsroom actually pay for TVEyes / Nexis Newsdesk / Cision? (list prices are opaque; need practitioner sources.)
 - Willingness to pay per segment: are campaign committees (DCCC/NRCC) buying third-party statement archives today, and from whom?
-- Post-2023 substitutes academics adopted for political-statement data (Bluesky firehose, Media Cloud, Internet Archive TV News) — usage evidence.
+- Post-2023 substitutes for *text and social* political-statement data specifically (Bluesky firehose, Media Cloud) — the Internet Archive TV News half of this question is answered; the text half is not.
 - Does the partisan trust gap in fact-checkers extend to *statement archives* (primary sources, no verdicts)? No study found — possible differentiator worth testing.
 
 ## Growth log
 
+- **2026-08-23** — Partly answered the post-2023 academic-substitutes question: the Internet Archive TV News Archive plus GDELT's explorers are the substitute with documented uptake (9.5M broadcasts, 6.6M hours, 2,000+ papers over a decade), which splits the data vacuum in two — broadcast speech is well-corpused and free, text and social speech are not. Open question narrowed to the text half.
 - **2026-08-21** — Page seeded (initial research scan, deferred at adoption): researched all four segments — public trust and demand patterns, journalist/fact-checker workflows and contraction, academic corpora and the post-Twitter data vacuum, and the opposition-research industry's practices and budgets.
