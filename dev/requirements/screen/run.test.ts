@@ -11,7 +11,17 @@ import { harnessConfigPath } from '../shared/worker-config.ts';
 import { corpusOn, seedCorpus, type SeededCorpus } from '../shared/fixtures.ts';
 import type { D1Database } from '../../../src/backend/env.ts';
 import type { OperationsView } from '../../../src/shared/api.ts';
-import { DASHBOARD, DESKTOP, launchBrowser, newContext, settle, SITE, type App, type Viewport } from './harness.ts';
+import {
+  DASHBOARD,
+  DASHBOARD_UNCONFIGURED,
+  DESKTOP,
+  launchBrowser,
+  newContext,
+  settle,
+  SITE,
+  type App,
+  type Viewport,
+} from './harness.ts';
 import { compareWithGolden, refreshing } from './compare.ts';
 
 export type ScreenContext = {
@@ -19,6 +29,8 @@ export type ScreenContext = {
   open(path: string, viewport?: Viewport): Promise<Page>;
   /** The same, for the operator console — a separate artifact on its own origin. */
   openDashboard(path: string, viewport?: Viewport): Promise<Page>;
+  /** The console as published before anybody set an API origin. */
+  openUnconfigured(path: string, viewport?: Viewport): Promise<Page>;
   /**
    * Installs the operations payload the next page will read. The shipped Worker in this
    * lane has no DASHBOARD_TOKEN — a secret is not in the committed config — so a case
@@ -30,8 +42,19 @@ export type ScreenContext = {
   seeded: SeededCorpus;
 };
 
-// Both apps, each built the way its own deploy builds it.
-for (const app of [SITE, DASHBOARD]) await build({ configFile: app.config, logLevel: 'warn' });
+// Each app built the way its own deploy builds it. VITE_API_ORIGIN is read by both apps
+// and is fixed at build time, so it is set for exactly one build and cleared around the
+// others — the site is served its API on its own origin here and must stay that way.
+delete process.env.VITE_API_ORIGIN;
+await build({ configFile: SITE.config, logLevel: 'warn' });
+// The console built twice, because "nobody set the origin" is a different artifact rather
+// than a different runtime state, and 8.10 is about that artifact.
+await build({ configFile: DASHBOARD_UNCONFIGURED.config, logLevel: 'warn', build: { outDir: DASHBOARD_UNCONFIGURED.dist } });
+// In this lane the API really is served at the console's own origin, by the route
+// interception below — so this is the truthful value here, not a stand-in.
+process.env.VITE_API_ORIGIN = DASHBOARD.origin;
+await build({ configFile: DASHBOARD.config, logLevel: 'warn' });
+delete process.env.VITE_API_ORIGIN;
 
 const server = createTestHarness({ workers: [{ configPath: harnessConfigPath() }] });
 await server.listen();
@@ -89,6 +112,7 @@ async function screenContext(caseFile: CaseFile): Promise<ScreenContext> {
     },
     open: (sitePath, viewport = DESKTOP) => openOn(SITE, sitePath, viewport),
     openDashboard: (sitePath, viewport = DESKTOP) => openOn(DASHBOARD, sitePath, viewport),
+    openUnconfigured: (sitePath, viewport = DESKTOP) => openOn(DASHBOARD_UNCONFIGURED, sitePath, viewport),
     async shoot(page: Page) {
       const shot = await page.screenshot({ fullPage: true, animations: 'disabled' });
       const outcome = compareWithGolden(shot, goldenPath(caseFile), `${caseFile.slug}.${caseFile.id}`);
