@@ -671,6 +671,24 @@ surface. Its rendered states are committed screenshots, the same contract as § 
   </details>
 
 - `8.9` The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.
+
+- `8.10` With no API origin configured the dashboard names the missing setting, and issues no request rather than reporting what its own host answered.
+  <details><summary>Detail</summary>
+
+  The console is on GitHub Pages and the API is on Cloudflare, so the two never share an
+  origin. A relative URL is therefore a guess that is always wrong, and the page it
+  actually reaches is its own — which answers 404, so the failure arrives looking like the
+  API's fault rather than like a setting nobody has filled in. A configuration the page
+  cannot work without is a state of its own, not a default to fall back on.
+  </details>
+
+- `8.11` The dashboard is legible on a phone: nothing in the masthead collapses, and every table row stays readable without sideways scrolling.
+  <details><summary>Detail</summary>
+
+  This is the width an operator actually checks a crawl at — from a phone, away from a
+  desk, because something looked wrong. Every other golden here is 1280 wide, so without
+  this leaf the narrow layout is the one nobody has ever approved.
+  </details>
 <!-- gallery:8.9 -->
 
 ![8.9 — The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.](screen/cases/dashboard-failures.8.9.png)
