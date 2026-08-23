@@ -173,6 +173,23 @@ test('a deployment URL for another project is not our site', () => {
   assert.equal(deployedSite('https://a1b2c3d4.something-else.pages.dev', PAGES_PROJECT), null);
 });
 
+test('the reason under the error line comes with it', () => {
+  // The marked line is a headline; what separates a missing token scope from a product that
+  // was never enabled on the account is underneath it, and reporting only the headline names
+  // a failure nobody can act on. Observed on `r2 bucket list` in run 32638007557.
+  const output = [
+    ' ⛅️ wrangler 4.125.0',
+    '✘ [ERROR] A request to the Cloudflare API (/accounts/abc/r2/buckets) failed.',
+    '  Unable to authenticate request [code: 10001]',
+    '',
+    'If you think this is a bug, create an issue at …',
+  ].join('\n');
+  assert.equal(
+    firstUsefulLine(output),
+    'A request to the Cloudflare API (/accounts/abc/r2/buckets) failed. Unable to authenticate request [code: 10001]',
+  );
+});
+
 test("wrangler's own error line is what gets reported, not its banner", () => {
   const output = [
     ' ⛅️ wrangler 4.125.0',

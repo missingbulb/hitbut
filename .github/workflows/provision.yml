@@ -15,6 +15,14 @@ on:
         type: boolean
         default: false
 
+# Idempotence holds across runs, not *within* two at once: two runs that both find a
+# resource absent both try to create it, and the loser reports a failure that is really a
+# race. Queue them instead — a second press waits for the first to finish and then finds
+# the work already done, which is the answer it should have had.
+concurrency:
+  group: provision
+  cancel-in-progress: false
+
 # The database id D1 hands out is the one piece of production that lives in the repo.
 permissions:
   contents: write
@@ -67,6 +75,10 @@ jobs:
             git --no-pager diff HEAD~1 -- wrangler.toml
             exit 1
           fi
-      - name: Where production now stands
+      # This decides the run. The provisioner exits clean when it *declines* — an unanswered
+      # question is not a failure of its own — so without a gate here a run that created
+      # nothing and could ask nothing reports success, and the only way to find out is to read
+      # the log. The preflight is the honest answer to "did it work", so let it be the answer.
+      - name: Is production ready now?
         if: always()
-        run: npm run preflight || true
+        run: npm run preflight
