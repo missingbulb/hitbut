@@ -59,6 +59,14 @@ const PUBLISHERS = {
 export type SeededCorpus = {
   corpus: Corpus;
   figures: { ilana: string; doron: string; neta: string };
+  utterances: {
+    lightRailPledge: string; lightRailDenial: string; rally: string;
+    undatedCommittee: string; englishCommitment: string; englishDenial: string;
+    knessetBudgetDelay: string; housingBudget: string; housingPermits: string;
+  };
+  subjects: { lightRail: string; budget: string; housing: string };
+  findings: { budgetChange: string; supersededChange: string; rallyAnomaly: string; housingChange: string };
+  stanceVersions: { modelVersion: string; promptVersion: string };
   statements: {
     lightRailPledge: string;
     lightRailDenial: string;
@@ -182,6 +190,8 @@ export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
     sourceModule: 'sample-review', externalKey: 'review-2026-04-02',
   });
 
+  const threshold = 0.7;
+
   const [pledge] = await corpus.saveStatements(protocol.id, [{
     ordinal: 0, figureId: ilana.id, language: 'he', saidAt: '2024-03-12',
     quote: 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.',
@@ -235,7 +245,6 @@ export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
     context: 'Opinion column.', topics: ['budget'],
   }]);
 
-  const threshold = 0.7;
   const consistent = await corpus.recordJudgment({
     figureId: ilana.id, earlierStatementId: pledge.id, laterStatementId: followUp.id,
     kind: 'consistent', score: 0.21,
@@ -268,9 +277,156 @@ export async function seedCorpus(corpus: Corpus): Promise<SeededCorpus> {
     modelVersion: 'sample/judge-1', promptVersion: 'inconsistency/v1',
   }, threshold);
 
+  // ---- the utterance surface ----------------------------------------------------------
+  //
+  // The same sample world in the shape the API and the site now read. Statements are still
+  // written above because the writer has not moved yet (#37's middle step) — but nothing
+  // reads them, and everything below is what a reader actually sees.
+
+  /** One reported passage, with the room it was said in. */
+  const say = async (
+    figureId: string, sourceId: string, text: string,
+    extra: { saidAt?: SaidAt; venue?: Venue; audience?: Audience; attestedText?: string } = {},
+  ) => (await corpus.recordReported({
+    figureId, text, language: /[\u0590-\u05FF]/.test(text) ? 'he' : 'en',
+    saidAt: extra.saidAt ?? null,
+    venue: extra.venue ?? 'plenary',
+    audience: extra.audience ?? null,
+    sourceId,
+    attestedText: extra.attestedText,
+  })).utterance;
+
+  const uPledge = await say(ilana.id, protocol.id, 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.', {
+    saidAt: { value: '2024-03-12', precision: 'day' }, venue: 'plenary', audience: 'parliament',
+  });
+  // The same speech, carried by two more outlets — one of them trimming it. Three
+  // attestations, one utterance: the page shows the count and every source behind it.
+  await corpus.recordReported({
+    figureId: ilana.id, text: 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.', language: 'he',
+    saidAt: { value: '2024-03-12', precision: 'day' }, venue: 'plenary', audience: 'parliament',
+    sourceId: presser.id, attestedText: 'לא אצביע בעד תקציב שגורע מהרכבת הקלה.',
+  });
+  await corpus.recordReported({
+    figureId: ilana.id, text: 'לא אצביע בעד תקציב שגורע ולו שקל אחד מהרכבת הקלה.', language: 'he',
+    saidAt: { value: '2024-03-12', precision: 'day' }, venue: 'plenary', audience: 'parliament',
+    sourceId: column2025.id,
+  });
+
+  const uDenial = await say(ilana.id, presser.id, 'הקו הזה מעולם לא היה בראש סדר העדיפויות שלי — המספרים פשוט לא עובדים.', {
+    saidAt: { value: '2026-06-03', precision: 'day' }, venue: 'press-conference', audience: 'general-public',
+  });
+  // A month is a month. The archive establishes no day, and rendering one would invent a
+  // fact the timeline then sorts by.
+  const uRally = await say(ilana.id, undated.id, 'הרכבת הקלה היא בזבוז — נאמר את זה כאן בלי כחל ושרק.', {
+    saidAt: { value: '2025-04', precision: 'month' }, venue: 'rally', audience: 'party-members',
+  });
+  const uUndated = await say(ilana.id, undated.id, 'דיברנו כאן על תחבורה ציבורית לא פעם, ואין על כך מחלוקת.', {
+    venue: 'committee', audience: 'parliament',
+  });
+  // The housing pair, in Hebrew: the framing moves from a budget problem to a permits
+  // problem. This is what the trend-change page looks like in the product's own direction.
+  const uHousingBudget = await say(ilana.id, column2025.id,
+    'מצוקת הדיור היא בעיה תקציבית. בלי תקציב ייעודי לא נפתור אותה.',
+    { saidAt: { value: '2025-01-20', precision: 'day' }, venue: 'op-ed', audience: 'general-public' });
+  const uHousingPermits = await say(ilana.id, column2026.id,
+    'מצוקת הדיור היא בעיית היתרי בנייה. שיניתי את דעתי מאז 2025.',
+    { saidAt: { value: '2026-02-11', precision: 'day' }, venue: 'op-ed', audience: 'general-public' });
+
+  const uEnglishCommitment = await say(doron.id, englishBrief.id,
+    'We committed to a dedicated budget line for the programme, and that commitment stands.',
+    { saidAt: { value: '2025-11-05', precision: 'day' }, venue: 'op-ed', audience: 'general-public' });
+  const uEnglishDenial = await say(doron.id, englishFollowUp.id,
+    'Nobody ever promised a dedicated budget line. That is a misreading of the record.',
+    { saidAt: { value: '2026-04-02', precision: 'day' }, venue: 'op-ed', audience: 'general-public' });
+  const uKnesset = await say(neta.id, newsroom.id, 'הדיון בכנסת על התקציב נדחה שוב, וזה כבר לא מקרי.', {
+    saidAt: { value: '2026-05-01', precision: 'day' }, venue: 'op-ed', audience: 'general-public',
+  });
+
+  // Subjects, discovered rather than declared — but named here, because a fixture that left
+  // every label null would never show a reader what a named subject looks like.
+  const lightRailSubject = (await corpus.assignToCluster(uPledge.id, null, 0)).clusterId;
+  for (const utterance of [uDenial, uRally, uUndated]) await corpus.assignToCluster(utterance.id, lightRailSubject, 0.12);
+  await corpus.relabelCluster(lightRailSubject, 'הרכבת הקלה');
+
+  const housingSubject = (await corpus.assignToCluster(uHousingBudget.id, null, 0)).clusterId;
+  await corpus.assignToCluster(uHousingPermits.id, housingSubject, 0.14);
+  await corpus.relabelCluster(housingSubject, 'מצוקת הדיור');
+
+  const budgetSubject = (await corpus.assignToCluster(uEnglishCommitment.id, null, 0)).clusterId;
+  await corpus.assignToCluster(uEnglishDenial.id, budgetSubject, 0.09);
+  await corpus.relabelCluster(budgetSubject, 'a dedicated budget line');
+
+  const stanceVersions = { modelVersion: 'sample/stance-1', promptVersion: 'stance/v1' };
+  const place = (utteranceId: string, clusterId: string, position: number) =>
+    corpus.recordStance({ utteranceId, clusterId, position, confidence: 0.82, ...stanceVersions });
+  await place(uPledge.id, lightRailSubject, 0.9);
+  await place(uUndated.id, lightRailSubject, 0.8);
+  await place(uRally.id, lightRailSubject, -0.7);
+  await place(uDenial.id, lightRailSubject, 0.75);
+  await place(uHousingBudget.id, housingSubject, 0.85);
+  await place(uHousingPermits.id, housingSubject, -0.8);
+  await place(uEnglishCommitment.id, budgetSubject, 0.9);
+  await place(uEnglishDenial.id, budgetSubject, -0.85);
+
+  // A trend change, and a superseded one before it — a citation of the old finding still
+  // resolves and says what replaced it.
+  const supersededChange = await corpus.recordFinding({
+    figureId: doron.id, clusterId: budgetSubject, kind: 'trend-change',
+    rationale: 'The position on the budget line moved between these two columns.',
+    score: 0.74, changed: { after: '2025-11-05', before: '2026-04-02' },
+    restsOn: [
+      { utteranceId: uEnglishCommitment.id, role: 'before' },
+      { utteranceId: uEnglishDenial.id, role: 'after' },
+    ],
+    modelVersion: 'sample/stance-0', promptVersion: 'stance/v1',
+  }, threshold);
+  const budgetChange = await corpus.recordFinding({
+    figureId: doron.id, clusterId: budgetSubject, kind: 'trend-change',
+    rationale: 'The earlier column states a standing commitment to a dedicated budget line; the later one denies any such promise was ever made.',
+    score: 0.91, changed: { after: '2025-11-05', before: '2026-04-02' },
+    restsOn: [
+      { utteranceId: uEnglishCommitment.id, role: 'before' },
+      { utteranceId: uEnglishDenial.id, role: 'after' },
+    ],
+    ...stanceVersions,
+  }, threshold);
+
+  const housingChange = await corpus.recordFinding({
+    figureId: ilana.id, clusterId: housingSubject, kind: 'trend-change',
+    rationale: 'המסגור עבר מבעיה תקציבית לבעיית היתרי בנייה, והדוברת אומרת זאת במפורש.',
+    score: 0.83, changed: { after: '2025-01-20', before: '2026-02-11' },
+    restsOn: [
+      { utteranceId: uHousingBudget.id, role: 'before' },
+      { utteranceId: uHousingPermits.id, role: 'after' },
+    ],
+    ...stanceVersions,
+  }, threshold);
+
+  // An anomaly: one position everywhere, and the opposite of it at a rally. That it was
+  // the rally is the whole of what makes it worth surfacing.
+  const rallyAnomaly = await corpus.recordFinding({
+    figureId: ilana.id, clusterId: lightRailSubject, kind: 'anomaly',
+    rationale: 'ההתבטאות בעצרת רחוקה מהעמדה שהדמות מחזיקה בנושא הזה בכל שאר החדרים.',
+    score: 0.86, venue: 'rally', audience: 'party-members',
+    restsOn: [{ utteranceId: uRally.id, role: 'deviating' }],
+    ...stanceVersions,
+  }, threshold);
+
   return {
     corpus,
     figures: { ilana: ilana.id, doron: doron.id, neta: neta.id },
+    utterances: {
+      lightRailPledge: uPledge.id, lightRailDenial: uDenial.id, rally: uRally.id,
+      undatedCommittee: uUndated.id, englishCommitment: uEnglishCommitment.id,
+      englishDenial: uEnglishDenial.id, knessetBudgetDelay: uKnesset.id,
+      housingBudget: uHousingBudget.id, housingPermits: uHousingPermits.id,
+    },
+    subjects: { lightRail: lightRailSubject, budget: budgetSubject, housing: housingSubject },
+    findings: {
+      budgetChange: budgetChange.id, supersededChange: supersededChange.id,
+      rallyAnomaly: rallyAnomaly.id, housingChange: housingChange.id,
+    },
+    stanceVersions,
     statements: {
       lightRailPledge: pledge.id, lightRailDenial: denial.id, lightRailFollowUp: followUp.id,
       undatedCommittee: undatedCommittee.id, housingBudget: housingBudget.id,

@@ -219,6 +219,27 @@ a:hover {
   margin: 32px 0 10px;
 }
 
+/* ---- attestations, and an anomaly's room ------------------------------------- */
+
+.attestation {
+  border-block-start: 1px solid var(--rule);
+  padding-block: 10px;
+}
+
+.attestation__text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  unicode-bidi: isolate;
+}
+
+/* An anomaly's claim is where it was said, so the line carries real weight rather than
+   sitting in the metadata run. */
+.anomaly__where {
+  margin: 12px 0 16px;
+  font-size: 16px;
+}
+
 /* ---- what a record covers, and who is on the roster -------------------------- */
 
 /* Set below the timeline's weight on purpose: it is a caveat about the list above it,

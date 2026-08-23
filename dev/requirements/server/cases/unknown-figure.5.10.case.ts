@@ -12,13 +12,13 @@ export default {
     assert.equal(missing.status, 404);
     assert.equal(((await missing.json()) as ErrorBody).error.code, 'no_such_figure');
 
-    const noStatement = await api.get('/api/v1/statements/01JZZZZZZZZZZZZZZZZZZZZZZZ');
-    assert.equal(noStatement.status, 404);
-    assert.equal(((await noStatement.json()) as ErrorBody).error.code, 'no_such_statement');
+    const noUtterance = await api.get('/api/v1/utterances/01JZZZZZZZZZZZZZZZZZZZZZZZ');
+    assert.equal(noUtterance.status, 404);
+    assert.equal(((await noUtterance.json()) as ErrorBody).error.code, 'no_such_utterance');
 
-    const noJudgment = await api.get('/api/v1/inconsistencies/01JZZZZZZZZZZZZZZZZZZZZZZZ');
-    assert.equal(noJudgment.status, 404);
-    assert.equal(((await noJudgment.json()) as ErrorBody).error.code, 'no_such_inconsistency');
+    const noFinding = await api.get('/api/v1/findings/01JZZZZZZZZZZZZZZZZZZZZZZZ');
+    assert.equal(noFinding.status, 404);
+    assert.equal(((await noFinding.json()) as ErrorBody).error.code, 'no_such_finding');
 
     // And a figure that does exist still answers.
     assert.equal((await api.get(`/api/v1/figures/${encodeURIComponent(api.seeded.figures.neta)}`)).status, 200);

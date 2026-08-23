@@ -524,6 +524,7 @@ export class Corpus {
     if (existing) {
       if ((reported.text.length) > (existing.text as string).length) {
         await this.#db.prepare('UPDATE utterances SET text = ? WHERE id = ?').bind(reported.text, existing.id).run();
+        await this.#reindexUtterance(existing.id as string, reported.text);
       }
       utterance = (await this.getUtterance(existing.id as string))!;
     } else {
@@ -536,6 +537,7 @@ export class Corpus {
         .bind(id, reported.figureId, reported.text, reported.language, reported.saidAt?.value ?? null,
               reported.saidAt?.precision ?? null, reported.venue, reported.audience ?? null, key, this.#now())
         .run();
+      await this.#reindexUtterance(id, reported.text);
       utterance = (await this.getUtterance(id))!;
     }
 
@@ -813,6 +815,112 @@ export class Corpus {
     const findings = [];
     for (const row of rows.results) findings.push((await this.getFinding(row.id as string))!);
     return findings;
+  }
+
+  /** Keeps the utterance's folded text in the index. Called wherever its text can change. */
+  async #reindexUtterance(utteranceId: string, text: string): Promise<void> {
+    await this.#db.prepare('DELETE FROM utterances_fts WHERE utterance_id = ?').bind(utteranceId).run();
+    await this.#db
+      .prepare('INSERT INTO utterances_fts (utterance_id, search_text) VALUES (?, ?)')
+      .bind(utteranceId, indexText(text))
+      .run();
+  }
+
+  /**
+   * A persona's utterances, newest first, undated last. The same ordering the statement
+   * timeline used: a date the source never established cannot be sorted by, and putting
+   * such an utterance among the dated ones would imply a position in time nobody claimed.
+   */
+  async utteranceTimeline(figureId: string, limit = 100): Promise<Utterance[]> {
+    const rows = await this.#db
+      .prepare(
+        `SELECT * FROM utterances WHERE figure_id = ?
+         ORDER BY said_at IS NULL, said_at DESC, id DESC LIMIT ?`,
+      )
+      .bind(figureId, limit)
+      .all<Row>();
+    return rows.results.map(toUtterance);
+  }
+
+  /** The utterances a live surfaced finding rests on — what the timeline marks. */
+  async flaggedUtteranceIds(figureId: string): Promise<Set<string>> {
+    const rows = await this.#db
+      .prepare(
+        `SELECT fu.utterance_id FROM finding_utterances fu
+         JOIN findings f ON f.id = fu.finding_id
+         WHERE f.figure_id = ? AND f.superseded_by IS NULL AND f.surfaced = 1`,
+      )
+      .bind(figureId)
+      .all<Row>();
+    return new Set(rows.results.map((row) => row.utterance_id as string));
+  }
+
+  /** The counts and the subject list a persona's page leads with. */
+  async utteranceStats(
+    figureId: string,
+  ): Promise<{ utteranceCount: number; flaggedCount: number; subjects: { id: string; label: string | null }[] }> {
+    const counted = await this.#db
+      .prepare('SELECT COUNT(*) AS utterances FROM utterances WHERE figure_id = ?')
+      .bind(figureId)
+      .first<Row>();
+    const subjects = await this.#db
+      .prepare(
+        `SELECT DISTINCT c.id, c.label FROM clusters c
+         JOIN cluster_members cm ON cm.cluster_id = c.id
+         JOIN utterances u ON u.id = cm.utterance_id
+         WHERE u.figure_id = ? ORDER BY c.id`,
+      )
+      .bind(figureId)
+      .all<Row>();
+    return {
+      utteranceCount: Number(counted?.utterances ?? 0),
+      flaggedCount: (await this.flaggedUtteranceIds(figureId)).size,
+      subjects: subjects.results.map((row) => ({ id: row.id as string, label: (row.label as string | null) ?? null })),
+    };
+  }
+
+  async searchUtterances(query: string, options: { cursor?: Cursor; limit?: number } = {}): Promise<{ utterances: Utterance[]; nextCursor: Cursor }> {
+    const limit = options.limit ?? 20;
+    const offset = Number(decodeCursor(options.cursor ?? null) || 0);
+    const expression = matchExpression(query);
+    if (!expression) return { utterances: [], nextCursor: null };
+    const rows = await this.#db
+      .prepare(
+        `SELECT utterances.* FROM utterances_fts
+         JOIN utterances ON utterances.id = utterances_fts.utterance_id
+         WHERE utterances_fts MATCH ? ORDER BY rank, utterances.id LIMIT ? OFFSET ?`,
+      )
+      .bind(expression, limit + 1, offset)
+      .all<Row>();
+    const page = rows.results.slice(0, limit);
+    return {
+      utterances: page.map(toUtterance),
+      nextCursor: rows.results.length > limit ? encodeCursor(String(offset + limit)) : null,
+    };
+  }
+
+  /** Live surfaced findings, newest first. `figureId` narrows to one persona's record. */
+  async listFindings(options: { cursor?: Cursor; limit?: number; figureId?: string } = {}): Promise<{ findings: Finding[]; nextCursor: Cursor }> {
+    const limit = options.limit ?? 20;
+    const offset = Number(decodeCursor(options.cursor ?? null) || 0);
+    const rows = options.figureId
+      ? await this.#db
+          .prepare('SELECT id FROM findings WHERE surfaced = 1 AND superseded_by IS NULL AND figure_id = ? ORDER BY id DESC LIMIT ? OFFSET ?')
+          .bind(options.figureId, limit + 1, offset)
+          .all<Row>()
+      : await this.#db
+          .prepare('SELECT id FROM findings WHERE surfaced = 1 AND superseded_by IS NULL ORDER BY id DESC LIMIT ? OFFSET ?')
+          .bind(limit + 1, offset)
+          .all<Row>();
+    const findings: Finding[] = [];
+    for (const row of rows.results.slice(0, limit)) findings.push((await this.getFinding(row.id as string))!);
+    return { findings, nextCursor: rows.results.length > limit ? encodeCursor(String(offset + limit)) : null };
+  }
+
+  /** Every utterance in the corpus, oldest first — what the bulk export walks. */
+  async allUtterances(): Promise<Utterance[]> {
+    const rows = await this.#db.prepare('SELECT * FROM utterances ORDER BY id').all<Row>();
+    return rows.results.map(toUtterance);
   }
 
   // ---- judgments ---------------------------------------------------------------
