@@ -190,6 +190,31 @@ test('the reason under the error line comes with it', () => {
   );
 });
 
+test('a blank line does not cut the reason off before the link it is pointing at', () => {
+  // What `wrangler deploy` says on an account with no workers.dev subdomain, verbatim from
+  // run 32640257251. The URL — the whole actionable half — comes after a blank line.
+  const output = [
+    ' ⛅️ wrangler 4.125.0',
+    '? Would you like to register a workers.dev subdomain now?',
+    '🤖 Using fallback value in non-interactive context: no',
+    '▲ [WARNING] You need to register a workers.dev subdomain before publishing to workers.dev',
+    '',
+    '✘ [ERROR] You can either deploy your worker to one or more routes by specifying them in your wrangler.toml file, or register a workers.dev subdomain here:',
+    '',
+    '  https://dash.cloudflare.com/abc/workers/onboarding',
+    '',
+    '',
+    '🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler.log"',
+  ].join('\n');
+  assert.match(firstUsefulLine(output), /register a workers\.dev subdomain here/);
+  assert.match(firstUsefulLine(output), /dash\.cloudflare\.com\/abc\/workers\/onboarding/);
+});
+
+test('two blank lines end it, so the whole log never becomes the reason', () => {
+  const output = ['✘ [ERROR] Something failed.', '', '', 'unrelated trailing chatter'].join('\n');
+  assert.equal(firstUsefulLine(output), 'Something failed.');
+});
+
 test("wrangler's own error line is what gets reported, not its banner", () => {
   const output = [
     ' ⛅️ wrangler 4.125.0',
