@@ -15,6 +15,14 @@ on:
         type: boolean
         default: false
 
+# Idempotence holds across runs, not *within* two at once: two runs that both find a
+# resource absent both try to create it, and the loser reports a failure that is really a
+# race. Queue them instead — a second press waits for the first to finish and then finds
+# the work already done, which is the answer it should have had.
+concurrency:
+  group: provision
+  cancel-in-progress: false
+
 # The database id D1 hands out is the one piece of production that lives in the repo.
 permissions:
   contents: write
