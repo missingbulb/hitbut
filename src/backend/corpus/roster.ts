@@ -44,24 +44,39 @@ export function faultsIn(entry: Partial<RosterEntry>, index: number): string[] {
   return faults;
 }
 
+/** The public-eye test the roster applies, and the people it admits. */
+export type Roster = {
+  /** Written once, applied to everybody. Published on the methodology page. */
+  inclusionRule: string;
+  entries: RosterEntry[];
+};
+
 /**
  * Validates a whole roster, refusing the file rather than the bad entry — a roster half
  * loaded is a roster that silently stops tracking somebody.
  *
- * The file is `{ note, entries }` rather than a bare array so it can carry its own warning
- * to whoever opens it; JSON has nowhere else to put one.
+ * The file is an object rather than a bare array so it can carry its own warning to whoever
+ * opens it, and so the test can live beside the people it admits; JSON has nowhere else to
+ * put either.
  */
-export function readRoster(file: unknown): RosterEntry[] {
+export function readRoster(file: unknown): Roster {
   const raw = (file as { entries?: unknown })?.entries;
   if (!Array.isArray(raw)) throw new Error('the roster file must be an object with an "entries" array');
 
-  const faults = raw.flatMap((entry, index) => faultsIn(entry as Partial<RosterEntry>, index));
+  const rule = (file as { inclusionRule?: unknown })?.inclusionRule;
+  const faults = typeof rule === 'string' && rule.trim()
+    ? []
+    // The test is what makes the roster a rule rather than a list of people somebody
+    // decided to scrutinise, so its absence is not a warning, it is a refusal.
+    : ['the roster states no inclusionRule — write the public-eye test it applies, once, for everybody'];
+
+  faults.push(...raw.flatMap((entry, index) => faultsIn(entry as Partial<RosterEntry>, index)));
   const ids = raw.map((entry) => (entry as RosterEntry).id);
   const duplicated = ids.filter((id, index) => ids.indexOf(id) !== index);
   for (const id of new Set(duplicated)) faults.push(`roster id "${id}" appears more than once`);
 
   if (faults.length) throw new Error(`the roster is not usable:\n  ${faults.join('\n  ')}`);
-  return raw as RosterEntry[];
+  return { inclusionRule: rule as string, entries: raw as RosterEntry[] };
 }
 
 /** Every name this entry can be recognised by, folded for comparison by the caller. */

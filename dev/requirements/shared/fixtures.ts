@@ -75,6 +75,7 @@ export type SeededCorpus = {
  * change to who we track. Same shape, same loader, invented people.
  */
 export const SAMPLE_ROSTER: RosterEntry[] = readRoster({
+  inclusionRule: 'דמות לדוגמה: מבחן לדוגמה — מי שהעמיד את עצמו בעין הציבור, בתפקיד שבו עשה זאת.',
   entries: [
     {
       id: 'אילנה-מורגעציון', displayName: 'אילנה מורג־עציון', role: 'חברת הכנסת (דמות לדוגמה)',
@@ -92,7 +93,7 @@ export const SAMPLE_ROSTER: RosterEntry[] = readRoster({
       coverage: [{ sourceModule: 'sample-channel', from: '2022-06-01' }], status: 'active',
     },
   ],
-});
+}).entries;
 
 /**
  * The stand-in for a case that needs a tracked speaker and does not care who. Deliberately
@@ -100,12 +101,13 @@ export const SAMPLE_ROSTER: RosterEntry[] = readRoster({
  * and a fourth person in it would show up in every listing and every picture.
  */
 export const [STAND_IN] = readRoster({
+  inclusionRule: 'דמות לדוגמה.',
   entries: [{
     id: 'דמות-לדוגמה', displayName: 'דמות לדוגמה', role: 'דמות לדוגמה',
     aliases: [], qualifies: 'דמות לדוגמה.',
     coverage: [{ sourceModule: 'sample-protocols', from: '2022-01-01' }], status: 'active',
   }],
-}) as [RosterEntry];
+}).entries as [RosterEntry];
 
 /**
  * A tracked figure for a case that needs one and does not care who. Goes through the

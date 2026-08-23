@@ -219,6 +219,43 @@ a:hover {
   margin: 32px 0 10px;
 }
 
+/* ---- the detection caveat ---------------------------------------------------- */
+
+/* Set apart from the rationale rather than inside it: the rationale is what the model
+   said, and this is what the model cannot know. Bordered on the leading edge in the
+   accent, so it reads as a qualification and not as more evidence. */
+.caveat {
+  margin-block-start: 20px;
+  border-inline-start: 3px solid var(--oxide);
+  padding-inline-start: 14px;
+}
+
+.caveat__text {
+  margin: 0;
+  font-size: 14px;
+  max-width: 46em;
+}
+
+.caveat__more {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.carriers {
+  display: inline;
+}
+
+/* The test itself, set apart from the prose that introduces it — it is quoted policy,
+   not a paragraph. */
+.rule {
+  margin: 0 0 16px;
+  border-inline-start: 3px solid var(--ink);
+  padding-inline-start: 14px;
+  font-family: var(--serif);
+  font-size: 16px;
+  max-width: 46em;
+}
+
 /* ---- attestations, and an anomaly's room ------------------------------------- */
 
 .attestation {

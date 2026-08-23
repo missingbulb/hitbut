@@ -23,7 +23,7 @@ if (!name || !role) {
 }
 
 const path = fileURLToPath(new URL('../../data/roster.json', import.meta.url));
-const roster = readRoster(JSON.parse(readFileSync(path, 'utf8')));
+const { entries: roster } = readRoster(JSON.parse(readFileSync(path, 'utf8')));
 
 const clash = roster.find((entry) => entry.displayName === name || entry.aliases.includes(name));
 if (clash) {
