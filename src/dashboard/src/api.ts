@@ -33,12 +33,19 @@ export function storeToken(token: string): void {
 /** Loading, or an answer, or a reason — never an empty object standing in for any of them. */
 export type Loaded<T> =
   | { state: 'loading' }
+  | { state: 'no-origin' }
   | { state: 'ready'; value: T }
   | { state: 'refused' }
   | { state: 'unconfigured'; message: string }
   | { state: 'failed'; message: string };
 
 async function read<T>(path: string, token?: string): Promise<Loaded<T>> {
+  // No origin is its own state, and nothing is requested in it. Falling back to a relative
+  // URL would be guessing that this page and the API share a host — they never do, the
+  // console is on Pages and the API is on Cloudflare — so the guess resolves to this very
+  // page, which answers 404, and a setting nobody filled in arrives looking like the API
+  // refusing. The one case the fallback existed to explain is the one it cannot.
+  if (!API_ORIGIN) return { state: 'no-origin' };
   try {
     const response = await fetch(`${API_ORIGIN}/api/v1${path}`, {
       headers: token ? { authorization: `Bearer ${token}` } : {},

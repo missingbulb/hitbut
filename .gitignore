@@ -8,3 +8,4 @@ src/frontend/dist/
 src/dashboard/dist/
 # What a failing visual case writes: expected | actual | diff, never beside the goldens.
 dev/requirements/failures/
+src/dashboard/dist-no-origin/

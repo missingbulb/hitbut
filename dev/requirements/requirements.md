@@ -674,6 +674,11 @@ surface. Its rendered states are committed screenshots, the same contract as § 
 
 - `8.10` With no API origin configured the dashboard names the missing setting, and issues no request rather than reporting what its own host answered.
   <details><summary>Detail</summary>
+<!-- gallery:8.10 -->
+
+![8.10 — With no API origin configured the dashboard names the missing setting, and issues no request rather than reporting what its own host answered.](screen/cases/dashboard-no-origin.8.10.png)
+
+<!-- /gallery:8.10 -->
 
   The console is on GitHub Pages and the API is on Cloudflare, so the two never share an
   origin. A relative URL is therefore a guess that is always wrong, and the page it
@@ -684,6 +689,11 @@ surface. Its rendered states are committed screenshots, the same contract as § 
 
 - `8.11` The dashboard is legible on a phone: nothing in the masthead collapses, and every table row stays readable without sideways scrolling.
   <details><summary>Detail</summary>
+<!-- gallery:8.11 -->
+
+![8.11 — The dashboard is legible on a phone: nothing in the masthead collapses, and every table row stays readable without sideways scrolling.](screen/cases/dashboard-phone.8.11.png)
+
+<!-- /gallery:8.11 -->
 
   This is the width an operator actually checks a crawl at — from a phone, away from a
   desk, because something looked wrong. Every other golden here is 1280 wide, so without

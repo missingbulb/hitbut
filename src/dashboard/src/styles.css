@@ -167,3 +167,31 @@ body {
   .split { grid-template-columns: minmax(0, 1fr); }
   .page { padding: 20px 16px 48px; }
 }
+
+/* The width this console is actually checked at: from a phone, because something looked
+   wrong. Two things break here and both are the same mistake — a row of items sized for a
+   desk. */
+@media (max-width: 560px) {
+  /* The masthead stops competing for one line and stacks, so neither the wordmark nor the
+     reading time wraps inside itself. */
+  .masthead { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .masthead h1 { font-size: 20px; }
+
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .tile { padding: 10px 12px; }
+  .tile__value { font-size: 24px; }
+
+  /* A six-column table cannot be read on a phone, and scrolling it sideways hides the
+     module name — which is the column every other one is about. Each row becomes a block
+     with its numbers labelled, so nothing is off-screen and nothing is unlabelled. */
+  .modules, .modules tbody, .modules tr, .modules td { display: block; width: 100%; }
+  .modules thead { display: none; }
+  .modules tr { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .modules td { border: 0; padding: 1px 0; }
+  .modules .num { text-align: left; }
+  .modules td[data-label]::before { content: attr(data-label) ' '; color: var(--muted); }
+  .failures td::before { content: none; }
+  .failures ul { padding-inline-start: 16px; }
+
+  .token input { flex-basis: 100%; }
+}
