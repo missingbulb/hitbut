@@ -1,19 +1,13 @@
 # Is production ready to be deployed to? Reads only — creates nothing, changes nothing,
 # safe to run any number of times.
 #
-# Run it while working through the provisioning checklist (issue #27) to see what is
-# still missing, and run it first when a deploy fails, because most deploy failures are
-# a resource or a secret that is not there.
+# Run it to see what production is still missing — everything it reports as missing is
+# created by the *provision* workflow — and run it first when a deploy fails, because most
+# deploy failures are a resource or a secret that is not there.
 name: preflight
 
 on:
   workflow_dispatch:
-    inputs:
-      stage:
-        description: 'Which checks to run'
-        type: choice
-        default: all
-        options: [all, resources, serving]
 
 jobs:
   preflight:
@@ -22,8 +16,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      API_ORIGIN: ${{ vars.API_ORIGIN }}
-      SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -32,9 +24,4 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Preflight
-        run: |
-          if [ "${{ inputs.stage }}" = "all" ]; then
-            npm run preflight
-          else
-            npm run preflight -- --stage "${{ inputs.stage }}"
-          fi
+        run: npm run preflight

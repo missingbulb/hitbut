@@ -1,0 +1,72 @@
+# Creates whatever production is missing, in the Cloudflare account the repository secrets
+# point at. Deliberately a button rather than part of the deploy: creating resources spends
+# money in someone's account, which is a decision, where deploying to resources that already
+# exist is not.
+#
+# It is idempotent — a resource that is already there is left alone — so re-running it after
+# a partial run, or after adding a scope to the token, is the normal way to use it.
+name: provision
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only say what would be created'
+        type: boolean
+        default: false
+
+# The database id D1 hands out is the one piece of production that lives in the repo.
+permissions:
+  contents: write
+
+jobs:
+  provision:
+    name: create what is missing
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # A Vectorize index fixes its dimensions at creation, so it is created only once the
+      # embedding model is chosen (#34) and this variable says what it outputs.
+      VECTORIZE_DIMENSIONS: ${{ vars.VECTORIZE_DIMENSIONS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Are there credentials to provision with?
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN must both be set as repository"
+            echo "::error::secrets before anything can be created. They are the only part of provisioning"
+            echo "::error::that needs a person — see issue #27."
+            exit 1
+          fi
+      - run: npm ci
+      - name: Create what is missing
+        run: npm run provision ${{ inputs.dry_run && '-- --dry-run' || '' }}
+      # The id is generated data, not a decision: whatever D1 handed out is the only correct
+      # value, so it goes straight to main rather than through a review it cannot fail.
+      - name: Pin the database id on main
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if git diff --quiet -- wrangler.toml; then
+            echo "wrangler.toml already carries the real database id — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wrangler.toml
+          git commit -m "Pin the provisioned D1 database id
+
+          Refs #27"
+          if ! git push origin HEAD:main; then
+            echo "::error::Could not push the database id to main. The line it needs is in the diff"
+            echo "::error::below; commit it by hand and the deploy will work."
+            git --no-pager diff HEAD~1 -- wrangler.toml
+            exit 1
+          fi
+      - name: Where production now stands
+        if: always()
+        run: npm run preflight || true
