@@ -38,22 +38,15 @@
 // `--init` declares it; the adoption question below is what turns the declaration into
 // a working store, and a project that wants none answers "n/a" and carries a pack that
 // says so rather than doing anything.
-import storeConfigured from './store-configured.mjs';
-import storeFileNames from './store-file-names.mjs';
 
 export default {
-  id: 'claude-code-web-users-support',
-  version: '60821.1',
-  minEngineVersion: 1,
+  version: '60823.1',
+  minEngineVersion: '60822.1',
   ruleRoutingGuidance: {
     belongs: 'what a project offers people working from Claude Code on the web, where the session knows who they are',
     excludes: 'project conventions and process — those are the packs that own each subject',
   },
-  badge: 'badge.svg',
-  detect: null,
-  marker: null,
   seededByDefault: true,
-  prose: 'RULES.md',
   questions: [
     {
       id: 'store',
@@ -68,8 +61,10 @@ export default {
   // than mentioning it once in a PR body nobody returns to (#1167).
   adoptionHandover: [
     {
-      step: 'Paste this pack\'s environment-setup-command.sh, whole and unedited, into the web environment\'s Setup script field and rebuild '
-        + '(`find .claudinite/shared -name environment-setup-command.sh` locates it in the mount).',
+      step: 'Paste the body of this pack\'s environment-setup-command.sh, whole and unedited, into the web '
+        + 'environment\'s Setup script field, then rebuild. Quote that body inline here in a fenced block: the '
+        + 'reader of this step is the person about to paste it, and sending them to find a file in the mount is '
+        + 'the hop this exists to remove.',
       breaks: 'a Claude Code web session on this repo has none of the toolchains the active packs need, and the session-start env check halt-gates it before any work',
       done: 'a web session on this repo starts with no missing-requirement halt-gate',
     },
@@ -77,5 +72,4 @@ export default {
   // Both audit the repo as it stands, whatever this session touched: a store broken by
   // an earlier commit is just as silent as one broken by this one. The second is inert
   // in every repo but the one that HOLDS the store it declares.
-  worldRules: [storeConfigured, storeFileNames],
 };
