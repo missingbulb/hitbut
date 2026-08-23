@@ -121,7 +121,10 @@ is a status, not a deletion.
   null — never defaulted.
 - **cluster** — an emergent subject, discovered from the corpus rather than
   chosen in advance (§ Analysis). Ids are stable; the human-readable label is
-  regenerated and is display only.
+  display only, and nothing keys on it — which is what lets it stay **unset**.
+  Nothing names a cluster yet (#33), so every cluster the pipeline opens carries
+  a null label and the figure page shows no subject chips: an unnamed subject is
+  rendered as nothing rather than as a placeholder pretending to be a name.
 - **stance** — one utterance's position within one cluster, with the model and
   prompt version that produced it.
 - **finding** — ULID. A surfaced inconsistency: its kind (`anomaly` or
@@ -268,7 +271,7 @@ than a rewrite.
 Read-only public JSON under a versioned path (`/api/v1/...`): personas, a
 persona's timeline, utterance detail with its attestations, findings, and
 search. Cursor pagination, open CORS, no accounts, no write surface — the only
-writers are the cron trigger, the Workflow and the queue consumers. Responses
+writers are the cron trigger and the backfill's Workflow. Responses
 are edge-cacheable with short TTLs; bulk export is served as generated snapshots
 from R2 rather than paginated through D1.
 
