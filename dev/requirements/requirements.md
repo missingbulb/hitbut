@@ -626,7 +626,7 @@ surface. Its rendered states are committed screenshots, the same contract as § 
   fact that `1.3` refused to invent.
   </details>
 
-- `8.3` `GET /api/v1/operations` refuses a request carrying no credential, and answers one carrying the configured token.
+- `8.3` The operations credential admits a request carrying the configured token and refuses one carrying none, a wrong one, or one of the wrong length.
   <details><summary>Detail</summary>
 
   The operations half reports failure reasons, which name internals. The credential is a
@@ -641,9 +641,9 @@ surface. Its rendered states are committed screenshots, the same contract as § 
   a route that opens when its guard is missing is a route with no guard.
   </details>
 
-- `8.5` `GET /api/v1/operations` reports each run's outcome per source module — what it fetched, what it took from cache, and every failure with its reason.
+- `8.5` The operations view reports each run's outcome per source module — what it fetched, what it took from cache, and every failure with its reason.
 
-- `8.6` A source module that has never run is reported as never having run, and is never reported as having run and found nothing.
+- `8.6` A source module that has never run is reported as never having run, and never as having run and found nothing.
   <details><summary>Detail</summary>
 
   The distinction the dashboard exists for. A module whose parser broke on the first

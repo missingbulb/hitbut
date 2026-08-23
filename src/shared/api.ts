@@ -1,6 +1,16 @@
 // The shapes that cross the HTTP boundary. The site imports these and nothing else from
 // the back end's side of the fence.
-import type { Attestation, Figure, Finding, SaidAt, Source, Utterance } from './types.ts';
+import type {
+  Attestation,
+  CorpusTotals,
+  Distribution,
+  Figure,
+  Finding,
+  Run,
+  SaidAt,
+  Source,
+  Utterance,
+} from './types.ts';
 
 export const API_BASE = '/api/v1';
 
@@ -96,3 +106,33 @@ export type UtteranceHit = {
 };
 
 export type UtteranceSearchResults = { query: string; hits: UtteranceHit[]; nextCursor: string | null };
+
+/**
+ * What `GET /status` answers: the size and shape of the corpus, and when it was read.
+ * Public — every number here is reachable by walking the corpus API, so a credential
+ * would protect nothing and would stop a researcher citing the size of what they cite.
+ */
+export type StatusView = {
+  readAt: string;
+  totals: CorpusTotals;
+  distributions: { venue: Distribution; year: Distribution };
+};
+
+/**
+ * One source module as the operator sees it. `lastRun` is null for a module that has
+ * never run — which is not the same as a module that ran and moved nothing, and the
+ * difference is most of why anybody opens this page.
+ */
+export type ModuleState = {
+  id: string;
+  publisher: string;
+  /** How often this source is meant to be revisited, in minutes. */
+  refreshMinutes: number;
+  lastRun: Run | null;
+};
+
+/** What `GET /operations` answers. Credentialled: failure reasons name internals. */
+export type OperationsView = {
+  readAt: string;
+  modules: ModuleState[];
+};

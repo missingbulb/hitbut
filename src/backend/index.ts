@@ -24,6 +24,7 @@ export default {
     // person, a rename, a retirement — reaches the corpus on the next run and never
     // through anything a crawl did.
     await corpus.syncRoster(ROSTER);
+    const startedAt = new Date().toISOString();
     const outcomes = await runAcquisition({
       corpus,
       raw: env.RAW,
@@ -38,6 +39,23 @@ export default {
     });
     // A source that declined is a signal for a human; the run still succeeded.
     for (const outcome of outcomes) {
+      // Kept rather than logged and dropped: a log stream nobody watches is not a record,
+      // and "has this module run at all" is the question the dashboard exists to answer.
+      await corpus.recordRun({
+        sourceModule: outcome.module,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        fetched: outcome.fetched,
+        cached: outcome.skipped,
+        utterances: outcome.utterances,
+        unattributed: outcome.unattributed,
+        failures: [
+          ...outcome.failures.map((failure) => ({ key: failure.key, reason: `${failure.reason}: ${failure.detail}` })),
+          // A capability the chain could not reach is a failure of the pass too, and the
+          // one most likely to be mistaken for the corpus simply having nothing new.
+          ...outcome.incomplete.map((stopped) => ({ key: stopped.utteranceId, reason: stopped.because })),
+        ],
+      });
       console.log(
         `acquisition ${outcome.module}: fetched ${outcome.fetched}, skipped ${outcome.skipped}, ` +
           `utterances ${outcome.utterances}, unattributed ${outcome.unattributed}, ` +
