@@ -16,8 +16,8 @@ jobs:
     name: requirements (logic, behavior, server)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -37,8 +37,8 @@ jobs:
     # rasterises text differently, and the comparison would measure the renderer.
     container: mcr.microsoft.com/playwright:v1.56.1-noble
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -46,7 +46,10 @@ jobs:
       - run: npm run test:screen
       - name: The pictures, when they disagree
         if: failure()
-        uses: actions/upload-artifact@v4
+        # v6, not v5 like the actions above: upload-artifact's v5 still runs on
+        # Node 20, so matching the others here would leave the deprecation in
+        # place on the one step that only runs when something is already wrong.
+        uses: actions/upload-artifact@v6
         with:
           name: screen-failures
           path: dev/requirements/failures/
@@ -61,8 +64,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
