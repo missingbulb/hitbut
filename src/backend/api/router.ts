@@ -22,6 +22,8 @@ import type {
 } from '../../shared/api.ts';
 import { API_BASE } from '../../shared/api.ts';
 import { EXPORT_KEY } from './export.ts';
+import { admit, operationsView, statusView } from './operations.ts';
+import { productionRegistry } from '../acquisition/registry.ts';
 import { INCLUSION_RULE } from '../corpus/roster-data.ts';
 
 /** Open on purpose: the corpus is public, and researchers read it from their own pages. */
@@ -39,6 +41,8 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 
 const fail = (status: number, code: string, message: string): Response =>
   json({ error: { code, message } } satisfies ErrorBody, status);
+
+const now = () => new Date().toISOString();
 
 const pageLimit = (url: URL): number => Math.min(Math.max(Number(url.searchParams.get('limit')) || 20, 1), 100);
 const cursorOf = (url: URL): string | null => url.searchParams.get('cursor');
@@ -73,6 +77,8 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   if (segments[0] === 'findings' && segments.length === 1) return listFindings(corpus, url);
   if (segments[0] === 'findings' && segments.length === 2) return findingDetail(corpus, segments[1]);
   if (segments[0] === 'search' && segments.length === 1) return search(corpus, url);
+  if (segments[0] === 'status' && segments.length === 1) return json(await statusView(corpus, now));
+  if (segments[0] === 'operations' && segments.length === 1) return operations(request, env, corpus);
   if (path === '/export/utterances.ndjson') return exportUtterances(env);
 
   return fail(404, 'not_found', `no route for ${url.pathname}`);
@@ -213,6 +219,13 @@ async function search(corpus: Corpus, url: URL): Promise<Response> {
     });
   }
   return json({ query, hits, nextCursor } satisfies UtteranceSearchResults);
+}
+
+/** The credentialled half: what each source module last did, refusals included. */
+async function operations(request: Request, env: Env, corpus: Corpus): Promise<Response> {
+  const admission = admit(request, env);
+  if (!admission.admitted) return fail(admission.status, admission.code, admission.message);
+  return json(await operationsView(corpus, productionRegistry(), now));
 }
 
 async function exportUtterances(env: Env): Promise<Response> {

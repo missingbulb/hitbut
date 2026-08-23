@@ -32,4 +32,10 @@ export type Env = {
   CORPUS: D1Database;
   RAW: R2Bucket;
   SURFACING_THRESHOLD: string;
+  /**
+   * The operator dashboard's credential, set as a Worker secret. Optional on the type
+   * because a Worker deployed without it is a real state: the operations route answers
+   * "unconfigured" then, rather than answering openly.
+   */
+  DASHBOARD_TOKEN?: string;
 };

@@ -196,3 +196,40 @@ export type Unattributed = {
   context: string | null;
   createdAt: string;
 };
+
+/** One source module's pass: what it moved, and what it could not. */
+export type Run = {
+  id: string;
+  sourceModule: string;
+  startedAt: string;
+  finishedAt: string;
+  fetched: number;
+  cached: number;
+  utterances: number;
+  unattributed: number;
+  failures: { key: string; reason: string }[];
+};
+
+/**
+ * What the corpus holds. Every field is a count of something committed — nothing here is
+ * derived from anybody reading the site.
+ */
+export type CorpusTotals = {
+  figures: number;
+  utterances: number;
+  attestations: number;
+  clusters: number;
+  /** Live and surfaced, which is what the site shows; superseded ones are excluded. */
+  findings: number;
+  unattributed: number;
+};
+
+/**
+ * A distribution as a list of named buckets. `undated` is its own bucket rather than a
+ * missing key, because the number of utterances no source dated is a fact about the
+ * corpus worth reading, and folding it into a year would invent one.
+ */
+export type Distribution = {
+  buckets: { name: string; count: number }[];
+  undated: number;
+};

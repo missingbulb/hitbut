@@ -23,6 +23,26 @@
               "src/shared"
             ],
             "reason": "the Workers back end and the Pages front end deploy as two independent artifacts and integrate over the HTTP API only — they share the contract in src/shared and nothing else"
+          },
+          {
+            "between": [
+              "src/backend",
+              "src/dashboard"
+            ],
+            "allow": [
+              "src/shared"
+            ],
+            "reason": "the operator dashboard is a third independently deployed artifact — it reads the Worker over the same HTTP API a reader's browser does, and shares only the contract in src/shared"
+          },
+          {
+            "between": [
+              "src/frontend",
+              "src/dashboard"
+            ],
+            "allow": [
+              "src/shared"
+            ],
+            "reason": "the public site and the operator console ship to different hosts and answer to different people; a component shared between them would couple a reader-facing promise to an internal tool"
           }
         ]
       }

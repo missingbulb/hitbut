@@ -9,11 +9,14 @@ import type {
   Cluster,
   ClusterMember,
   Coverage,
+  CorpusTotals,
+  Distribution,
   Figure,
   Finding,
   FindingKind,
   FindingRole,
   Language,
+  Run,
   SaidAt,
   Source,
   Stance,
@@ -126,6 +129,18 @@ const toUtterance = (row: Row): Utterance => ({
   venue: row.venue as Venue,
   audience: (row.audience as Audience) ?? null,
   createdAt: row.created_at as string,
+});
+
+const toRun = (row: Row): Run => ({
+  id: row.id as string,
+  sourceModule: row.source_module as string,
+  startedAt: row.started_at as string,
+  finishedAt: row.finished_at as string,
+  fetched: Number(row.fetched),
+  cached: Number(row.cached),
+  utterances: Number(row.utterances),
+  unattributed: Number(row.unattributed),
+  failures: JSON.parse((row.failures as string) ?? '[]') as Run['failures'],
 });
 
 const toAttestation = (row: Row): Attestation => ({
@@ -727,6 +742,90 @@ export class Corpus {
   }
 
   /** Every utterance in the corpus, oldest first — what the bulk export walks. */
+  // ---- what the corpus holds, and what the crawl did ---------------------------
+
+  /**
+   * Records one module's pass. The absence of a row is what "never ran" means (8.6), so
+   * this is called for every module the pass touched, including one that moved nothing.
+   */
+  async recordRun(run: Omit<Run, 'id'>): Promise<Run> {
+    const id = this.#ulid();
+    await this.#db
+      .prepare(
+        `INSERT INTO runs (id, source_module, started_at, finished_at, fetched, cached, utterances, unattributed, failures)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        id,
+        run.sourceModule,
+        run.startedAt,
+        run.finishedAt,
+        run.fetched,
+        run.cached,
+        run.utterances,
+        run.unattributed,
+        JSON.stringify(run.failures),
+      )
+      .run();
+    return { id, ...run };
+  }
+
+  /**
+   * The most recent run of each module that has ever run. A module the registry declares
+   * and this never mentions has never run — the caller pairs the two, because only the
+   * caller knows which modules are supposed to exist.
+   */
+  async latestRuns(): Promise<Run[]> {
+    const rows = await this.#db
+      .prepare(
+        `SELECT r.* FROM runs r
+         JOIN (SELECT source_module, MAX(started_at) AS latest FROM runs GROUP BY source_module) newest
+           ON newest.source_module = r.source_module AND newest.latest = r.started_at
+         ORDER BY r.source_module`,
+      )
+      .all<Row>();
+    return rows.results.map(toRun);
+  }
+
+  async corpusTotals(): Promise<CorpusTotals> {
+    const count = async (query: string): Promise<number> =>
+      Number((await this.#db.prepare(query).first<Row>())?.n ?? 0);
+    return {
+      figures: await count("SELECT COUNT(*) AS n FROM figures WHERE status = 'active'"),
+      utterances: await count('SELECT COUNT(*) AS n FROM utterances'),
+      attestations: await count('SELECT COUNT(*) AS n FROM attestations'),
+      clusters: await count('SELECT COUNT(*) AS n FROM clusters'),
+      findings: await count('SELECT COUNT(*) AS n FROM findings WHERE superseded_by IS NULL AND surfaced = 1'),
+      unattributed: await count('SELECT COUNT(*) AS n FROM unattributed'),
+    };
+  }
+
+  /**
+   * Utterances by the room they were said in, and by the year they were said. Both count
+   * the undated separately: `1.3` keeps an unestablished date null, and a distribution
+   * that filed those under a year would put back the guess the corpus refused to make.
+   */
+  async utteranceDistributions(): Promise<{ venue: Distribution; year: Distribution }> {
+    const undated = Number(
+      (await this.#db.prepare('SELECT COUNT(*) AS n FROM utterances WHERE said_at IS NULL').first<Row>())?.n ?? 0,
+    );
+    const venues = await this.#db
+      .prepare('SELECT venue AS name, COUNT(*) AS n FROM utterances GROUP BY venue ORDER BY n DESC, venue')
+      .all<Row>();
+    // Only the dated ones have a year to be grouped by; the rest are the undated bucket.
+    const years = await this.#db
+      .prepare(
+        `SELECT substr(said_at, 1, 4) AS name, COUNT(*) AS n FROM utterances
+         WHERE said_at IS NOT NULL GROUP BY name ORDER BY name`,
+      )
+      .all<Row>();
+    const buckets = (rows: Row[]) => rows.map((row) => ({ name: String(row.name), count: Number(row.n) }));
+    return {
+      venue: { buckets: buckets(venues.results), undated: 0 },
+      year: { buckets: buckets(years.results), undated },
+    };
+  }
+
   async allUtterances(): Promise<Utterance[]> {
     const rows = await this.#db.prepare('SELECT * FROM utterances ORDER BY id').all<Row>();
     return rows.results.map(toUtterance);

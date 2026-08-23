@@ -601,3 +601,78 @@ the design canvas.
   ([#27](https://github.com/missingbulb/hitbut/issues/27)) lands and a merge is observed end
   to end.
   </details>
+
+## 8. The operator dashboard
+
+A separate app for whoever runs this, published apart from the public site: what the corpus
+holds, and what the crawl last did. It answers from what the server already knows about
+itself — no visitor is counted, no query is retained, and nothing here required a write
+surface. Its rendered states are committed screenshots, the same contract as § 6.
+
+- `8.1` `GET /api/v1/status` returns the corpus totals — figures, utterances, attestations, clusters and live findings — and needs no credential.
+  <details><summary>Detail</summary>
+
+  Public on purpose. Every number in it can already be arrived at by walking the public
+  corpus API, so a credential here would protect nothing and would only stop a researcher
+  citing the size of the thing they are citing.
+  </details>
+
+- `8.2` `GET /api/v1/status` reports how utterances distribute over venue and over year, counting the undated as their own bucket rather than dropping them.
+  <details><summary>Detail</summary>
+
+  A corpus reaching back decades has utterances a source never dated, and `1.3` exists so
+  that stays unknown rather than becoming a guess. A distribution that silently omits them
+  reports a smaller corpus than there is; one that files them under a year invents the very
+  fact that `1.3` refused to invent.
+  </details>
+
+- `8.3` The operations credential admits a request carrying the configured token and refuses one carrying none, a wrong one, or one of the wrong length.
+  <details><summary>Detail</summary>
+
+  The operations half reports failure reasons, which name internals. The credential is a
+  bearer token compared against a Worker secret, because a static page cannot hold a secret
+  and the person looking can.
+  </details>
+
+- `8.4` `GET /api/v1/operations` refuses when no credential is configured, rather than answering openly.
+  <details><summary>Detail</summary>
+
+  The dangerous default. An unset secret must fail closed and say that it is unconfigured —
+  a route that opens when its guard is missing is a route with no guard.
+  </details>
+
+- `8.5` The operations view reports each run's outcome per source module — what it fetched, what it took from cache, and every failure with its reason.
+
+- `8.6` A source module that has never run is reported as never having run, and never as having run and found nothing.
+  <details><summary>Detail</summary>
+
+  The distinction the dashboard exists for. A module whose parser broke on the first
+  document and a module nobody has wired up both show zero utterances, and only one of them
+  is a problem. Unknown is a state of its own here as everywhere else in this corpus.
+  </details>
+
+- `8.7` The dashboard shows the corpus totals, both distributions, and the state of every source module on one screen.
+<!-- gallery:8.7 -->
+
+![8.7 — The dashboard shows the corpus totals, both distributions, and the state of every source module on one screen.](screen/cases/dashboard.8.7.png)
+
+<!-- /gallery:8.7 -->
+
+- `8.8` The dashboard asks for a token when operations refuses it, and keeps showing the corpus numbers it can read without one.
+  <details><summary>Detail</summary>
+<!-- gallery:8.8 -->
+
+![8.8 — The dashboard asks for a token when operations refuses it, and keeps showing the corpus numbers it can read without one.](screen/cases/dashboard-token.8.8.png)
+
+<!-- /gallery:8.8 -->
+
+  Half the page needs no credential. A dashboard that renders an error page because its
+  privileged half was refused throws away the half that answered.
+  </details>
+
+- `8.9` The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.
+<!-- gallery:8.9 -->
+
+![8.9 — The dashboard says when it last read the server, and reports a source module's failures against that module rather than in one undifferentiated list.](screen/cases/dashboard-failures.8.9.png)
+
+<!-- /gallery:8.9 -->

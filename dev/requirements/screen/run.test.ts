@@ -4,26 +4,34 @@
 import test, { after } from 'node:test';
 import { build } from 'vite';
 import { createTestHarness } from 'wrangler';
-import { fileURLToPath } from 'node:url';
 import type { Page } from 'playwright-core';
 import { goldenPath, loadCase, readCases, type CaseFile } from '../registry.ts';
 import { resetAndMigrate } from '../shared/migrations.ts';
 import { harnessConfigPath } from '../shared/worker-config.ts';
 import { corpusOn, seedCorpus, type SeededCorpus } from '../shared/fixtures.ts';
 import type { D1Database } from '../../../src/backend/env.ts';
-import { DESKTOP, launchBrowser, newContext, settle, SITE_ORIGIN, type Viewport } from './harness.ts';
+import type { OperationsView } from '../../../src/shared/api.ts';
+import { DASHBOARD, DESKTOP, launchBrowser, newContext, settle, SITE, type App, type Viewport } from './harness.ts';
 import { compareWithGolden, refreshing } from './compare.ts';
 
 export type ScreenContext = {
   /** Opens a site path and waits until the page itself says it has rendered. */
   open(path: string, viewport?: Viewport): Promise<Page>;
+  /** The same, for the operator console — a separate artifact on its own origin. */
+  openDashboard(path: string, viewport?: Viewport): Promise<Page>;
+  /**
+   * Installs the operations payload the next page will read. The shipped Worker in this
+   * lane has no DASHBOARD_TOKEN — a secret is not in the committed config — so a case
+   * that wants to look at a crawl builds the view from the shipped code and serves it.
+   */
+  serveOperations(view: OperationsView | null): void;
   /** Captures the page and compares it with this case's committed golden. */
   shoot(page: Page): Promise<void>;
   seeded: SeededCorpus;
 };
 
-// The real site, built the way the deploy builds it.
-await build({ configFile: fileURLToPath(new URL('../../../src/frontend/vite.config.ts', import.meta.url)), logLevel: 'warn' });
+// Both apps, each built the way its own deploy builds it.
+for (const app of [SITE, DASHBOARD]) await build({ configFile: app.config, logLevel: 'warn' });
 
 const server = createTestHarness({ workers: [{ configPath: harnessConfigPath() }] });
 await server.listen();
@@ -48,24 +56,39 @@ const api = async (pathAndQuery: string) => {
 
 async function screenContext(caseFile: CaseFile): Promise<ScreenContext> {
   const pages: Page[] = [];
+  let operations: OperationsView | null = null;
+
+  const answer = async (pathAndQuery: string) => {
+    if (operations && pathAndQuery.startsWith('/api/v1/operations')) {
+      return { status: 200, headers: { 'content-type': 'application/json' }, body: JSON.stringify(operations) };
+    }
+    return api(pathAndQuery);
+  };
+
+  const openOn = async (app: App, sitePath: string, viewport: Viewport) => {
+    // A fresh context per capture — state must not leak between cases — while the
+    // browser itself is launched once, because process startup dominates the cost.
+    const context = await newContext(browser, answer, viewport, app);
+    const page = await context.newPage();
+    pages.push(page);
+    // A page that fails to render is a blank screenshot and a timeout; whatever the
+    // page itself said about why is the only thing that explains it.
+    page.on('pageerror', (error) => console.error(`${caseFile.id} page error: ${error.message}`));
+    page.on('requestfailed', (request) =>
+      console.error(`${caseFile.id} request failed: ${request.url()} ${request.failure()?.errorText ?? ''}`),
+    );
+    await page.goto(`${app.origin}${sitePath}`, { waitUntil: 'commit' });
+    await settle(page);
+    return page;
+  };
+
   return {
     seeded,
-    async open(sitePath: string, viewport: Viewport = DESKTOP) {
-      // A fresh context per capture — state must not leak between cases — while the
-      // browser itself is launched once, because process startup dominates the cost.
-      const context = await newContext(browser, api, viewport);
-      const page = await context.newPage();
-      pages.push(page);
-      // A page that fails to render is a blank screenshot and a timeout; whatever the
-      // page itself said about why is the only thing that explains it.
-      page.on('pageerror', (error) => console.error(`${caseFile.id} page error: ${error.message}`));
-      page.on('requestfailed', (request) =>
-        console.error(`${caseFile.id} request failed: ${request.url()} ${request.failure()?.errorText ?? ''}`),
-      );
-      await page.goto(`${SITE_ORIGIN}${sitePath}`, { waitUntil: 'commit' });
-      await settle(page);
-      return page;
+    serveOperations(view) {
+      operations = view;
     },
+    open: (sitePath, viewport = DESKTOP) => openOn(SITE, sitePath, viewport),
+    openDashboard: (sitePath, viewport = DESKTOP) => openOn(DASHBOARD, sitePath, viewport),
     async shoot(page: Page) {
       const shot = await page.screenshot({ fullPage: true, animations: 'disabled' });
       const outcome = compareWithGolden(shot, goldenPath(caseFile), `${caseFile.slug}.${caseFile.id}`);
