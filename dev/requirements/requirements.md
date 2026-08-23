@@ -373,8 +373,8 @@ utterances a finding rests on, what was said about them, and by which model and 
 
 ## 5. HTTP API
 
-Public, read-only JSON under `/api/v1`. The only writers are the cron trigger and the queue
-consumer; everything a reader sees comes through here, including the site's own pages.
+Public, read-only JSON under `/api/v1`. The only writer is the cron trigger; everything a
+reader sees comes through here, including the site's own pages.
 
 - `5.1` `GET /api/v1/figures` lists figures with a cursor, and that cursor returns the next page without repeats.
 - `5.2` `GET /api/v1/figures/{id}` returns the profile with its utterance timeline, newest first.

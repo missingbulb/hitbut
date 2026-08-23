@@ -6,9 +6,8 @@ import type { ErrorBody } from '../../../../src/shared/api.ts';
 export default {
   title: 'a write method is rejected with 405',
   async run(api: ApiContext) {
-    // There is no write surface to authenticate — the only writers are the cron trigger
-    // and the queue consumer — so the boundary says so rather than implying it by
-    // routing failure.
+    // There is no write surface to authenticate — the only writer is the cron trigger —
+    // so the boundary says so rather than implying it by routing failure.
     for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
       const response = await api.request('/api/v1/figures', { method, body: method === 'DELETE' ? undefined : '{}' });
       assert.equal(response.status, 405, `${method} was not refused`);

@@ -1,6 +1,6 @@
 // The public read-only API. Everything a reader sees — including every page of the site —
-// comes through here; the only writers are the cron trigger and the queue consumer, so
-// there is no write surface to authenticate and the boundary says so rather than implying
+// comes through here; the only writer is the cron trigger, so there is no write surface
+// to authenticate and the boundary says so rather than implying
 // it by routing failure.
 import type { Env } from '../env.ts';
 import { Corpus } from '../corpus/store.ts';

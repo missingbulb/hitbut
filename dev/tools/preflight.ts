@@ -149,13 +149,6 @@ const CHECKS: Check[] = [
     run: () => listContains(['r2', 'bucket', 'list'], 'hitbut-raw'),
   },
   {
-    label: 'queue hitbut-analysis',
-    stage: 'resources',
-    required: true,
-    why: 'acquisition hands statements to analysis across it',
-    run: () => listContains(['queues', 'list'], 'hitbut-analysis'),
-  },
-  {
     label: 'Pages project hitbut',
     stage: 'resources',
     required: true,
@@ -165,9 +158,11 @@ const CHECKS: Check[] = [
   {
     label: 'Vectorize index hitbut-utterances',
     stage: 'resources',
-    // Not yet consumed by any shipped code; it arrives with the redesign in #34.
+    // The code that would use it has landed; what is missing is the binding, which
+    // arrives with the account (#27). Until then the Worker wires ports that fail by
+    // name rather than silently doing nothing.
     required: false,
-    why: 'utterance embeddings; detection has no retrieval step without it (#34)',
+    why: 'utterance embeddings; ingestion has no retrieval step without it (#27)',
     run: () => listContains(['vectorize', 'list'], 'hitbut-utterances'),
   },
 ];
