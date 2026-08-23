@@ -25,8 +25,12 @@ export type ScreenContext = {
    * that wants to look at a crawl builds the view from the shipped code and serves it.
    */
   serveOperations(view: OperationsView | null): void;
-  /** Captures the page and compares it with this case's committed golden. */
-  shoot(page: Page): Promise<void>;
+  /**
+   * Captures the page and compares it with this case's committed golden. A selector
+   * narrows the capture to that element's box, for a leaf about one piece of the page
+   * rather than the whole of it.
+   */
+  shoot(page: Page, within?: string): Promise<void>;
   seeded: SeededCorpus;
 };
 
@@ -53,6 +57,20 @@ const api = async (pathAndQuery: string) => {
     body: await response.text(),
   };
 };
+
+/** An element's box in document coordinates — viewport coordinates go stale on a scroll. */
+async function documentBox(page: Page, selector: string): Promise<{ x: number; y: number; width: number; height: number }> {
+  const box = await page.evaluate((css) => {
+    const element = document.querySelector(css);
+    if (!element) return null;
+    const rect = element.getBoundingClientRect();
+    return { x: rect.x + window.scrollX, y: rect.y + window.scrollY, width: rect.width, height: rect.height };
+  }, selector);
+  if (!box) throw new Error(`nothing matched ${selector}, so there is nothing to capture`);
+  const x = Math.floor(box.x);
+  const y = Math.floor(box.y);
+  return { x, y, width: Math.ceil(box.x + box.width) - x, height: Math.ceil(box.y + box.height) - y };
+}
 
 async function screenContext(caseFile: CaseFile): Promise<ScreenContext> {
   const pages: Page[] = [];
@@ -89,8 +107,13 @@ async function screenContext(caseFile: CaseFile): Promise<ScreenContext> {
     },
     open: (sitePath, viewport = DESKTOP) => openOn(SITE, sitePath, viewport),
     openDashboard: (sitePath, viewport = DESKTOP) => openOn(DASHBOARD, sitePath, viewport),
-    async shoot(page: Page) {
-      const shot = await page.screenshot({ fullPage: true, animations: 'disabled' });
+    async shoot(page: Page, within?: string) {
+      // The clip comes off the full-page shot rather than off the element: an element
+      // screenshot scrolls the element into view first, and a scroll dismisses whatever
+      // state the case opened. Whole pixels, because a fractional clip leaves the
+      // rounding to the renderer and half a pixel either way is a different image.
+      const clip = within ? await documentBox(page, within) : undefined;
+      const shot = await page.screenshot({ fullPage: true, animations: 'disabled', clip });
       const outcome = compareWithGolden(shot, goldenPath(caseFile), `${caseFile.slug}.${caseFile.id}`);
       if (outcome === 'written') console.log(`${caseFile.id}: wrote ${caseFile.golden} — review it in the diff`);
       await page.context().close();
