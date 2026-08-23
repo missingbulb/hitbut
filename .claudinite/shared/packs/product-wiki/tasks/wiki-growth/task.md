@@ -10,9 +10,8 @@ GitHub access is the session's **GitHub MCP tools** (`mcp__github__*`) — never
 `product-wiki/`, excluding the `product-wiki/product-requirements/` and `product-wiki/sample-data/` subtrees.
 
 There is no preflight: whether this run happens was decided by the task's **precondition** (it declines while
-a PR carrying the **`product-wiki-growth` label** — the marker every PR of this family applies to itself —
-sits open for review), so by the time you read this the round is granted. Your job is the research; label the
-PR you open `product-wiki-growth` so the next round's precondition can see it.
+any open PR carries a pending change under `product-wiki/`, whoever opened it), so by the time you read this
+the round is granted. Your job is the research.
 
 ## Method
 
@@ -49,19 +48,19 @@ Neither mode yields citable material → stop. No commit, no log entry, no PR.
 ## Delivery
 
 A unique branch per run, commits touching only `product-wiki/**` minus `product-requirements/`, one
-**PR — never a push to the default branch directly** — carrying the **`product-wiki-growth` label**. The
-label is load-bearing: it is how the next run's precondition sees this PR at all, so a PR opened without it
-will be stacked on by the following week's run — label it whether or not the PR then lands.
+**PR — never a push to the default branch directly**. Its `product-wiki/` paths are what the next run's
+precondition sees, so nothing further has to be applied to it.
 Then hand it to the one delivery procedure (`deliver-pr.md`) and do what it says. PR body: the question(s)
 researched, what changed where, the citations added, and the open questions left for the next run.
 
 ## Tracking
 
-Standing issue found by exact title **"Claudinite tracker: Product Wiki Growth"** in the repo — found by
-title, never by number, never opened/closed as state (open it if missing). One dated comment when a pass
-**grew** (`grew (PR #N): <one line>`) or was **blocked** (`blocked: <why>` — the human-visible convergence for
-a failed unattended run). Clean no-ops stay silent — the pack's freshness advisory is the prolonged-silence
-observer.
+The wiki's own git history is the record: every pass that grew it left a PR, and what changed is in the diff.
+Keep no standing issue.
+
+A pass that was **blocked** still needs to be visible — that is the human-facing convergence of a failed
+unattended run — so say so in the run's own outcome (`blocked: <why>`), where the queue surfaces it. Clean
+no-ops stay silent; the pack's freshness advisory is the prolonged-silence observer.
 
 Reading a wiki, judging which of its open questions is worth this run, and telling a citable finding from
 a plausible one is the heaviest judgment in the task set — weigh each accordingly.
