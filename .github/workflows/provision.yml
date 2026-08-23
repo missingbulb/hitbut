@@ -67,6 +67,10 @@ jobs:
             git --no-pager diff HEAD~1 -- wrangler.toml
             exit 1
           fi
-      - name: Where production now stands
+      # This decides the run. The provisioner exits clean when it *declines* — an unanswered
+      # question is not a failure of its own — so without a gate here a run that created
+      # nothing and could ask nothing reports success, and the only way to find out is to read
+      # the log. The preflight is the honest answer to "did it work", so let it be the answer.
+      - name: Is production ready now?
         if: always()
-        run: npm run preflight || true
+        run: npm run preflight

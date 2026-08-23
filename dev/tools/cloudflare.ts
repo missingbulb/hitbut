@@ -99,9 +99,15 @@ export const RESOURCES: Resource[] = [
 
 /**
  * The actual reason, out of wrangler's chatter. Wrangler marks its own severity — ✘ for an
- * error, ▲ for a warning — so the error line is identified by its marker rather than
- * guessed at by position or length, both of which pick the banner, the proxy warning or the
+ * error, ▲ for a warning — so the error line is identified by its marker rather than guessed
+ * at by position or length, both of which pick the banner, the proxy warning or the
  * bug-report boilerplate depending on the day.
+ *
+ * The marked line is a **headline**, and the part that says what to do about it comes on the
+ * lines under it: `wrangler r2 bucket list` reports "A request to the Cloudflare API
+ * (/accounts/…/r2/buckets) failed." and puts the code that separates a missing token scope
+ * from an un-onboarded product underneath. Take the continuation with it, to the first blank
+ * line or next marker, or the report names a failure nobody can act on.
  */
 // eslint-disable-next-line no-control-regex -- ANSI escapes are exactly what is being stripped
 export const stripAnsi = (output: string): string => output.replace(/\u001b\[[0-9;]*m/g, '');
@@ -114,14 +120,21 @@ export function firstUsefulLine(output: string): string {
       .replace(/^\[?(ERROR|WARNING)\]?\s*/i, '')
       .trim();
 
-  const marked = lines.find((line) => line.includes('\u2718'));
-  const reason =
-    tidy(marked ?? '') ||
-    lines
-      .map(tidy)
-      .find((line) => line.length > 12 && !/^wrangler \d|Logs were written|create an issue at|telemetry/.test(line)) ||
-    '';
-  return reason.length > 200 ? `${reason.slice(0, 200)}…` : reason;
+  const noise = /^wrangler \d|Logs were written|create an issue at|telemetry/;
+  const at = lines.findIndex((line) => line.includes('\u2718'));
+
+  let reason = '';
+  if (at !== -1) {
+    const block = [lines[at] as string];
+    for (const line of lines.slice(at + 1)) {
+      const next = tidy(line);
+      if (!next || /[\u2718\u25b2]/.test(line) || noise.test(next)) break;
+      block.push(line);
+    }
+    reason = block.map(tidy).filter(Boolean).join(' ');
+  }
+  reason ||= lines.map(tidy).find((line) => line.length > 12 && !noise.test(line)) || '';
+  return reason.length > 400 ? `${reason.slice(0, 400)}…` : reason;
 }
 
 /**
