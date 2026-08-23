@@ -590,6 +590,17 @@ the design canvas.
 
 <!-- /gallery:6.13 -->
 
+- `6.14` The masthead wordmark sets `התבט` in the old face, eroded, and `אויות` in the modern one, clean — one word, two eras.
+  <details><summary>Detail</summary>
+
+  The lockup carves `התבט` — which reads "hitbut" — out of `התבטאויות`, and the product is what
+  somebody said then against what they say now. So the carve is typographic rather than
+  decorative: the stem is the serif the site already uses for its headlines, worn — set
+  loose, sitting unevenly on the line, its ink flaking away towards the baseline — and the
+  remainder is the modern sans, set tight and lacquered. The two halves stay one word on
+  one baseline: a reader sees התבטאויות, not two words.
+  </details>
+
 ## 7. Shipping
 
 - `7.1` A merge to `main` reaches the deployed site with no human build step. **[provisional — no case]**
