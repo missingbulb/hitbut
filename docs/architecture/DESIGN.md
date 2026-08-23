@@ -60,10 +60,14 @@ hatch is a smaller slice before it is a second runtime.
   Relational queries — a persona's timeline, a stance series, an attestation's
   siblings — are the workload.
 - **R2** holds the raw payload cache: every fetched page, feed response or
-  document is stored verbatim, keyed by source and fetch time, **before**
-  anything interprets it. A parser fix then re-runs extraction offline against
-  R2 — no re-fetch, no dependence on sites that changed or died. R2 also holds
-  the backfill's intermediate ledger and the generated NDJSON export snapshots.
+  document is stored verbatim **before** anything interprets it. A parser fix
+  then re-runs extraction offline against R2 — no re-fetch, no dependence on
+  sites that changed or died. The bucket has two key shapes, because the crawl
+  re-reads pages that can change and keeps every fetch, while the backfill walks
+  documents that cannot and keeps one object per document so a retried step
+  finds it; `src/backend/raw-keys.ts` is where both are written down and why.
+  R2 also holds the backfill's intermediate ledger and the generated NDJSON
+  export snapshots.
 - **Vectorize** holds one embedding per utterance. D1 has no vector type, and
   the retrieval this product needs is nearest-neighbour, not `LIKE`.
 - **Queues** are available for the hand-off between stages when a fetch burst

@@ -19,6 +19,7 @@ import type { SourceModule } from '../acquisition/registry.ts';
 import { fetchPage, type FetchDeps, type FetchOptions } from '../acquisition/fetcher.ts';
 import { ingest, type IngestDeps } from '../ingestion/pipeline.ts';
 import { readSourceDate } from '../corpus/dates.ts';
+import { archiveRawKey } from '../raw-keys.ts';
 
 /** One window of one archive: the unit a Workflow run covers. */
 export type Slice = {
@@ -50,11 +51,6 @@ export type SliceDeps = {
   fetch?: FetchOptions;
 };
 
-const rawKeyFor = (module: SourceModule, key: string): string =>
-  // Addressed by the document's own key rather than by fetch time: a retry has to find what
-  // the previous attempt stored, and a timestamped key would miss it every time.
-  `${module.id}/${encodeURIComponent(key)}.raw`;
-
 /**
  * Runs one slice: fetch what is missing, then put every document through the same ingestion
  * chain the cron uses. Never throws — the outcome is what a Workflow step reads to decide
@@ -66,7 +62,7 @@ export async function runSlice(deps: SliceDeps, module: SourceModule, slice: Sli
   const documents = (await module.list()).filter((document) => inSlice(document.key, slice));
 
   for (const document of documents) {
-    const key = rawKeyFor(module, document.key);
+    const key = archiveRawKey(module, document.key);
     let payload: string;
 
     // The whole of the no-re-fetch rule: what a previous attempt stored is what this one
