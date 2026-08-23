@@ -3,8 +3,8 @@
 //
 // A source that fails is a signal for a human, not a broken pipeline — the pass records
 // the reason, keeps going, and finishes successfully with a report.
-import type { AnalysisMessage, Queue, R2Bucket } from '../env.ts';
-import type { Corpus, ExtractedStatement } from '../corpus/store.ts';
+import type { R2Bucket } from '../env.ts';
+import type { Corpus } from '../corpus/store.ts';
 import { fetchPage, type FetchDeps, type FetchFailure, type FetchOptions } from './fetcher.ts';
 import type { SourceModule, SourceRegistry, RawStatement } from './registry.ts';
 import type { RosterEntry } from '../corpus/roster.ts';
@@ -18,7 +18,6 @@ export type ModuleOutcome = {
   fetched: number;
   /** Already in the cache and already extracted: no request was issued. */
   skipped: number;
-  statements: number;
   /** Passages held for a decision because we do not track their speaker. */
   unattributed: number;
   /** Utterances this pass minted. A merge into one we already held is not one of these. */
@@ -31,7 +30,6 @@ export type ModuleOutcome = {
 export type AcquisitionOptions = {
   corpus: Corpus;
   raw: R2Bucket;
-  queue: Queue<AnalysisMessage>;
   registry: SourceRegistry;
   /** Who we track. An input to the pass, never something the pass adds to. */
   roster: RosterEntry[];
@@ -57,7 +55,7 @@ export async function runAcquisition(options: AcquisitionOptions): Promise<Modul
 
 async function runModule(module: SourceModule, options: AcquisitionOptions): Promise<ModuleOutcome> {
   const outcome: ModuleOutcome = {
-    module: module.id, fetched: 0, skipped: 0, statements: 0, unattributed: 0,
+    module: module.id, fetched: 0, skipped: 0, unattributed: 0,
     utterances: 0, incomplete: [], failures: [],
   };
   const documents = await module.list();
@@ -107,7 +105,6 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
 
     try {
       const saved = await extractInto(options, module, source.id, result.body, document);
-      outcome.statements += saved.statements;
       outcome.unattributed += saved.unattributed;
       outcome.utterances += saved.utterances;
       outcome.incomplete.push(...saved.incomplete);
@@ -128,22 +125,21 @@ async function runModule(module: SourceModule, options: AcquisitionOptions): Pro
  * function takes the roster rather than reaching for a corpus method that mints one.
  */
 async function extractInto(
-  options: Pick<AcquisitionOptions, 'corpus' | 'queue' | 'roster' | 'ingestion'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'roster' | 'ingestion'>,
   module: SourceModule,
   sourceId: string,
   payload: string,
   document: { key: string; url: string },
-): Promise<{ statements: number; unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
+): Promise<{ unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
   const rawStatements: RawStatement[] = module.extract(payload, document);
-  const extracted: ExtractedStatement[] = [];
   const ingested: IngestOutcome[] = [];
   let held = 0;
 
   for (const raw of rawStatements) {
     const figure = await options.corpus.resolveSpeaker(options.roster, raw.speaker.displayName);
     if (!figure) {
-      // Its ordinal goes with it, so the statements that did resolve keep the positions
-      // they had in the payload and adding this speaker later moves nobody's id.
+      // Its ordinal goes with it, so the passages that did resolve keep the positions they
+      // had in the payload and adding this speaker later moves nobody's id.
       await options.corpus.recordUnattributed(sourceId, {
         speakerName: raw.speaker.displayName,
         speakerRole: raw.speaker.role,
@@ -156,19 +152,9 @@ async function extractInto(
       held += 1;
       continue;
     }
-    extracted.push({
-      ordinal: raw.ordinal,
-      figureId: figure.id,
-      quote: raw.quote,
-      language: raw.language,
-      saidAt: raw.saidAt,
-      context: raw.context,
-      topics: raw.topics,
-    });
 
-    // The expand step of #37's discipline: the same passage lands in both shapes while
-    // every reader is still on `statements`. Ingestion never throws for a stage failure,
-    // so a model call that rate-limits cannot cost us the statement beside it.
+    // Ingestion never throws for a stage failure, so a model call that rate-limits cannot
+    // cost us the utterance beside it.
     ingested.push(await ingest({ corpus: options.corpus, ...options.ingestion }, {
       figureId: figure.id,
       text: raw.quote,
@@ -180,12 +166,9 @@ async function extractInto(
     }));
   }
 
-  const saved = await options.corpus.saveStatements(sourceId, extracted);
   await options.corpus.setExtractionStatus(sourceId, 'extracted');
-  for (const statement of saved) await options.queue.send({ statementId: statement.id });
 
   return {
-    statements: saved.length,
     unattributed: held,
     utterances: ingested.filter((outcome) => outcome.minted).length,
     incomplete: ingested
@@ -196,13 +179,14 @@ async function extractInto(
 
 /**
  * Re-run an extractor over a payload already in the cache. This is what a parser fix
- * costs: no request, no dependence on a site that has since changed or died. The
- * statements keep the ids they were given the first time.
+ * costs: no request, no dependence on a site that has since changed or died. Every stage
+ * of ingestion finds its own work already done, so nothing is minted and no model is paid
+ * a second time.
  */
 export async function reextract(
-  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'queue' | 'registry' | 'roster' | 'ingestion'>,
+  options: Pick<AcquisitionOptions, 'corpus' | 'raw' | 'registry' | 'roster' | 'ingestion'>,
   sourceId: string,
-): Promise<{ statements: number; unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
+): Promise<{ unattributed: number; utterances: number; incomplete: ModuleOutcome['incomplete'] }> {
   const record = await options.corpus.getSourceRecord(sourceId);
   if (!record) throw new Error(`no such source: ${sourceId}`);
   const module = options.registry.get(record.sourceModule);

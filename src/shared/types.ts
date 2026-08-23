@@ -45,49 +45,6 @@ export type Source = {
 
 export type Language = 'he' | 'en';
 
-export type Statement = {
-  id: string;
-  figureId: string;
-  quote: string;
-  language: Language;
-  /**
-   * When it was said. `null` means the source does not establish a date — a distinct
-   * state from any date, carried as null the whole way through and omitted (never
-   * defaulted) on the wire.
-   */
-  saidAt: string | null;
-  context: string | null;
-  sourceId: string;
-  topics: string[];
-};
-
-/**
- * What the judge said about one pair. Consistent pairs are judgments too: keeping the
- * negatives is what makes the surfacing threshold tunable without re-paying for them.
- */
-export type JudgmentKind = 'contradiction' | 'position-shift' | 'consistent';
-
-export type Judgment = {
-  id: string;
-  figureId: string;
-  earlierStatementId: string;
-  laterStatementId: string;
-  kind: JudgmentKind;
-  /** 0–1 confidence that the pair is what `kind` says it is. */
-  score: number;
-  rationale: string;
-  /** The trail: which model, reading which committed prompt, said this. */
-  modelVersion: string;
-  promptVersion: string;
-  createdAt: string;
-  /** Set when a later re-analysis replaced this judgment; the record itself stays. */
-  supersededBy: string | null;
-  /** Whether the product shows it: score over the threshold, kind not `consistent`. */
-  surfaced: boolean;
-};
-
-export const SURFACED_KINDS: JudgmentKind[] = ['contradiction', 'position-shift'];
-
 /**
  * How far a source pins a date down. Thirty years back it is often a month and no more,
  * and the difference between "March 1998", "12 March 1998" and "we do not know" is three

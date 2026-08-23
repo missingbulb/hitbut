@@ -16,7 +16,8 @@ export default {
     ]);
     await runAcquisition(world.options);
     const source = await world.corpus.findSource('fixture-source', 'protocol-1');
-    const before = await world.corpus.timeline((await world.corpus.listFigures()).figures[0].id);
+    const figureId = (await world.corpus.listFigures()).figures[0].id;
+    const before = await world.corpus.utteranceTimeline(figureId);
     const callsAfterFetch = world.http.calls.length;
 
     // Any fetch from here on throws, so a network read is a failure rather than a slow test.
@@ -24,8 +25,8 @@ export default {
     await reextract(offline, source!.id);
 
     assert.equal(world.http.calls.length, callsAfterFetch, 'the replay issued no request');
-    const after = await world.corpus.timeline((await world.corpus.listFigures()).figures[0].id);
-    assert.deepEqual(after.map((statement) => statement.id), before.map((statement) => statement.id),
+    const after = await world.corpus.utteranceTimeline(figureId);
+    assert.deepEqual(after.map((utterance) => utterance.id), before.map((utterance) => utterance.id),
       'and everything anyone cited kept its id');
   },
 } satisfies Case<void>;

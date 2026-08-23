@@ -13,7 +13,7 @@ const PROTOCOL = payloadOf([
 ]);
 
 export default {
-  title: 'a statement by a speaker we do not track is retained under the name the source gave',
+  title: 'a passage by a speaker we do not track is retained under the name the source gave',
   async run() {
     const world = await acquisitionWorld([
       { key: 'protocol-1', url: 'https://example.org/protocols/1', payload: PROTOCOL },
@@ -28,12 +28,12 @@ export default {
     assert.equal(passage?.quote, 'אני מבקש להעיר שהנתון שהוצג אינו מדויק.');
     assert.equal(passage?.ordinal, 1, 'with its position in the payload, which is what a later decision needs');
 
-    // The statements that did resolve keep the ordinals they had in the payload — so if
-    // this witness is ever added to the roster, nobody else's citation moves.
+    // The passages that did resolve keep their place — so if this witness is ever added to
+    // the roster, nobody else's citation moves.
     const figure = (await world.corpus.resolveSpeaker(world.options.roster, 'דמות לדוגמה'))!;
-    const timeline = await world.corpus.timeline(figure.id);
+    const timeline = await world.corpus.utteranceTimeline(figure.id);
     assert.equal(timeline.length, 2);
-    const ids = timeline.map((statement) => statement.id);
+    const ids = timeline.map((utterance) => utterance.id);
 
     // Re-extracting the same payload rewrites the held passage rather than adding a second,
     // and moves none of the resolved ids.
@@ -43,9 +43,9 @@ export default {
     assert.equal(again.unattributed, 1);
     assert.equal((await world.corpus.unattributed()).length, 1, 'a replay holds it once, not twice');
     assert.deepEqual(
-      (await world.corpus.timeline(figure.id)).map((statement) => statement.id),
+      (await world.corpus.utteranceTimeline(figure.id)).map((utterance) => utterance.id),
       ids,
-      'and the statements around it keep the ids they were given the first time',
+      'and the utterances around it keep the ids they were given the first time',
     );
 
     // Findable by the name a person would search for when deciding about them.

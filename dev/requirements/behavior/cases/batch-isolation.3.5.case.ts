@@ -19,12 +19,14 @@ export default {
     // Exits normally: a source that declined is a signal for a human, not a pipeline fault.
     const [outcome] = await runAcquisition(world.options);
 
-    assert.equal(outcome.statements, 1, 'the healthy document still landed');
+    assert.equal(outcome.utterances, 1, 'the healthy document still landed');
     assert.deepEqual(
       outcome.failures.map((failure) => [failure.key, failure.reason]),
       [['gone', 'http'], ['broken', 'network']],
       'and each failure is recorded with its own reason',
     );
-    assert.deepEqual(world.queue.sent.length, 1, 'the statement that landed was handed on for analysis');
+    assert.equal((await world.corpus.utterancesFor(
+      (await world.corpus.resolveSpeaker(world.options.roster, 'דמות לדוגמה'))!.id,
+    )).length, 1, 'and it is in the corpus, not just counted');
   },
 } satisfies Case<void>;

@@ -23,7 +23,7 @@ export default {
     const [outcome] = await runAcquisition(world.options);
 
     assert.deepEqual(outcome.failures.map((failure) => failure.reason), ['blocked']);
-    assert.equal(outcome.statements, 0);
+    assert.equal(outcome.utterances, 0);
     assert.equal(world.raw.objects.size, 0, 'a challenge page is not cached as if it were the document');
     const source = await world.corpus.findSource(world.registry.all()[0].id, 'walled-1');
     assert.equal(source?.extraction, 'blocked', 'the source reads as blocked, not as one that never said anything');

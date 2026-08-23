@@ -28,32 +28,8 @@ export interface R2Bucket {
   head(key: string): Promise<unknown | null>;
 }
 
-export interface Queue<Message> {
-  send(message: Message): Promise<void>;
-}
-
-export interface QueueMessage<Body> {
-  body: Body;
-  ack(): void;
-  retry(): void;
-}
-
-export interface MessageBatch<Body> {
-  messages: QueueMessage<Body>[];
-}
-
-export interface Ai {
-  run(model: string, input: unknown): Promise<{ response?: string }>;
-}
-
-/** What acquisition hands to analysis: one statement to judge against its figure's others. */
-export type AnalysisMessage = { statementId: string };
-
 export type Env = {
   CORPUS: D1Database;
   RAW: R2Bucket;
-  ANALYSIS: Queue<AnalysisMessage>;
-  AI: Ai;
   SURFACING_THRESHOLD: string;
-  JUDGE_MODEL: string;
 };

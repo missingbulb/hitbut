@@ -33,13 +33,12 @@ flowchart LR
     C --> P --> F
 ```
 
-## One Worker, four responsibilities, plus a Workflow
+## One Worker, three responsibilities, plus a Workflow
 
 The back end deploys as a **single Worker**: a cron trigger runs acquisition
-over the moving edge, queue consumers run ingestion and analysis, and the fetch
-handler serves the API. Each stays a separate module — `acquisition/`,
-`ingestion/`, `analysis/`, `api/` — over the one module they all import,
-`corpus/`.
+over the moving edge and then reads what it acquired, and the fetch handler
+serves the API. Each stays a separate module — `acquisition/`, `ingestion/`,
+`detection/`, `api/` — over the one module they all import, `corpus/`.
 
 The **historical backfill is a Workflow**, not a cron: it is a job with an end,
 measured in days, over decades of archives, and it needs durable execution with
@@ -67,8 +66,10 @@ hatch is a smaller slice before it is a second runtime.
   the backfill's intermediate ledger and the generated NDJSON export snapshots.
 - **Vectorize** holds one embedding per utterance. D1 has no vector type, and
   the retrieval this product needs is nearest-neighbour, not `LIKE`.
-- **Queues** carry the hand-off between stages, so a fetch burst never waits on
-  model latency and a failed stage retries without re-fetching.
+- **Queues** are available for the hand-off between stages when a fetch burst
+  starts waiting on model latency. Nothing uses one yet: ingestion commits each
+  stage before the next, so a retry resumes rather than re-fetching, and a queue
+  would add a delivery to reason about for no throughput we currently need.
 
 **The schema moves in three steps, never one.** The deploy applies migrations
 before it replaces the Worker, so for the length of a deploy the previous code
@@ -154,8 +155,9 @@ inside a Worker. It may force that stage — and only that stage — somewhere e
 ## Ingestion
 
 Everything between "bytes arrived" and "the corpus changed". It is one pipeline
-whichever driver fed it, and **every stage is idempotent**, because both drivers
-retry: Workflows retries a step, the queue redelivers a message.
+whichever driver fed it, and **every stage is idempotent**, because the drivers
+retry: a Workflow retries a step, and a cron pass re-runs whatever the last one
+did not finish.
 
 1. **Fetch** — raw payload to R2 before any parse, addressed by content hash. An
    unchanged hash means extraction is skipped entirely on a re-run.
@@ -232,11 +234,12 @@ two most representative utterances either side of a change point are what the
 inconsistency page shows — now the trend-change page, with the anomaly page
 beside it as the shape a single deviating utterance needs.
 
-**What the reader reads has moved; what the writer writes has not.** The API and
-the six pages are on utterances and findings. `statements` and `judgments` are
-still written, still correct, and read by nothing — the middle step of the
-schema discipline above. Dropping them, their leaves, and the queue consumer
-that fills them is the contract step, and its own deploy.
+**The old shape is gone.** `statements`, `judgments`, the pairwise judge and the
+queue that fed it were dropped in the contract step, taken before the first
+deploy rather than after: the window the three-step discipline protects is
+between applying migrations and replacing the running Worker, and there was no
+running Worker to protect. Detection is pure code over a stance series now, so
+the Worker binds D1 and R2 and nothing else until #27.
 
 Only findings above a surfacing threshold reach the product; the full
 distribution is kept for tuning. The model call sits behind one interface, so

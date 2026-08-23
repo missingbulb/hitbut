@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Case } from '../../registry.ts';
-import { emptyCorpus, withStatement } from '../../shared/fixtures.ts';
+import { emptyCorpus, withSearchable } from '../../shared/fixtures.ts';
 import { variantsOf } from '../../../../src/shared/text.ts';
 
 export default {
@@ -12,10 +12,10 @@ export default {
     assert.deepEqual(variantsOf('however'), ['however']);
 
     const corpus = emptyCorpus();
-    const { statement: english } = await withStatement(corpus, 'We committed to a dedicated budget line.', { language: 'en' });
-    const { statement: hebrew } = await withStatement(corpus, 'הדיון על התקציב נדחה.', { ordinal: 1 });
+    const english = await withSearchable(corpus, 'We committed to a dedicated budget line.', 'english');
+    const hebrew = await withSearchable(corpus, 'הדיון על התקציב נדחה.', 'hebrew');
 
-    const found = async (query: string) => (await corpus.search(query)).statements.map((s) => s.id);
+    const found = async (query: string) => (await corpus.searchUtterances(query)).utterances.map((s) => s.id);
     assert.deepEqual(await found('budget'), [english.id]);
     assert.deepEqual(await found('BUDGET'), [english.id], 'case is folded, as it is for any script');
     assert.deepEqual(await found('תקציב'), [hebrew.id], 'and the two scripts do not reach into each other');
