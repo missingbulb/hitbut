@@ -2,15 +2,33 @@
 
 ## Key insights
 
+- Israel votes on 27 October 2026 — a fixed deadline, and the first Knesset to serve a full term since 1988
+- Trust in Israeli media averages 46% and splits by channel, from Kan 11 at 60% down to Channel 14 at 35%
+- 52% of Israelis get news through WhatsApp or Telegram — messaging is a primary news channel, not a side one
+- The benchmark Israeli media survey covers only the Jewish public; the 2.1M Arab citizens were not measured
+- Israel's professional fact-checking segment is one newsroom desk, so the field is a supplier, not a rival
+- Israel fell to 112th in RSF's 2025 press-freedom index from 101st, and the cabinet cut off Haaretz's state ads
 - Backfire effect failed to replicate: 10,000+ subjects, 52 issues, zero backfires — corrections do move beliefs
-- Fact-checker trust splits 70/29 by party; users skew liberal and educated, so a "neutral" tool inherits an asymmetric audience
-- Demand is spiky: "fact check" searches +650% during one debate; a candidate's Wikipedia page hit 450K views/day pre-primary
-- Supply is shrinking as demand grows: ~30 fact-checking projects died vs 10 born in 2025; 76% of orgs call finances vulnerable
-- US newspapers lost 75%+ of jobs since 2005; full-time statehouse reporters fell 374→245 — nobody is keeping the record
-- Twitter killed free academic API in 2023 ($42K/mo replacement); PhD students changed topics — political-text corpora are starved
-- Oppo tracking is already industrial: American Bridge ran 44 trackers on ~$18M/yr; a single oppo book costs $10K–50K
 
-## General public / engaged citizens
+## Who these segments actually are in Israel
+
+The four segments below were researched against the US and are kept as transferable background on how people respond to corrections and what practitioners need. This section is the Israeli reading of the same four, and it is where the sizes and the habits come from.
+
+**The public: online, messaged, and only half-trusting.** The Israel Democracy Institute's media survey (published 26 May 2024, led by Tehilla Shwartz Altshuler and Inna Orly Sapozhnikova) found 63% of respondents check news online daily, 59.5% use social media for news, 58% rely on television, **52% get news through WhatsApp or Telegram**, 36% radio and 16% print. Average trust in the media stood at 46%, split hard by outlet: Kan 11 at 60%, Channel 12 at 54%, Channel 13 at 46%, Channel 14 at 35%. 56% believe they can distinguish fake news from factual reporting, and about 70% believe they can separate news from commentary ([IDI: Media and Social Media Consumption, Trust, and Literacy](https://en.idi.org.il/articles/54235)). Two things follow. Messaging apps are a first-class news channel here in a way they are not in the US data above, so a shareable per-statement link matters more than a destination site. And the trust split runs by *channel*, not only by party — which is the Israeli form of the partisan-audience problem the US section describes.
+
+**A fifth of the country is outside the survey and outside the language.** The IDI survey covered the Jewish population only; a companion survey of Arab citizens' habits was planned separately. Arab citizens are 2.147 million people, 21.1% of the population ([CBS figures as reported](https://israel.com/public/israel-starts-2026-with-more-than-10-million-people/)). A Hebrew-only product does not serve them, and the benchmark evidence about Israeli media habits does not describe them either — both gaps are real and neither is closed by more Hebrew research.
+
+**Trust in the institutions being tracked is itself low.** IDI's Democracy Index 2025 — its 23rd — found trust in state institutions near record lows for a second year, with trust in the government at 25% among Jewish respondents and 17.5% among Arab respondents, though the general mood improved sharply (34% called the country's situation bad or very bad, down from 54%) ([IDI, Israeli Democracy Index 2025, selected findings](https://en.idi.org.il/publications/62717); [Times of Israel](https://www.timesofisrael.com/ahead-of-election-year-survey-finds-israelis-trust-in-democracy-remains-low/)). Separately, fewer than half the public expressed trust in the prime minister ([IDI, 40% overall](https://en.idi.org.il/articles/59940)). A statements corpus is a low-trust-environment product: the audience's default is suspicion of the figure *and* of whoever is reporting on the figure, which argues for showing sources over asserting verdicts.
+
+**Journalists here are under pressure, not just under-resourced.** The US section's story is contraction. Israel's adds coercion: RSF's 2025 index placed Israel 112th of 180, down from 101st, and RSF documents a year of pressure, intimidation and censorship of Israeli journalists ([RSF](https://rsf.org/en/pressure-intimidation-and-censorship-israeli-journalists-have-faced-growing-repression-past-year)); CPJ reported in December 2025 on stepped-up censorship and suppression of independent reporting ([CPJ](https://cpj.org/2025/12/under-the-radar-israel-steps-up-censorship-and-suppression-of-independent-reporting/)); in November 2024 the cabinet voted to end all government advertising in and subscriptions to *Haaretz* ([Courthouse News](https://www.courthousenews.com/chilling-effect-israel-reforms-raise-press-freedom-fears/)). (These figures come from search-result reporting; rsf.org's own index and country pages returned HTTP 403 to this environment.) The practical implication for a tool: a journalist who will be attacked for a claim needs the receipt more than the verdict — the evidence trail that the CHI 2025 study found fact-checkers demand is not a nicety here.
+
+**Professionally, the fact-checking "segment" is one desk.** HaMashrokit at *Globes* is Israel's only IFCN-accredited fact-checker (see the competitor wiki). Where the US segment is hundreds of organisations competing for the same funders, the Israeli one is a handful of people — so the realistic relationship is supply, not substitution: a corpus that makes their monitoring step cheaper.
+
+**Researchers here are unusually well supplied — with parliamentary text.** The post-Twitter data vacuum the US section describes is real in Israel too for social and broadcast speech, but the parliamentary half is solved: the Knesset Corpus covers 1992–2024, 30M+ sentences, annotated and distributed through CLARIN's ParlaMint ([Language Resources and Evaluation](https://link.springer.com/article/10.1007/s10579-025-09833-4)), and Hebrew-specific models are trained on exactly it ([Knesset-DictaBERT](https://arxiv.org/html/2407.20581)). Israeli academic demand is therefore likelier to be for what the corpus *lacks* — studio interviews, rallies, party channels — than for the chamber record.
+
+**Campaign and advocacy staff have a date.** The election is 27 October 2026 ([Times of Israel](https://www.timesofisrael.com/judge-sets-date-for-next-scheduled-elections-for-october-2026/)). Whether Israeli party apparatuses or campaign consultancies buy statement archives — and from whom — was not established this pass and is an open question below; the American Bridge-scale opposition-research industry described in the US section has no confirmed Israeli equivalent.
+
+## General public / engaged citizens (US research, as background)
 
 **Trust in fact-checkers is deeply partisan.** Pew found 70% of Republicans say fact-checkers "tend to favor one side" vs 29% of Democrats — a 41-point gap; overall Americans split roughly 50/48 on whether fact-checkers deal fairly ([Pew Research, 2019](https://www.pewresearch.org/short-reads/2019/06/27/republicans-far-more-likely-than-democrats-to-say-fact-checkers-tend-to-favor-one-side/)). The academic literature confirms the audience skew: awareness, positive attitudes and self-reported use of fact-checking sites concentrate among liberals, mainstream-news consumers, and the more educated ([Robertson, Mourão & Thorson 2020, International Journal of Press/Politics](https://journals.sagepub.com/doi/abs/10.1177/1940161219898055)); Republicans are more skeptical of all fact-check label types ([HKS Misinformation Review](https://misinforeview.hks.harvard.edu/article/journalistic-interventions-matter-understanding-how-americans-perceive-fact-checking-labels/)). Implication for a browse-anyone tool: neutrality of method does not buy a neutral audience.
 
@@ -51,6 +69,19 @@
 - **Show-the-work is the universal requirement.** Fact-checkers demand evidence trails from automation ([CHI 2025](https://dl.acm.org/doi/10.1145/3706598.3713277)), academics demand replication files, and public-trust research says the partisan audience gap is the main adoption risk — per-statement sourcing is the one feature every segment names.
 
 ## Sources
+
+**Israel / Hebrew (2026-08-23 pass)**
+
+- [Media and Social Media Consumption, Trust, and Literacy — Israel Democracy Institute, 26 May 2024](https://en.idi.org.il/articles/54235) (Jewish population only)
+- [The Israeli Democracy Index 2025, selected findings — IDI](https://en.idi.org.il/publications/62717) ([full English PDF](https://en.idi.org.il/media/30427/the-israeli-democracy-index-2025-full-english-version.pdf)) · [Less than half the public trusts the PM — IDI](https://en.idi.org.il/articles/59940) · [Times of Israel coverage](https://www.timesofisrael.com/ahead-of-election-year-survey-finds-israelis-trust-in-democracy-remains-low/)
+- [Pressure, intimidation and censorship: Israeli journalists — RSF](https://rsf.org/en/pressure-intimidation-and-censorship-israeli-journalists-have-faced-growing-repression-past-year) (rsf.org returns 403 to this environment; the 112th/101st index ranks are read from search-result reporting)
+- [Under the radar: Israel steps up censorship and suppression of independent reporting — CPJ, Dec 2025](https://cpj.org/2025/12/under-the-radar-israel-steps-up-censorship-and-suppression-of-independent-reporting/)
+- ['Chilling effect': Israel reforms raise press freedom fears — Courthouse News](https://www.courthousenews.com/chilling-effect-israel-reforms-raise-press-freedom-fears/)
+- [Israel starts 2026 with more than 10 million people](https://israel.com/public/israel-starts-2026-with-more-than-10-million-people/) (reporting CBS figures)
+- [Judge sets date for next scheduled elections for October 2026 — Times of Israel](https://www.timesofisrael.com/judge-sets-date-for-next-scheduled-elections-for-october-2026/)
+- [The Knesset corpus — Language Resources and Evaluation](https://link.springer.com/article/10.1007/s10579-025-09833-4) · [Knesset-DictaBERT](https://arxiv.org/html/2407.20581)
+
+**US (background)**
 
 - [Republicans far more likely to say fact-checkers favor one side — Pew Research Center](https://www.pewresearch.org/short-reads/2019/06/27/republicans-far-more-likely-than-democrats-to-say-fact-checkers-tend-to-favor-one-side/)
 - [Digital News Report 2025, executive summary — Reuters Institute, Oxford](https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2025/dnr-executive-summary)
@@ -106,15 +137,17 @@
 
 ## Open questions
 
-- Duke census exact 2026 numbers (reporterslab.org egress-blocked here) — needs a human or unblocked environment, not another agent pass.
-- Election-week traffic multiples for Snopes/PolitiFact specifically (publisher-reported, not Ahrefs estimates) — 2016/2020/2024 comparisons.
-- What do IFCN surveys say verbatim about the claim-finding bottleneck vs distribution bottleneck? Read the State of the Fact-Checkers PDFs directly.
-- Pricing and seat counts: what does a newsroom actually pay for TVEyes / Nexis Newsdesk / Cision? (list prices are opaque; need practitioner sources.)
-- Willingness to pay per segment: are campaign committees (DCCC/NRCC) buying third-party statement archives today, and from whom?
-- Post-2023 substitutes for *text and social* political-statement data specifically (Bluesky firehose, Media Cloud) — the Internet Archive TV News half of this question is answered; the text half is not.
-- Does the partisan trust gap in fact-checkers extend to *statement archives* (primary sources, no verdicts)? No study found — possible differentiator worth testing.
+- Does the IDI companion survey of Arab citizens' media habits exist yet, and what does it say? A fifth of the country is unmeasured in the benchmark used here.
+- Is there Israeli evidence on the partisan-trust gap in fact-checkers, equivalent to Pew's 70/29 US split — and does it attach to primary-source archives as well as to verdicts?
+- Do Israeli campaigns, party apparatuses or consultancies buy statement archives or opposition research today, and from whom? No Israeli equivalent of American Bridge was found.
+- What do Israeli newsrooms actually pay Ifat (or Buzzilla, SpyTheNet) for monitoring, and at what seat counts? List prices are not published.
+- How many working journalists are there in Israel, and what has the trend been since 2023? English-language searches returned only global layoff data; this needs Hebrew industry sources (Union of Journalists, the Seventh Eye).
+- WhatsApp and Telegram carry news for 52% of the public — what does that imply for how a statement gets shared, and is there any Israeli research on political-claim spread through messaging?
+- Do Israeli researchers use the Knesset Corpus in practice, and what do they say is missing from it? Uptake was not measured this pass.
+- Election-period demand: is there Israeli search-interest or traffic evidence for fact-checking spikes around a campaign, comparable to the US debate spikes?
 
 ## Growth log
 
+- **2026-08-23** (Israel pass) — Re-scoped the page to the Israeli public, journalists, researchers and campaign staff, keeping the US segment research as background and labelling the first segment section as such. Added the IDI consumption and trust figures (63% daily online news, 52% via WhatsApp/Telegram, 46% average media trust, Kan 11 60% to Channel 14 35%), the fact that the benchmark survey excludes the 2.1M Arab citizens, the low institutional-trust context from the Democracy Index 2025, the press-freedom deterioration (112th from 101st in RSF 2025, the Haaretz advertising ban), the one-desk size of Israel's professional fact-checking segment, and the finding that Israeli researchers are well supplied with parliamentary text and short of everything else. Header rewritten Israel-first, keeping only the backfire-effect finding from the US set as genuinely transferable.
 - **2026-08-23** — Partly answered the post-2023 academic-substitutes question: the Internet Archive TV News Archive plus GDELT's explorers are the substitute with documented uptake (9.5M broadcasts, 6.6M hours, 2,000+ papers over a decade), which splits the data vacuum in two — broadcast speech is well-corpused and free, text and social speech are not. Open question narrowed to the text half.
 - **2026-08-21** — Page seeded (initial research scan, deferred at adoption): researched all four segments — public trust and demand patterns, journalist/fact-checker workflows and contraction, academic corpora and the post-Twitter data vacuum, and the opposition-research industry's practices and budgets.
