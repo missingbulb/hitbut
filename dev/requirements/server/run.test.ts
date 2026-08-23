@@ -3,7 +3,7 @@
 //
 // The corpus is seeded through the shipped store against the Worker's own D1 binding,
 // which means even the fixture data arrives the way production data would. What this lane
-// cannot tell you is whether Cloudflare's D1, Queues and R2 behave like the local ones
+// cannot tell you is whether Cloudflare's D1 and R2 behave like the local ones
 // (#28).
 import test, { after } from 'node:test';
 import { createTestHarness, type TestHarness } from 'wrangler';

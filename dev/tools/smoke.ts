@@ -2,7 +2,7 @@
 // the real origins.
 //
 // Everything the requirements suite proves is proven against a local workerd with local
-// D1, R2 and Queues. A missing binding, an unapplied migration, a wrong API origin, a
+// D1 and R2. A missing binding, an unapplied migration, a wrong API origin, a
 // Pages project serving the wrong directory — each is invisible to that suite and fatal
 // in production. This is the smallest set of reads that tells those apart from a healthy
 // deployment.
