@@ -357,6 +357,33 @@ two statements were compared, what was said about them, and by which model and p
   Surfacing is a query, not a delete.
   </details>
 
+- `4.7` A stance that deviates from the persona's prevailing position on a subject is found, and the finding carries where it was said and to whom.
+  <details><summary>Detail</summary>
+
+  The anomaly. What makes it worth surfacing is not that a position moved but that it moved
+  *here* — so a finding without the venue is not a claim anyone can act on, and the store
+  refuses one. The comparison is against the persona's own prevailing stance on that
+  subject, never against another persona: two people disagreeing is not an inconsistency.
+  </details>
+
+- `4.8` A stance series that steps from one level to another yields a trend change reporting the interval the step falls in.
+  <details><summary>Detail</summary>
+
+  The change point. A series bounds the change between the last utterance before it and the
+  first after it, and no further — a single date would be a claim it cannot support. *Why*
+  the position moved is out of scope; a bounded, sourced "between these two dates, this
+  moved" is what the corpus can actually say.
+  </details>
+
+- `4.9` A series that holds one position, and one too short to have a shape, yield nothing.
+  <details><summary>Detail</summary>
+
+  The half that keeps the other two honest. A detector that finds something in every series
+  finds nothing: a persona who has been consistent must come back empty, and two or three
+  utterances are not a trend however far apart they sit. Silence on a flat series is the
+  only evidence that a finding on a moving one means anything.
+  </details>
+
 ## 5. HTTP API
 
 Public, read-only JSON under `/api/v1`. The only writers are the cron trigger and the queue
