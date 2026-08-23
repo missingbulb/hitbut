@@ -302,6 +302,25 @@ of turning it into corrupt data.
   retry.
   </details>
 
+- `3.11` A backfill slice runs end to end, and a slice that fails leaves its neighbours alone.
+  <details><summary>Detail</summary>
+
+  A window of an archive is the working unit, and the window is finite, so the job has an
+  end. Slices are independent on purpose: decades of archive is thousands of them, and one
+  bad slice must cost one retry rather than a restart — which is only true if a slice never
+  reads or writes anything another slice is relying on.
+  </details>
+
+- `3.12` A backfill step that fails and is retried resumes from the documents it had already
+  fetched, without re-fetching them.
+  <details><summary>Detail</summary>
+
+  The retry is the platform's, and it re-runs the whole step. Every fetch inside it is a
+  request to somebody else's server, so a step that re-fetched on every retry would turn one
+  flaky model call into a second full crawl of that slice — and the traffic most likely to
+  get us blocked is the traffic we did not need to send.
+  </details>
+
 ## 4. Analysis
 
 Detection has to be defensible before it is clever: for every flag, a reader can see which
