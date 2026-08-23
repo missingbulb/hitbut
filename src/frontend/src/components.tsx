@@ -1,5 +1,5 @@
 // The pieces every page is built from. The masthead lockup is the approved logo: התבט —
-// which reads "hitbut" — carved out of התבטאויות in the one accent colour.
+// which reads "hitbut" — carved out of התבטאויות, the carve made of two eras of type.
 import type { ComponentChildren, JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
 import type { Figure as FigureType, Finding, Language, Source } from '../../shared/types.ts';
@@ -12,7 +12,15 @@ export function Wordmark({ strings }: { strings: Strings }): JSX.Element {
   return (
     <Link href="/" class="wordmark">
       <span class="wordmark__hebrew" dir="rtl">
-        <span class="wordmark__stem">{strings.brand.stem}</span>
+        {/* The old half is set letter by letter so each one can sit slightly off the line,
+            the way worn type does; the erosion itself is the span's own mask. */}
+        <span class="wordmark__stem">
+          {Array.from(strings.brand.stem).map((letter, index) => (
+            <span class="wordmark__glyph" key={index}>
+              {letter}
+            </span>
+          ))}
+        </span>
         <span class="wordmark__rest">{strings.brand.rest}</span>
       </span>
       <span class="wordmark__latin ltr">{strings.brand.latin}</span>

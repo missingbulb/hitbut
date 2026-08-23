@@ -600,6 +600,11 @@ the design canvas.
   remainder is the modern sans, set tight and lacquered. The two halves stay one word on
   one baseline: a reader sees התבטאויות, not two words.
   </details>
+<!-- gallery:6.14 -->
+
+![6.14 — The masthead wordmark sets `התבט` in the old face, eroded, and `אויות` in the modern one, clean — one word, two eras.](screen/cases/wordmark.6.14.png)
+
+<!-- /gallery:6.14 -->
 
 ## 7. Shipping
 
