@@ -1,4 +1,4 @@
-import { finding } from '../../engine/checks/helpers/findings.mjs';
+import { finding } from '../../../engine/checks/helpers/findings.mjs';
 
 // The testable slice of the basics pack's "earn each dependency" rule: only the
 // event — a package.json gains a dependency it did not carry at the scoping

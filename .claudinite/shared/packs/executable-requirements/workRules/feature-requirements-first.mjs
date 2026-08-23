@@ -1,4 +1,4 @@
-import { finding } from '../../engine/checks/helpers/findings.mjs';
+import { finding } from '../../../engine/checks/helpers/findings.mjs';
 
 // The canonical home of the executable spec; a project whose spec lives
 // elsewhere declares the path on its pack entry (`config.spec`).
