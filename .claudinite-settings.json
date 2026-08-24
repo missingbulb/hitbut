@@ -114,6 +114,10 @@
     {
       "id": "headless-browser",
       "version": "60822.1"
+    },
+    {
+      "id": "claudinite-tasks",
+      "version": "60824.5"
     }
   ],
   "taskScheduler": {
