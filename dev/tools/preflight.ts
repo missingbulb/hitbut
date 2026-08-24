@@ -12,6 +12,8 @@ import {
   D1_DATABASE,
   PLACEHOLDER_DATABASE_ID,
   RESOURCES,
+  accountRead,
+  dashboardUrl,
   databaseIdIn,
   look,
   missing,
@@ -30,7 +32,7 @@ type Check = {
   why: string;
   /** Where to go to fix it: a dashboard page, a settings page, or the command that does it. */
   fix: string;
-  run: () => Result;
+  run: () => Result | Promise<Result>;
 };
 
 function fromEnvironment(name: string): Result {
@@ -44,6 +46,20 @@ function databaseIdPinned(): Result {
   return id === PLACEHOLDER_DATABASE_ID
     ? missing('still the all-zeros placeholder')
     : present(`pinned to ${id}`);
+}
+
+/**
+ * Where a deployed Worker can be reached. Without one `wrangler deploy` has nowhere to
+ * publish to and asks interactively, which on a runner is a failure after the migrations
+ * have already been applied. There is no `wrangler` command for it, so this reads the
+ * account directly.
+ */
+async function workersDevSubdomain(): Promise<Result> {
+  const read = await accountRead<{ subdomain?: string | null }>('workers/subdomain');
+  if (!read.ok) return unknown(`could not ask the account — ${read.reason}`);
+  return read.body?.subdomain
+    ? present(`${read.body.subdomain}.workers.dev`)
+    : missing('the account has never registered one');
 }
 
 const CHECKS: Check[] = [
@@ -60,6 +76,13 @@ const CHECKS: Check[] = [
     why: 'nothing deploys without it, and every check below needs it',
     fix: `paste it at ${SECRETS_SETTINGS}`,
     run: () => fromEnvironment('CLOUDFLARE_API_TOKEN'),
+  },
+  {
+    label: 'workers.dev subdomain',
+    required: true,
+    why: 'the Worker has nowhere to be published to, and wrangler asks for one interactively — which on a runner is a failed deploy, after the migrations have already been applied',
+    fix: `register one at ${dashboardUrl('workers/onboarding', process.env.CLOUDFLARE_ACCOUNT_ID)} — one-time, and it names the Worker's host`,
+    run: workersDevSubdomain,
   },
   {
     label: 'wrangler.toml database_id',
@@ -79,7 +102,7 @@ const CHECKS: Check[] = [
 
 const MARK: Record<Result['state'], string> = { present: 'ok  ', missing: 'MISS', unknown: '??  ' };
 
-const results = CHECKS.map((check) => ({ check, result: check.run() }));
+const results = await Promise.all(CHECKS.map(async (check) => ({ check, result: await check.run() })));
 
 console.log('\nhitbut preflight — reads production, changes nothing\n');
 for (const { check, result } of results) {

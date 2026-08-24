@@ -30,10 +30,14 @@ export type Resource = {
   create: string[];
 };
 
+/** Where a human would look at one part of the account, given an id if we have one. */
+export const dashboardUrl = (section: string, accountId?: string): string =>
+  accountId ? `https://dash.cloudflare.com/${accountId}/${section}` : 'https://dash.cloudflare.com/';
+
 const dashboard =
   (section: string) =>
   (accountId?: string): string =>
-    accountId ? `https://dash.cloudflare.com/${accountId}/${section}` : 'https://dash.cloudflare.com/';
+    dashboardUrl(section, accountId);
 
 export const D1_DATABASE = 'hitbut-corpus';
 /** What `wrangler.toml` carries until an account has handed out a real one. */
@@ -106,8 +110,13 @@ export const RESOURCES: Resource[] = [
  * The marked line is a **headline**, and the part that says what to do about it comes on the
  * lines under it: `wrangler r2 bucket list` reports "A request to the Cloudflare API
  * (/accounts/…/r2/buckets) failed." and puts the code that separates a missing token scope
- * from an un-onboarded product underneath. Take the continuation with it, to the first blank
- * line or next marker, or the report names a failure nobody can act on.
+ * from an un-onboarded product underneath. Take the continuation with it, or the report names
+ * a failure nobody can act on.
+ *
+ * A blank line does not end the continuation. Wrangler's own layout puts the URL you are
+ * being sent to — the whole actionable half of "register a workers.dev subdomain here:" — on
+ * its own line after one. Stop at the next marker, at wrangler's boilerplate, or at a second
+ * consecutive blank; a handful of lines is the cap either way.
  */
 // eslint-disable-next-line no-control-regex -- ANSI escapes are exactly what is being stripped
 export const stripAnsi = (output: string): string => output.replace(/\u001b\[[0-9;]*m/g, '');
@@ -123,18 +132,51 @@ export function firstUsefulLine(output: string): string {
   const noise = /^wrangler \d|Logs were written|create an issue at|telemetry/;
   const at = lines.findIndex((line) => line.includes('\u2718'));
 
+  const CONTINUATION_LINES = 4;
   let reason = '';
   if (at !== -1) {
     const block = [lines[at] as string];
+    let blanks = 0;
     for (const line of lines.slice(at + 1)) {
       const next = tidy(line);
-      if (!next || /[\u2718\u25b2]/.test(line) || noise.test(next)) break;
+      if (!next) {
+        if (++blanks > 1) break;
+        continue;
+      }
+      if (/[\u2718\u25b2]/.test(line) || noise.test(next)) break;
+      blanks = 0;
       block.push(line);
+      if (block.length > CONTINUATION_LINES) break;
     }
     reason = block.map(tidy).filter(Boolean).join(' ');
   }
   reason ||= lines.map(tidy).find((line) => line.length > 12 && !noise.test(line)) || '';
   return reason.length > 400 ? `${reason.slice(0, 400)}…` : reason;
+}
+
+/**
+ * A read of the Cloudflare API that wrangler has no command for. The workers.dev subdomain is
+ * one such fact — there is no `wrangler subdomain`, and a deploy that has nowhere to publish
+ * to is exactly what the preflight exists to catch before it happens. GET only: this file's
+ * whole point is that nothing here can destroy anything.
+ */
+export async function accountRead<T>(path: string): Promise<{ ok: true; body: T } | { ok: false; reason: string }> {
+  const account = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  if (!account || !token) return { ok: false, reason: 'no account id or token in the environment' };
+  try {
+    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = (await response.json()) as { success?: boolean; result?: T; errors?: { message?: string }[] };
+    if (!response.ok || body.success === false) {
+      const said = body.errors?.map((error) => error.message).filter(Boolean).join('; ');
+      return { ok: false, reason: said || `HTTP ${response.status}` };
+    }
+    return { ok: true, body: body.result as T };
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message };
+  }
 }
 
 /**
