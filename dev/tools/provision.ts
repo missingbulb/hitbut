@@ -4,8 +4,8 @@
 //
 // Every resource hitbut needs is one non-interactive `wrangler … create`, so none of this
 // needs the dashboard; what needs a human is the account, the API token and the decision to
-// spend money in that account, which is why this runs from a `workflow_dispatch` rather than
-// on its own.
+// spend money in that account, which is why this runs only when asked for — the `provision`
+// Claudinite task — rather than on its own.
 //
 // Three rules it will not break:
 //

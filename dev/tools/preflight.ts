@@ -88,7 +88,7 @@ const CHECKS: Check[] = [
     label: 'wrangler.toml database_id',
     required: true,
     why: 'the migrate step runs against this id; the placeholder is not a database',
-    fix: 'the provision workflow reads the real id back and commits it',
+    fix: 'the provision task reads the real id back and commits it',
     run: databaseIdPinned,
   },
   ...RESOURCES.map((resource) => ({
@@ -129,7 +129,7 @@ if (unanswered.length) {
 }
 if (blocking.length) {
   console.log(`\nNot ready to deploy: ${blocking.map(({ check }) => check.label).join(', ')}`);
-  console.log(`Everything above that says MISS is created by the *provision* workflow; ${D1_DATABASE} included.`);
+  console.log(`Everything above that says MISS is created by the *provision* task; ${D1_DATABASE} included.`);
   console.log('The checklist these come from is issue #27.\n');
   process.exit(1);
 }
