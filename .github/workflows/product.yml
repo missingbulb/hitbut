@@ -1,4 +1,7 @@
-# hitbut's own build: the requirements suite, and the deploy that ships `main`.
+# hitbut's own build: the requirements suite that gates pull requests and `main`. The
+# deploy that used to ship from here is now the `deploy` Claudinite task
+# (.claudinite/local/packs/hitbut/tasks/deploy/) — the `wake-deploy` job below only files
+# its work item once main is green; the executor runs it.
 name: product
 
 on:
@@ -55,57 +58,19 @@ jobs:
           path: dev/requirements/failures/
           if-no-files-found: ignore
 
-  deploy:
-    name: ship main
+  wake-deploy:
+    name: wake the deploy task
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [checks, screen]
     runs-on: ubuntu-latest
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
-          cache: npm
-      - name: Is there an account to deploy to yet?
-        id: account
-        run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "Cloudflare provisioning (issue #27) has not landed — nothing to deploy yet."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.account.outputs.ready == 'true'
-        run: npm ci
-      # Turns "the deploy failed somewhere in wrangler" into a named missing resource.
-      # Everything it can report missing is one run of the *provision* workflow away.
-      - name: Does production exist?
-        if: steps.account.outputs.ready == 'true'
-        run: npm run preflight
-      - name: Bring the corpus schema up to date
-        if: steps.account.outputs.ready == 'true'
-        run: npm run corpus:migrate:remote
-      # Each deploy step reads its origin back and exports it, so the site is built against
-      # the API that was just deployed and the smoke test knows where to look. A repository
-      # variable is an override for a custom domain, not something the first deploy needs.
-      - name: Deploy the Worker
-        if: steps.account.outputs.ready == 'true'
+          node-version: 24
+      - name: Create the deploy task's work item
         env:
-          API_ORIGIN: ${{ vars.API_ORIGIN }}
-        run: npm run deploy:api
-      - name: Build the site against the deployed API
-        if: steps.account.outputs.ready == 'true'
-        run: VITE_API_ORIGIN="$API_ORIGIN" npm run build:site
-      - name: Deploy the site
-        if: steps.account.outputs.ready == 'true'
-        env:
-          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
-        run: npm run deploy:site
-      # Everything the suite proves is proven against a local workerd. This is the only
-      # step that reads what actually shipped.
-      - name: Does what shipped answer?
-        if: steps.account.outputs.ready == 'true'
-        run: npm run smoke
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .claudinite/shared/packs/claudinite-tasks/queue/create-work-item.mjs hitbut/deploy

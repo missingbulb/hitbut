@@ -80,8 +80,8 @@ before it replaces the Worker, so for the length of a deploy the previous code
 is serving against the new schema. Additive changes survive that window and
 nothing else does, which makes every schema change three merges — expand,
 migrate the readers, contract — rather than one. `dev/gates/schema-migrations.ts`
-is what enforces it; the deploy order it reasons about is the `ship main` job
-in `.github/workflows/product.yml`.
+is what enforces it; the deploy order it reasons about is now the `deploy`
+Claudinite task's own worker script rather than a workflow step.
 
 *Alternatives*: KV rejected — no queries, and the corpus is nothing but
 queries. Durable Objects rejected — no per-entity coordination exists that D1
