@@ -1,9 +1,9 @@
 {
   "version": 3,
-  "generated": "2026-08-25T05:16:52.161Z",
-  "foldedThrough": "2026-08-24",
-  "runsFoldedThrough": "2026-08-25T05:15:32Z",
-  "queueFoldedThrough": "2026-08-24T22:07:38Z",
+  "generated": "2026-08-26T05:16:35.171Z",
+  "foldedThrough": "2026-08-25",
+  "runsFoldedThrough": "2026-08-26T05:15:06Z",
+  "queueFoldedThrough": "2026-08-26T05:16:24Z",
   "fields": {
     "day": ["captures","merges","sessions","userMessages","userCommands","ruleTokens","ruleTokenSessions","tokensIn","tokensOut","tokenSessions","commits","linesAdded","linesRemoved","releases"],
     "week": ["days","captures","merges","sessionDays","userMessages","userCommands","ruleTokens","ruleTokenSessions","tokensIn","tokensOut","tokenSessions","commits","linesAdded","linesRemoved","releases"],
@@ -15,26 +15,6 @@
     "queue": ["done","delivered","obsolete","none"]
   },
   "hours": {
-    "2026-08-22T06": {"totals":[1,0,0,1]},
-    "2026-08-22T07": {"totals":[1,0,0,1]},
-    "2026-08-22T08": {"totals":[1,0,0,1]},
-    "2026-08-22T09": {"totals":[1,0,0,1]},
-    "2026-08-22T10": {"totals":[1,0,0,1]},
-    "2026-08-22T11": {"totals":[2,0,0,2]},
-    "2026-08-22T13": {"totals":[1,0,0,1]},
-    "2026-08-22T14": {"totals":[1,0,0,1]},
-    "2026-08-22T15": {"totals":[2,0,1,2]},
-    "2026-08-22T17": {"totals":[2,0,0,2]},
-    "2026-08-22T19": {"totals":[2,0,0,2]},
-    "2026-08-22T21": {"totals":[2,0,0,2]},
-    "2026-08-22T22": {"totals":[0,0,1,0]},
-    "2026-08-22T23": {"totals":[2,0,1,2]},
-    "2026-08-23T00": {"totals":[0,0,1,0]},
-    "2026-08-23T01": {"totals":[0,0,1,0]},
-    "2026-08-23T02": {"totals":[1,0,0,1]},
-    "2026-08-23T03": {"totals":[1,0,1,1]},
-    "2026-08-23T04": {"totals":[1,0,0,1]},
-    "2026-08-23T05": {"totals":[1,0,0,1]},
     "2026-08-23T06": {"totals":[1,0,0,1]},
     "2026-08-23T07": {"totals":[1,0,0,1]},
     "2026-08-23T08": {"totals":[1,0,0,1]},
@@ -55,10 +35,11 @@
     "2026-08-24T19": {"totals":[1,1,0,0]},
     "2026-08-24T20": {"totals":[1,1,0,0]},
     "2026-08-24T22": {"totals":[2,3,0,0]},
-    "2026-08-25T05": {"totals":[1,0,0,0]}
+    "2026-08-25T05": {"totals":[1,1,1,0]},
+    "2026-08-25T17": {"totals":[1,7,4,0]},
+    "2026-08-26T05": {"totals":[1,0,0,0]}
   },
   "days": {
-    "2026-07-27": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-07-28": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-07-29": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-07-30": {"totals":[0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
@@ -86,8 +67,9 @@
     "2026-08-21": {"totals":[5,5,2,10,2,17000,1,139146635,787168,2,null,null,null,0],"skillLoads":{"artifact-capabilities":1,"design":1,"merge-to-main":2,"verify-in-production":1,"writing-migration-plans":1},"checks":{"work":[2,0,0,0,10,0,0],"world":[14,4,0,11,194,0,0]},"checkFindings":{"barrier":[2,0],"file-placement":[0,4],"generated-merge-driver":[0,1],"preferences-store-configured":[0,3],"product-wiki-isolation":[3,0],"product-wiki-layout":[6,0]},"queue":{"claudinite-lifecycle/update":[1,0,0,0]}},
     "2026-08-22": {"totals":[6,6,1,9,0,17500,1,81960827,242906,1,null,null,null,0],"skillLoads":{"merge-to-main":1,"verify-in-production":1},"checks":{"work":[7,0,0,0,0,0,0],"world":[12,1,0,1,843,0,0]},"checkFindings":{"claudinite-isolation":[1,0],"file-placement":[0,5]}},
     "2026-08-23": {"totals":[17,17,6,20,2,105000,6,206273980,540994,6,null,null,null,0],"skillLoads":{"dataviz":1,"do-later":1,"merge-to-main":5,"verify-in-production":1},"checks":{"work":[11,2,0,2,0,0,0],"world":[30,1,0,1,3186,0,0]},"checkFindings":{"barrier":[2,0],"file-placement":[0,104],"squash-merge-history":[1,0],"task-lifecycle":[1,0]},"taskExec":{"claudinite-lifecycle/update":[1,0,0,0]},"queue":{"basics/ci-performance":[1,0,0,0],"basics/task-janitor":[1,0,0,0],"claudinite-growth/logs-prune":[0,0,1,0],"claudinite-growth/usage-fold":[5,0,0,0],"claudinite-lifecycle/update":[1,0,0,0]}},
-    "2026-08-24": {"totals":[2,2,2,4,0,35000,2,59580166,186145,2,1,48430,0,0],"skillLoads":{"merge-to-main":1,"single-issue-triage":1},"checks":{"work":[4,0,0,0,0,0,0]},"taskExec":{"tidy-repo/tidy-issues":[1,0,0,0]},"queue":{"basics/task-janitor":[0,0,1,0],"claudinite-growth/usage-fold":[1,0,0,0],"claudinite-lifecycle/update":[4,0,0,0],"claudinite-tasks/task-janitor":[1,0,0,0],"tidy-repo/tidy-issues":[1,0,0,0]}},
-    "2026-08-25": {"totals":[0,0,0,0,0,0,0,null,null,null,0,0,0,0]}
+    "2026-08-24": {"totals":[2,2,2,4,0,35000,2,59580166,186145,2,null,null,null,0],"skillLoads":{"merge-to-main":1,"single-issue-triage":1},"checks":{"work":[4,0,0,0,0,0,0]},"taskExec":{"tidy-repo/tidy-issues":[1,0,0,0]},"queue":{"basics/task-janitor":[0,0,1,0],"claudinite-growth/usage-fold":[1,0,0,0],"claudinite-lifecycle/update":[4,0,0,0],"claudinite-tasks/task-janitor":[1,0,0,0],"tidy-repo/tidy-issues":[1,0,0,0]}},
+    "2026-08-25": {"totals":[5,5,5,0,0,87500,5,90816464,585215,5,1,48461,0,0],"skillLoads":{"writing-tasks":1},"checks":{"world":[5,1,0,1,296,0,0]},"checkFindings":{"file-placement":[0,16]},"queue":{"claudinite-lifecycle/update":[1,0,0,0],"claudinite-tasks/task-janitor":[1,0,0,0],"claudinite-tasks/usage-fold":[1,0,0,0]}},
+    "2026-08-26": {"totals":[0,0,0,0,0,0,0,null,null,null,0,0,0,0],"queue":{"claudinite-tasks/task-janitor":[1,0,0,0]}}
   },
   "weeks": {
     "2026-W30": {"totals":[2,0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
@@ -95,6 +77,6 @@
     "2026-W32": {"totals":[7,0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-W33": {"totals":[7,0,0,0,0,0,0,0,null,null,null,null,null,null,0]},
     "2026-W34": {"totals":[7,28,28,9,39,4,139500,8,427381442,1571068,9,null,null,null,0],"skillLoads":{"artifact-capabilities":1,"dataviz":1,"design":1,"do-later":1,"merge-to-main":8,"verify-in-production":3,"writing-migration-plans":1},"checks":{"work":[20,2,0,2,10,0,0],"world":[56,6,0,13,4223,0,0]},"checkFindings":{"barrier":[4,0],"claudinite-isolation":[1,0],"file-placement":[0,113],"generated-merge-driver":[0,1],"preferences-store-configured":[0,3],"product-wiki-isolation":[3,0],"product-wiki-layout":[6,0],"squash-merge-history":[1,0],"task-lifecycle":[1,0]},"taskExec":{"claudinite-lifecycle/update":[1,0,0,0]},"queue":{"basics/ci-performance":[1,0,0,0],"basics/task-janitor":[1,0,0,0],"claudinite-growth/logs-prune":[0,0,1,0],"claudinite-growth/usage-fold":[5,0,0,0],"claudinite-lifecycle/update":[2,0,0,0]}},
-    "2026-W35": {"totals":[1,2,2,2,4,0,35000,2,59580166,186145,2,1,48430,0,0],"skillLoads":{"merge-to-main":1,"single-issue-triage":1},"checks":{"work":[4,0,0,0,0,0,0]},"taskExec":{"tidy-repo/tidy-issues":[1,0,0,0]},"queue":{"basics/task-janitor":[0,0,1,0],"claudinite-growth/usage-fold":[1,0,0,0],"claudinite-lifecycle/update":[4,0,0,0],"claudinite-tasks/task-janitor":[1,0,0,0],"tidy-repo/tidy-issues":[1,0,0,0]}}
+    "2026-W35": {"totals":[2,7,7,7,4,0,122500,7,150396630,771360,7,2,96891,0,0],"skillLoads":{"merge-to-main":1,"single-issue-triage":1,"writing-tasks":1},"checks":{"work":[4,0,0,0,0,0,0],"world":[5,1,0,1,296,0,0]},"checkFindings":{"file-placement":[0,16]},"taskExec":{"tidy-repo/tidy-issues":[1,0,0,0]},"queue":{"basics/task-janitor":[0,0,1,0],"claudinite-growth/usage-fold":[1,0,0,0],"claudinite-lifecycle/update":[5,0,0,0],"claudinite-tasks/task-janitor":[2,0,0,0],"claudinite-tasks/usage-fold":[1,0,0,0],"tidy-repo/tidy-issues":[1,0,0,0]}}
   }
 }
