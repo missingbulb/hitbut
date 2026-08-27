@@ -8,6 +8,5 @@
 @shared/packs/node/RULES.md
 @shared/packs/product-wiki/RULES.md
 @shared/packs/spec-driven-product/RULES.md
-@shared/packs/tidy-repo/RULES.md
 @shared/packs/web-scraping/RULES.md
 @local/packs/hitbut/RULES.md
