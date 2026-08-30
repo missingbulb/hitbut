@@ -3,7 +3,7 @@
     "local/hitbut",
     {
       "id": "basics",
-      "version": "60830.3"
+      "version": "60830.5"
     },
     {
       "id": "claudinite-lifecycle",
@@ -73,7 +73,7 @@
     },
     {
       "id": "claudinite-growth",
-      "version": "60830.4"
+      "version": "60830.7"
     },
     {
       "id": "tidy-repo",
@@ -81,7 +81,7 @@
     },
     {
       "id": "product-wiki",
-      "version": "60830.2",
+      "version": "60830.3",
       "answers": {
         "product": "hitbut is a research and journalism tool over public figures' public statements. A back end scrapes statements from public sources and stores them as a sourced, citable corpus; an analysis layer reads that corpus for contradictions and shifts in position over time. A front end lets anyone browse and search figures, statements and detected inconsistencies, each shown with its sources. The primary value is the corpus itself — a public figure's record, checkable in one place with the evidence attached; inconsistency detection is one lens over it, not the whole product.",
         "users": "Four segments. (1) General public / engaged citizens checking what a figure said before, around elections and news events — high volume, low friction tolerance, no accounts. (2) Journalists and fact-checkers needing sourced, citable statements and a defensible inconsistency trail — small segment, highest demands on evidence quality. (3) Researchers and academics (political science, media research) wanting bulk access, exports and stable identifiers over the corpus. (4) Campaign and advocacy staff tracking specific figures continuously — watchlists and alerts.",
@@ -117,7 +117,7 @@
     },
     {
       "id": "claudinite-tasks",
-      "version": "60830.5"
+      "version": "60830.9"
     }
   ],
   "taskScheduler": {
