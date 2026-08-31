@@ -3,7 +3,7 @@
     "local/hitbut",
     {
       "id": "basics",
-      "version": "60831.3"
+      "version": "60831.4"
     },
     {
       "id": "claudinite-lifecycle",
@@ -117,7 +117,7 @@
     },
     {
       "id": "claudinite-tasks",
-      "version": "60831.5"
+      "version": "60831.6"
     }
   ],
   "taskScheduler": {
