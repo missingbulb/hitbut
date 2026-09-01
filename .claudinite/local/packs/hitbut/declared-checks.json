@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ascii-only-codec-on-corpus-values",
+    "severity": "blocking",
+    "since": "2026-09-01",
+    "failureMessage": "hitbut's ids and text are Hebrew, and JS `btoa`/`atob` throw or mangle anything outside Latin1 — a raw call crashes on real data",
+    "fix": "encode/decode the value as UTF-8 bytes first, or reuse the base64url cursor codec already in src/backend/corpus/store.ts",
+    "scanFiles": "/^src\\/.*\\.tsx?$/",
+    "excludeFiles": "src/backend/corpus/store.ts",
+    "matchLines": [
+      {
+        "match": "/\\bbtoa\\(|\\batob\\(/",
+        "what": "calls {match} directly, unsafe on the Hebrew ids and text this corpus stores"
+      }
+    ]
+  }
+]
