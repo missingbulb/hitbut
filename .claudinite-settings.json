@@ -3,11 +3,11 @@
     "local/hitbut",
     {
       "id": "basics",
-      "version": "60902.2"
+      "version": "60902.6"
     },
     {
       "id": "claudinite-lifecycle",
-      "version": "60902.1"
+      "version": "60902.3"
     },
     {
       "id": "barriers",
@@ -56,14 +56,14 @@
     },
     {
       "id": "git-github",
-      "version": "60901.1",
+      "version": "60902.1",
       "via": [
         "basics"
       ]
     },
     {
       "id": "claude-code-web-users-support",
-      "version": "60823.1",
+      "version": "60902.1",
       "answers": {
         "store": "missingbulb/Shepherd"
       },
@@ -73,15 +73,15 @@
     },
     {
       "id": "claudinite-growth",
-      "version": "60902.1"
+      "version": "60902.6"
     },
     {
       "id": "tidy-repo",
-      "version": "60902.1"
+      "version": "60902.2"
     },
     {
       "id": "product-wiki",
-      "version": "60902.1",
+      "version": "60902.2",
       "answers": {
         "product": "hitbut is a research and journalism tool over public figures' public statements. A back end scrapes statements from public sources and stores them as a sourced, citable corpus; an analysis layer reads that corpus for contradictions and shifts in position over time. A front end lets anyone browse and search figures, statements and detected inconsistencies, each shown with its sources. The primary value is the corpus itself — a public figure's record, checkable in one place with the evidence attached; inconsistency detection is one lens over it, not the whole product.",
         "users": "Four segments. (1) General public / engaged citizens checking what a figure said before, around elections and news events — high volume, low friction tolerance, no accounts. (2) Journalists and fact-checkers needing sourced, citable statements and a defensible inconsistency trail — small segment, highest demands on evidence quality. (3) Researchers and academics (political science, media research) wanting bulk access, exports and stable identifiers over the corpus. (4) Campaign and advocacy staff tracking specific figures continuously — watchlists and alerts.",
@@ -90,11 +90,11 @@
     },
     {
       "id": "spec-driven-product",
-      "version": "60901.1"
+      "version": "60902.1"
     },
     {
       "id": "executable-requirements",
-      "version": "60822.1",
+      "version": "60902.1",
       "via": [
         "spec-driven-product"
       ],
@@ -105,19 +105,19 @@
     },
     {
       "id": "web-scraping",
-      "version": "60822.1"
+      "version": "60902.1"
     },
     {
       "id": "node",
-      "version": "60901.1"
+      "version": "60902.1"
     },
     {
       "id": "headless-browser",
-      "version": "60822.1"
+      "version": "60902.1"
     },
     {
       "id": "claudinite-tasks",
-      "version": "60902.2"
+      "version": "60902.9"
     }
   ],
   "taskScheduler": {
@@ -131,5 +131,5 @@
     "weeklyDay": "Sun",
     "monthlyDay": 1
   },
-  "engineVersion": "60823.1"
+  "engineVersion": "60902.1"
 }
