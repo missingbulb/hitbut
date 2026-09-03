@@ -7,3 +7,4 @@ dev/requirements/screen/fallback-fonts/*.ttf binary
 src/frontend/public/fonts/*.woff2 binary
 usage.GENERATED.json merge=ours
 .claudinite/shared/** linguist-vendored
+claudinite-skills.GENERATED.md merge=ours
