@@ -8,12 +8,13 @@
     "node": ">=22.18"
   },
   "scripts": {
-    "test": "node --test dev/gates/schema-migrations.test.ts dev/gates/sql-vocabularies.test.ts dev/gates/provisioning.test.ts dev/requirements/coverage.test.ts dev/requirements/gallery.test.ts dev/requirements/logic/run.test.ts dev/requirements/behavior/run.test.ts",
+    "test": "node --test dev/gates/schema-migrations.test.ts dev/gates/sql-vocabularies.test.ts dev/gates/provisioning.test.ts dev/requirements/coverage.test.ts dev/requirements/gallery.test.ts dev/requirements/logic/run.test.ts dev/requirements/behavior/run.test.ts dev/similarity/compare.test.ts",
     "test:server": "node --test dev/requirements/server/run.test.ts",
     "test:screen": "node --test --test-timeout=180000 dev/requirements/screen/run.test.ts",
     "test:all": "npm test && npm run test:server && npm run test:screen",
     "typecheck": "tsc --noEmit",
     "requirements:refresh": "node dev/requirements/refresh.ts",
+    "similarity:compare": "node dev/similarity/run.ts",
     "preflight": "node dev/tools/preflight.ts",
     "fetch-samples": "node dev/tools/fetch-samples.ts",
     "provision": "node dev/tools/provision.ts",
