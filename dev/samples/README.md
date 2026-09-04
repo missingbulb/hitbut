@@ -1,9 +1,8 @@
 # Reconnaissance samples
 
-Raw payloads from candidate sources, fetched by the
-[fetch-samples workflow](../../.github/workflows/fetch-samples.yml) and committed so that
-every question about a source is answered from bytes in this repo rather than from another
-request. Nothing here is test data: cases and their expected values live under
+Raw payloads from candidate sources, fetched by the `hitbut/fetch-samples` task and
+committed so that every question about a source is answered from bytes in this repo rather
+than from another request. Nothing here is test data: cases and their expected values live under
 [`dev/requirements/`](../requirements).
 
 | | |
@@ -13,12 +12,12 @@ request. Nothing here is test data: cases and their expected values live under
 | `report.GENERATED.md` | per candidate: saved, already saved, or refused, and why |
 
 **The fetching happens in one place.** Agent sessions are denied `knesset.gov.il` and
-`www.gov.il` by their egress policy — a policy boundary, not an obstacle — so the workflow
-is the only sanctioned fetcher, and it runs the shipped
-[`acquisition/fetcher.ts`](../../src/backend/acquisition/fetcher.ts) rather than a second
+`www.gov.il` by their egress policy — a policy boundary, not an obstacle — so that task is
+the only sanctioned fetcher, and it runs the shipped
+[`src/backend/acquisition/fetcher.ts`](../../src/backend/acquisition/fetcher.ts) rather than a second
 copy of the headers, the politeness delay and the retry policy.
 
-**Adding a candidate** is an edit to `candidates.json` and a dispatch. The second round of
+**Adding a candidate** is an edit to `candidates.json` and another run of the task. The second round of
 reconnaissance is the same move: when a page turns out to be a shell, its script bundle
 paths become candidates, and reading them needs only the public site host.
 
