@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "requirements:refresh": "node dev/requirements/refresh.ts",
     "preflight": "node dev/tools/preflight.ts",
+    "fetch-samples": "node dev/tools/fetch-samples.ts",
     "provision": "node dev/tools/provision.ts",
     "smoke": "node dev/tools/smoke.ts",
     "corpus:migrate": "wrangler d1 migrations apply hitbut-corpus --local",
