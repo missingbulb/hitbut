@@ -1,0 +1,89 @@
+{
+  "note": "The candidate list the sample fetch job works down. Every URL here is a HYPOTHESIS about where a source keeps its data — nothing in this file has been reached from an agent session, because the sandbox's egress policy denies these hosts. The job's report is what turns each line into an answer. Editing this file and re-dispatching the workflow is how the next round of reconnaissance (a page's script bundles, an endpoint the first round revealed) gets fetched.",
+  "candidates": [
+    {
+      "id": "knesset-odata-person",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo/KNS_Person?$top=200&$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "Does the Knesset publish its people as open data, and does a person record carry the name, the id and the dates a roster entry needs?"
+    },
+    {
+      "id": "knesset-odata-person-to-position",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo/KNS_PersonToPosition?$top=200&$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "Which people currently hold which positions — the authoritative answer to 'is this person a sitting member', which no memory of ours may stand in for."
+    },
+    {
+      "id": "knesset-odata-service-document",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo?$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "The full entity list of the parliament-info service: what else is queryable, in the service's own words rather than ours."
+    },
+    {
+      "id": "knesset-odata-plenum-sessions",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo/KNS_PlenumSession?$top=50&$format=json&$orderby=StartDate%20desc",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "Are plenum sittings listed with dates and ids we can page through, and how far back do they reach?"
+    },
+    {
+      "id": "knesset-odata-plenum-documents",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo/KNS_DocumentPlenumSession?$top=50&$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "The protocol files themselves: what formats a sitting's transcript is published in, and whether a direct file URL comes with the record."
+    },
+    {
+      "id": "knesset-odata-committee-sessions",
+      "url": "https://knesset.gov.il/OdataV4/ParliamentInfo/KNS_CommitteeSession?$top=50&$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "The same question for committees, where a witness speaks in a different venue than the plenum — a distinction the corpus stores per utterance."
+    },
+    {
+      "id": "knesset-odata-legacy-service",
+      "url": "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_Person?$top=5&$format=json",
+      "group": "knesset",
+      "surface": "api",
+      "asks": "Whether the older OData v3 endpoint still answers, in case the v4 path above has moved."
+    },
+    {
+      "id": "knesset-plenum-sessions-page",
+      "url": "https://main.knesset.gov.il/Activity/plenum/Pages/Sessions.aspx",
+      "group": "knesset",
+      "surface": "markup",
+      "asks": "The human-facing sittings page: does it render its rows server-side, or is it a shell whose script bundles name the API? Its bundle paths are the second round's candidates."
+    },
+    {
+      "id": "knesset-openness-portal",
+      "url": "https://main.knesset.gov.il/About/OpenKnesset/Pages/default.aspx",
+      "group": "knesset",
+      "surface": "markup",
+      "asks": "The Knesset's own documentation of its open-data offering — the terms it publishes under, and the endpoint list it names."
+    },
+    {
+      "id": "govil-news-collector",
+      "url": "https://www.gov.il/he/collectors/news",
+      "group": "govil",
+      "surface": "markup",
+      "asks": "The current-announcements surface: a hydration blob, a shell whose bundle names an API, or server-rendered rows?"
+    },
+    {
+      "id": "govil-news-api",
+      "url": "https://www.gov.il/api/news/GetNews?limit=20&skip=0",
+      "group": "govil",
+      "surface": "api",
+      "asks": "A guessed announcement endpoint. A 404 here is a useful answer: it sends the recon to the collector page's bundles instead."
+    },
+    {
+      "id": "govil-pmo-department",
+      "url": "https://www.gov.il/he/departments/prime_ministers_office",
+      "group": "govil",
+      "surface": "markup",
+      "asks": "One ministry page, to see how an announcement attributes a quote — 'the ministry said' is not a statement by a figure, and only the latter is an utterance."
+    }
+  ]
+}
