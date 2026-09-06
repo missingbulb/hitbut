@@ -3,7 +3,7 @@
 // Usage: node dev/similarity/run.ts [--pairs <file.jsonl>] [--methods lexical,...] [--out <report.json>]
 //
 // Only `lexical` resolves today. A model-backed method is wired in `methods.ts` once the
-// model is reachable (#27); naming one before then is an error rather than a silent skip,
+// model is reachable (#34); naming one before then is an error rather than a silent skip,
 // so a report never reads as a comparison it did not run.
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';

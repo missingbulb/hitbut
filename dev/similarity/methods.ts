@@ -2,7 +2,7 @@
 // between claims, and the nearest ones to a claim) and a pair judge (a relation between
 // two claims). The comparison scores the seams, never the models — which is what lets it
 // run today on the one method that needs no model, and score a real one by wiring it here
-// once it is reachable (#27).
+// once it is reachable (#34).
 import type { Embedder } from '../../src/backend/ingestion/ports.ts';
 import { indexTerms } from '../../src/shared/text.ts';
 import { syntacticSemanticJaccard, type Decomposed, type Similarity } from './measure.ts';
