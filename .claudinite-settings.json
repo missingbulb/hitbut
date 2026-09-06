@@ -3,60 +3,55 @@
     "local/hitbut",
     {
       "id": "basics",
-      "version": "60903.5"
-    },
-    {
-      "id": "claudinite-lifecycle",
-      "version": "60903.5"
-    },
-    {
-      "id": "barriers",
-      "version": "60823.1",
+      "version": "60906.3",
       "via": [
         "claudinite-lifecycle",
         "product-wiki"
       ],
-      "answers": {
-        "goals": "Two separations. (1) The research wiki and the shipped code never reference each other: code under src/ must not reference product-wiki/, and product-wiki/ must not reference src/ — research is evidence gathered about the world, product code is what we build, and a citation crossing that line turns unreviewed research into an implicit requirement. (2) The Cloudflare front end and back end talk over the HTTP API only: src/frontend/ must not reference src/backend/ internals and src/backend/ must not reference src/frontend/ — the two deploy independently as Pages and Workers, so a direct reference would couple two separately shipped artifacts."
-      },
       "config": {
-        "rules": [
-          {
-            "between": [
-              "src/backend",
-              "src/frontend"
-            ],
-            "allow": [
-              "src/shared"
-            ],
-            "reason": "the Workers back end and the Pages front end deploy as two independent artifacts and integrate over the HTTP API only — they share the contract in src/shared and nothing else"
-          },
-          {
-            "between": [
-              "src/backend",
-              "src/dashboard"
-            ],
-            "allow": [
-              "src/shared"
-            ],
-            "reason": "the operator dashboard is a third independently deployed artifact — it reads the Worker over the same HTTP API a reader's browser does, and shares only the contract in src/shared"
-          },
-          {
-            "between": [
-              "src/frontend",
-              "src/dashboard"
-            ],
-            "allow": [
-              "src/shared"
-            ],
-            "reason": "the public site and the operator console ship to different hosts and answer to different people; a component shared between them would couple a reader-facing promise to an internal tool"
-          }
-        ]
+        "barriers": {
+          "rules": [
+            {
+              "between": [
+                "src/backend",
+                "src/frontend"
+              ],
+              "allow": [
+                "src/shared"
+              ],
+              "reason": "the Workers back end and the Pages front end deploy as two independent artifacts and integrate over the HTTP API only — they share the contract in src/shared and nothing else"
+            },
+            {
+              "between": [
+                "src/backend",
+                "src/dashboard"
+              ],
+              "allow": [
+                "src/shared"
+              ],
+              "reason": "the operator dashboard is a third independently deployed artifact — it reads the Worker over the same HTTP API a reader's browser does, and shares only the contract in src/shared"
+            },
+            {
+              "between": [
+                "src/frontend",
+                "src/dashboard"
+              ],
+              "allow": [
+                "src/shared"
+              ],
+              "reason": "the public site and the operator console ship to different hosts and answer to different people; a component shared between them would couple a reader-facing promise to an internal tool"
+            }
+          ]
+        }
       }
     },
     {
+      "id": "claudinite-lifecycle",
+      "version": "60906.3"
+    },
+    {
       "id": "git-github",
-      "version": "60903.1",
+      "version": "60906.1",
       "via": [
         "basics"
       ]
@@ -73,15 +68,15 @@
     },
     {
       "id": "claudinite-growth",
-      "version": "60903.5"
+      "version": "60906.3"
     },
     {
       "id": "tidy-repo",
-      "version": "60903.3"
+      "version": "60906.1"
     },
     {
       "id": "product-wiki",
-      "version": "60903.2",
+      "version": "60905.1",
       "answers": {
         "product": "hitbut is a research and journalism tool over public figures' public statements. A back end scrapes statements from public sources and stores them as a sourced, citable corpus; an analysis layer reads that corpus for contradictions and shifts in position over time. A front end lets anyone browse and search figures, statements and detected inconsistencies, each shown with its sources. The primary value is the corpus itself — a public figure's record, checkable in one place with the evidence attached; inconsistency detection is one lens over it, not the whole product.",
         "users": "Four segments. (1) General public / engaged citizens checking what a figure said before, around elections and news events — high volume, low friction tolerance, no accounts. (2) Journalists and fact-checkers needing sourced, citable statements and a defensible inconsistency trail — small segment, highest demands on evidence quality. (3) Researchers and academics (political science, media research) wanting bulk access, exports and stable identifiers over the corpus. (4) Campaign and advocacy staff tracking specific figures continuously — watchlists and alerts.",
@@ -90,11 +85,11 @@
     },
     {
       "id": "spec-driven-product",
-      "version": "60902.1"
+      "version": "60903.1"
     },
     {
       "id": "executable-requirements",
-      "version": "60902.1",
+      "version": "60903.1",
       "via": [
         "spec-driven-product"
       ],
@@ -105,11 +100,11 @@
     },
     {
       "id": "web-scraping",
-      "version": "60903.1"
+      "version": "60903.2"
     },
     {
       "id": "node",
-      "version": "60902.1"
+      "version": "60903.1"
     },
     {
       "id": "headless-browser",
@@ -117,7 +112,7 @@
     },
     {
       "id": "claudinite-tasks",
-      "version": "60903.4"
+      "version": "60906.5"
     }
   ],
   "taskScheduler": {

@@ -10,7 +10,7 @@ The baseline pack — the `RULES.md` prose every session loads (injected by the 
 | Replying to an owner comment | high | complexity | prose: 109 words |
 | Acting on a correction | high | correctness | prose: 39 words |
 | Acting on a feature | high | correctness | prose: 39 words |
-| Acting on a process change | medium | complexity | prose: 67 words |
+| Acting on a process change | medium | complexity | prose: 69 words |
 | Choosing what goes on that ladder | medium | complexity | prose: 82 words |
 | Landing a rule anywhere on the ladder | high | correctness | prose: 64 words |
 | Building a mechanism for a behavior | medium | complexity | prose: 18 words |
@@ -31,8 +31,6 @@ The baseline pack — the `RULES.md` prose every session loads (injected by the 
 | Searching for a tool with ToolSearch | medium | complexity | prose: 57 words |
 | Calling Edit | low | complexity | prose: 39 words |
 | Calling Grep with a context flag | medium | complexity | prose: 51 words |
-| Needing exact text from the web | high | correctness | prose: 56 words |
-| Hitting a denied fetch | critical | legal | prose: 152 words |
 | Scheduling a wake-up with the harness | high | correctness | prose: 60 words |
 | Seeing a build, test or CI warning | medium | correctness | prose: 28 words |
 | Suppressing a warning | medium | complexity | prose: 74 words + check (`warning-suppression`) |
@@ -46,8 +44,6 @@ The baseline pack — the `RULES.md` prose every session loads (injected by the 
 | Naming a file, module, or symbol | low | complexity | prose: 22 words |
 | Referring to a value from two places | high | correctness | prose: 117 words + check (`shared-constants`) |
 | Writing a file that depends on another | medium | complexity | prose: 97 words |
-| Committing | medium | complexity | prose: 43 words |
-| Working with a generated file | high | correctness | prose: 64 words + check (`generated-merge-driver`) |
 | Depending on platform or runtime behaviour | high | correctness | prose: 31 words |
 | Optimising | high | correctness | prose: 53 words |
 | Needing a library for a narrow job | medium | complexity | prose: 27 words |
@@ -64,8 +60,12 @@ The baseline pack — the `RULES.md` prose every session loads (injected by the 
 | Working in a fresh checkout or sandbox | low | complexity | prose: 54 words |
 | Deciding where a config value lives | medium | complexity | prose: 69 words |
 | Handling a value that can be unknown | high | correctness | prose: 103 words |
-| Writing a check that scans the repo | high | correctness | prose: 170 words |
 | Writing a comment | low | complexity | prose: 93 words |
+
+Two rules are skills the guard forces for the files they concern: writing a check that scans the
+repo ([`writing-repo-scanning-checks`](skills/writing-repo-scanning-checks/SKILL.md), for any coded
+or declared check) and editing a `GENERATED` file
+([`working-with-generated-files`](skills/working-with-generated-files/SKILL.md)).
 
 ## Checks
 
@@ -87,3 +87,22 @@ The working-discipline rules with a deterministic signature. The world rules rea
 | `runnable-doc-commands` | high | correctness | check: blocking |
 | `task-lifecycle` | medium | complexity | check: blocking |
 | `squash-merge-history` | high | correctness | check: blocking |
+| `barrier` | high | complexity | check: blocking |
+| `schema-conformance` | high | correctness | check: blocking |
+| `untracked-test-file` | low | correctness | check: advisory |
+| `grep-context-without-content` | high | correctness | guard: blocking |
+| `generated-file-hand-edit` | high | correctness | guard: blocking |
+| `wakeup-without-prompt` | high | correctness | guard: blocking |
+| `pipe-tail-hides-exit` | low | complexity | guard: advisory |
+| `pkill-pattern-self-match` | low | correctness | guard: advisory |
+| `pull-request-without-closing-line` | medium | complexity | guard: advisory |
+| `github-list-without-fields` | low | complexity | guard: advisory |
+
+`barrier` is the one check a project has to configure before it does anything: it enforces a
+**directed folder-access graph** the repo declares on this pack's entry as `config.barriers.rules`,
+and a repo that declares none is silent rather than failing. [barriers.md](barriers.md) is the whole
+vocabulary — the rule forms, how a reference is resolved against the tree, the exception kinds, and
+how another pack ships a fixed barrier of its own as manifest data. It arrived here when the
+`barriers` pack was absorbed (#1681): no project ever chose that pack, it rode in on the baseline's
+`requires` closure, and a separate identity for a mechanism everyone already has bought only a
+second catalog row and an adoption question nobody had asked for.
