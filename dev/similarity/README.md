@@ -24,7 +24,7 @@ node dev/similarity/run.ts --methods lexical,embedding:bge-m3  # errors until th
 search index already does. Its report is the floor. Every other method is an adapter over
 a model port — `Embedder` from the ingestion ports for retrieval, `PairModel` or
 `ClauseModel` for judgment — and is wired in `resolveMethods` once the model is reachable
-(#27). Naming an unwired method is an error, not a skipped column.
+(#34). Naming an unwired method is an error, not a skipped column.
 
 **The sample set is fictional**, like every fixture in this repository. A number read off
 it says the harness works, and nothing about any model. The real set is §5.1 of the
