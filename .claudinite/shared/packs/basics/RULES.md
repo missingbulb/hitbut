@@ -23,9 +23,9 @@
 
 - **Acting on a process change** — the owner is changing *how* work is done. Land it as durable
   rules in the project's local scope, its own local packs (in Claudinite itself, its packs), routed
-  through the mechanism promotion ladder (platform setting → hook → check → skill → prose).
-  Promoting a rule into the shared canon is the growth lifecycle's separate call, not the
-  interactive session's.
+  through the mechanism promotion ladder (platform setting → schema → hook → check → skill
+  → prose). Promoting a rule into the shared canon is the growth lifecycle's separate call, not
+  the interactive session's.
 
 - **Choosing what goes on that ladder** — only a rule that constrains *how work is done* and
   outlives any one feature; a checkable signature doesn't earn a rule its place. Reject two shapes
@@ -131,22 +131,6 @@
   list, never the lines you asked for, with no error to catch it. Pass `output_mode: "content"`
   in the same call as any context flag.
 
-- **Needing exact text from the web** — a summarizing fetch tool is not a source; when the bytes
-  matter, `curl` into the scratchpad and read from disk. On a `403` don't retry and don't try a
-  sibling URL — attribute the search snippet to the publisher instead of asserting it, and mark it
-  for re-verification.
-
-- **Hitting a sandbox or proxy that denies a fetch** — treat it as a **policy boundary, not an
-  obstacle to route around**: don't reach for an open-network runner, an ad-hoc CI workflow or a
-  push-triggered "probe", to make the request from somewhere the policy doesn't apply. Answer from
-  committed reference material or ask the owner, and say plainly that anything unverifiable is
-  unverified. Recognize a fetch tool's own signal for a domain-wide **egress block** (e.g. an
-  explicit `EGRESS_BLOCKED` error) rather than reading it as an ordinary publisher `403` — a block
-  is domain-wide, so working down a list of alternate sources for the same fact spends the same
-  denial again on each one, where a `403` is at least per-site. And never file the gap as
-  "re-verify next pass": no later agent pass can close a policy-level block either, so mark it as
-  needing a human or an unblocked environment instead.
-
 - **Scheduling a wake-up with the harness** — pass `prompt`, the instruction the woken turn is to
   act on, on any call that isn't `stop: true`; a no-op flag and a stated `reason` do not exempt it,
   and the call is rejected without it. A rejection leaves no fallback armed, which is what the
@@ -238,16 +222,6 @@ For every new task:
   change — B's cadence, B's file layout, the reasoning behind how B works — is B's detail, not
   A's, and doesn't belong in A even as color.
 
-- **Committing** — one concern per commit: if two changes could each stand alone, split them, and
-  a message that wants numbered items is the split talking. Once a commit has landed, revise with a
-  new commit, never a rewrite of that one.
-
-- **Working with a file a test or tool generates** — put `GENERATED` in its name, and don't
-  hand-edit it; change the generator. Never resolve its merge conflict by hand: clear the markers
-  with either side, re-run the generator against the merged inputs, and commit that output. Consider
-  automating the clear with a `merge=ours` `.gitattributes` entry, and `git rerere` for a conflict
-  that recurs.
-
 - **Writing code that depends on how a platform or runtime behaves** — verify that behaviour
   against authoritative docs or a real run, not a comment or a prior commit's claim.
 
@@ -327,23 +301,9 @@ For every new task:
   close, and where two fields claim the same fact, let each mean what its own source said and leave
   the call to the consumer.
 
-- **Writing a check that scans the repo** — take the file set from `git ls-files` rather than a
-  filesystem walk with paths to skip, and remember a brand-new file is untracked until you add it,
-  so a green run isn't coverage of it. When scanning for a forbidden token, strip comments first so
-  it matches code, not prose — string-aware, since a `//` inside a URL is not a comment. Reuse
-  `stripComments` from
-  [`engine/checks/helpers/code-scanning.mjs`](../../engine/checks/helpers/code-scanning.mjs); if the
-  scan can't import it, inline the same pass and point a comment back at that source. Strip in
-  **both** directions — a comment that documents or warns about the banned pattern is exactly
-  where a naive check trips over its own reasoning, so a commented-out instance must not count as
-  present either. And prove the check silent against the repo's own **real** sources, not only a
-  synthetic clean fixture — a fixture spelling the same gap the check has just keeps proving the
-  matching, and only a real-tree run can disagree with you.
-
 - **Writing a comment** — carry the why, or a cross-file relationship the code can't state itself;
   if the code plus a known convention already says it, write nothing. Describe the current state,
   never the edit that produced it: don't explain the change you just made, and don't note what was
   removed or renamed. If a comment narrates a past fix, keep only the part still true of the code in
   front of you. When it must name a path, spell that path in one canonical place and point every
   other mention there.
-
