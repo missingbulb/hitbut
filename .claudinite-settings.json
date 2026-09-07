@@ -4,10 +4,7 @@
     {
       "id": "basics",
       "version": "60906.13",
-      "via": [
-        "claudinite-lifecycle",
-        "product-wiki"
-      ],
+      "via": [],
       "config": {
         "barriers": {
           "rules": [
@@ -109,6 +106,10 @@
     {
       "id": "claudinite-tasks",
       "version": "60907.2"
+    },
+    {
+      "id": "cloudflare-workers",
+      "version": "60906.1"
     }
   ],
   "taskScheduler": {
