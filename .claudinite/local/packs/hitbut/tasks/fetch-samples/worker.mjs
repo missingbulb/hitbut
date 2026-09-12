@@ -61,7 +61,13 @@ async function main() {
     process.exit(1);
   }
 
-  const porcelain = execFileSync('git', ['status', '--porcelain', '--', 'dev/samples'], { cwd: root, encoding: 'utf8' });
+  // `--untracked-files=all` is load-bearing: the default collapses an untracked directory
+  // into a single entry for the directory itself, and the payloads land in one — so the
+  // delivery would be handed a directory to read instead of the files inside it.
+  const porcelain = execFileSync('git', ['status', '--porcelain', '--untracked-files=all', '--', 'dev/samples'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
   const paths = changedPaths(porcelain);
   if (paths.length === 0) {
     // Every candidate was already saved: the work ran and found nothing to deliver.
